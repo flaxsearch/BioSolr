@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.util;
+package uk.co.flax.biosolr.ontology.indexer;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,10 +164,10 @@ public class OWLIndexer {
 
 
                 anno.setUri(owlClass.getIRI().toString());
-                anno.setShortFrom(sfp.getShortForm(owlClass));
-                anno.setLabel(getClassRDFSLabels(owlClass, efo));
-                anno.setSynonym(getClassSynonyms(owlClass, efo));
-                anno.setDescription(getClassDescriptions(owlClass, efo));
+                anno.setShortForm(sfp.getShortForm(owlClass));
+                anno.setLabel(new ArrayList<String>(getClassRDFSLabels(owlClass, efo)));
+                anno.setSynonym(new ArrayList<String>(getClassSynonyms(owlClass, efo)));
+                anno.setDescription(new ArrayList<String>(getClassDescriptions(owlClass, efo)));
                 // TODO: To join, need a unique integer for each annotation
                 String annoId = generateAnnotationId(owlClass.getIRI().toString());
                 int uriKey = annoId.hashCode(); 

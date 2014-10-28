@@ -8,21 +8,21 @@
 	<name>BioSolr root project</name>
 
 	<modules>
-		<module>spot-ontology</module>
 		<module>spot-ontology-api</module>
-		<module>spot-ontology-webapp</module>
+        <module>spot-ontology-indexer</module>
+        <module>spot-ontology-webapp</module>
 	</modules>
 
-	<properties>
-		<!-- use UTF-8 for everything -->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<!-- Solr version -->
-		<solr-version>4.10.1</solr-version>
-		<!-- Dropwizard version -->
-		<dropwizard-version>0.7.1</dropwizard-version>
-	</properties>
-	
+    <properties>
+        <!-- use UTF-8 for everything -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- Solr version -->
+        <solr-version>4.10.1</solr-version>
+        <!-- Dropwizard version -->
+        <dropwizard-version>0.7.1</dropwizard-version>
+    </properties>
+    
 	<build>
 		<plugins>
 			<plugin>

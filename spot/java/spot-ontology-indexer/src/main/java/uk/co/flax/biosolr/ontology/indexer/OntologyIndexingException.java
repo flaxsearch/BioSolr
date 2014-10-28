@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.ontology.util;
+package uk.co.flax.biosolr.ontology.indexer;
 
 /**
  * Copyright ${year} EMBL - European Bioinformatics Institute
