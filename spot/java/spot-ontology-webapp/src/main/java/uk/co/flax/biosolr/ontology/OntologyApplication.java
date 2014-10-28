@@ -15,7 +15,11 @@
  */
 package uk.co.flax.biosolr.ontology;
 
+import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.IndexResource;
+import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
+import uk.co.flax.biosolr.ontology.search.OntologySearch;
+import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -32,8 +36,15 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 
 	@Override
 	public void run(OntologyConfiguration configuration, Environment environment) throws Exception {
+		// Create the ontolgy search engine
+		OntologySearch ontologySearch = new SolrOntologySearch(configuration.getSolr()); 
+		
 		// Add resources
 		environment.jersey().register(new IndexResource());
+		environment.jersey().register(new OntologySearchResource(ontologySearch));
+		
+		// Add healthchecks
+		environment.healthChecks().register("ontology", new SolrHealthCheck(ontologySearch));
 	}
 	
 	public static void main(String[] args) throws Exception {

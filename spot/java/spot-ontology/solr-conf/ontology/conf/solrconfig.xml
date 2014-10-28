@@ -919,6 +919,29 @@
      </lst>
   </requestHandler>
 
+  <!-- Default ontology search handler -->
+  <requestHandler name="/ontologySearch" class="solr.SearchHandler">
+     <lst name="defaults">
+       <str name="echoParams">explicit</str>
+
+       <!-- Query settings -->
+       <str name="defType">edismax</str>
+       <str name="qf">
+          short_form label synonyms description
+       </str>
+       <str name="df">text</str>
+       <str name="mm">75%</str>
+       <str name="q.alt">*:*</str>
+       <str name="rows">10</str>
+       <str name="fl">*,score</str>
+     </lst>
+
+     <!-- append spellchecking to our list of components -->
+     <arr name="last-components">
+       <str>spellcheck</str>
+     </arr>
+  </requestHandler>
+
  
   <!-- A Robust Example 
        

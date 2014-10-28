@@ -9,7 +9,7 @@ server:
 # Logging
 logging:
 
-  level: WARN
+  level: INFO
 
   loggers:
     # Set info logging for Flax code
@@ -19,7 +19,7 @@ logging:
 
     # Set up console logging  
     - type: console
-      threshold: WARN
+      threshold: ALL
       target: stderr
       
     # Set up file logging
@@ -50,4 +50,16 @@ logging:
   
       # The maximum number of log files to archive.
       archivedFileCount: 5
-    
+
+# Solr configuration    
+solr:
+  
+  # The URL for the Ontology Solr core
+  ontologyUrl: "http://localhost:8983/solr/ontology"
+  
+  # The default ontology search request handler
+  ontologyRequestHandler: "/ontologySearch"
+  
+  # The URL for the Document Solr core
+  documentUrl: "http://localhost:8983/solr/documents"
+

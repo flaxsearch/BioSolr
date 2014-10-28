@@ -13,25 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology;
+package uk.co.flax.biosolr.ontology.config;
 
-import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.dropwizard.Configuration;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
+ * Configuration for the Solr search engines.
+ * 
  * @author Matt Pearce
- *
  */
-public class OntologyConfiguration extends Configuration {
+public class SolrConfiguration {
 	
-	@JsonProperty("solr")
-	private SolrConfiguration solr;
+	@NotNull @Valid
+	private String ontologyUrl;
 	
-	public SolrConfiguration getSolr() {
-		return solr;
+	private String ontologyRequestHandler;
+	
+	@NotNull @Valid
+	private String documentUrl;
+	
+	public String getOntologyUrl() {
+		return ontologyUrl;
 	}
 	
+	public String getOntologyRequestHandler() {
+		return ontologyRequestHandler;
+	}
+	
+	public String getDocumentUrl() {
+		return documentUrl;
+	}
+
 }

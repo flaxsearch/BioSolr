@@ -57,7 +57,17 @@
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
-			<version>0.7.1</version>
+			<version>${dropwizard-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.flax</groupId>
+			<artifactId>spot-ontology-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+			<version>${solr-version}</version>
 		</dependency>
 	</dependencies>
 </project>

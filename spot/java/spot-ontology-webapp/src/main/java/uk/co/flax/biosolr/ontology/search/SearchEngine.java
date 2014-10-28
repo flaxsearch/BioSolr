@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology;
-
-import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.dropwizard.Configuration;
+package uk.co.flax.biosolr.ontology.search;
 
 /**
  * @author Matt Pearce
- *
  */
-public class OntologyConfiguration extends Configuration {
+public interface SearchEngine {
 	
-	@JsonProperty("solr")
-	private SolrConfiguration solr;
-	
-	public SolrConfiguration getSolr() {
-		return solr;
-	}
-	
+	/**
+	 * Check whether the search engine is ready.
+	 * @return <code>true</code> if the search engine is available.
+	 */
+	public boolean isSearchEngineReady();
+
 }

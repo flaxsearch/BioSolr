@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology;
-
-import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.dropwizard.Configuration;
+package uk.co.flax.biosolr.ontology.search;
 
 /**
+ * General exception class for reporting search engine issues.
+ * 
  * @author Matt Pearce
- *
  */
-public class OntologyConfiguration extends Configuration {
+public class SearchEngineException extends Exception {
+
+	private static final long serialVersionUID = 1L;
 	
-	@JsonProperty("solr")
-	private SolrConfiguration solr;
+	public SearchEngineException(String msg) {
+		super(msg);
+	}
 	
-	public SolrConfiguration getSolr() {
-		return solr;
+	public SearchEngineException(Throwable t) {
+		super(t);
+	}
+	
+	public SearchEngineException(String msg, Throwable t) {
+		super(msg, t);
 	}
 	
 }
