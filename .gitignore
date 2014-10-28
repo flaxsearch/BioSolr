@@ -1,0 +1,15 @@
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
+
+# Eclipse project files
+.project
+.classpath
+.settings
+.pydevproject
+
+# Maven files
+dependency-reduced-pom.xml
+
+.DS_Store
