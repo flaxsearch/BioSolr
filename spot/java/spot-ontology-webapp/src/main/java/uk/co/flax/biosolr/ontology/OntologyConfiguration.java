@@ -27,8 +27,15 @@ import io.dropwizard.Configuration;
  */
 public class OntologyConfiguration extends Configuration {
 	
+	@JsonProperty
+	private String urlPattern;
+	
 	@JsonProperty("solr")
 	private SolrConfiguration solr;
+	
+	public String getUrlPattern() {
+		return urlPattern;
+	}
 	
 	public SolrConfiguration getSolr() {
 		return solr;

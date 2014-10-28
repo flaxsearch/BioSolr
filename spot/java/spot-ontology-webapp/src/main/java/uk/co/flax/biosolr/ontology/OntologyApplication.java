@@ -15,27 +15,32 @@
  */
 package uk.co.flax.biosolr.ontology;
 
+import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
-import uk.co.flax.biosolr.ontology.resources.IndexResource;
 import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
 import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
-import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 
 /**
- * @author Matt Pearce
+ * The main application class for the Ontology web application.
  * 
+ * @author Matt Pearce
  */
 public class OntologyApplication extends Application<OntologyConfiguration> {
 
 	@Override
 	public void initialize(Bootstrap<OntologyConfiguration> bootstrap) {
+		// Add bundle for static asset directories
+		bootstrap.addBundle(new AssetsBundle("/static", "/", "index.html", "static"));
+		// Add webjars AssetsBundle, to include bootstrap, etc.
+	    bootstrap.addBundle(new AssetsBundle("/META-INF/resources/webjars", "/webjars", null, "webjars"));
 	}
 
 	@Override
@@ -45,8 +50,10 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		// Create the document search engine
 		DocumentSearch documentSearch = new SolrDocumentSearch(configuration.getSolr());
 		
+		// If you don't set the URL pattern, the AssetsBundle defined above don't work!
+		environment.jersey().setUrlPattern(configuration.getUrlPattern());
+		
 		// Add resources
-		environment.jersey().register(new IndexResource());
 		environment.jersey().register(new OntologySearchResource(ontologySearch));
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
 		environment.jersey().register(new SearchResource(ontologySearch, documentSearch, configuration.getSolr()));

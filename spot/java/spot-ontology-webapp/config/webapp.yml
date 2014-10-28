@@ -6,6 +6,10 @@ server:
     - type: http
       port: 8081
       
+# The URL path from which resources should be served.
+# Without this, it is impossible to serve static files from /
+urlPattern: /service
+      
 # Logging
 logging:
 
