@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
-import uk.co.flax.biosolr.ontology.api.OntologyResponse;
+import uk.co.flax.biosolr.ontology.api.SearchResponse;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
@@ -48,15 +48,15 @@ public class OntologySearchResource {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public OntologyResponse search(@QueryParam("q") String query, @QueryParam("start") int start, @QueryParam("rows") int rows) {
-		OntologyResponse response;
+	public SearchResponse<EFOAnnotation> search(@QueryParam("q") String query, @QueryParam("start") int start, @QueryParam("rows") int rows) {
+		SearchResponse<EFOAnnotation> response;
 		
 		try {
 			ResultsList<EFOAnnotation> results = search.searchOntology(query, start, rows);
-			response = new OntologyResponse(results.getResults(), start, rows, results.getNumResults());
+			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown searching ontologies: {}", e.getMessage());
-			response = new OntologyResponse(e.getMessage());
+			response = new SearchResponse<>(e.getMessage());
 		}
 		
 		return response;

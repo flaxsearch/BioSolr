@@ -20,9 +20,9 @@ import java.util.List;
 /**
  * @author Matt Pearce
  */
-public class OntologyResponse {
-	
-	private final List<EFOAnnotation> results;
+public class SearchResponse<T> {
+
+	private final List<T> results;
 	
 	private final int start;
 	
@@ -32,7 +32,7 @@ public class OntologyResponse {
 	
 	private final String error;
 	
-	public OntologyResponse(List<EFOAnnotation> results, int start, int rows, long total, String err) {
+	public SearchResponse(List<T> results, int start, int rows, long total, String err) {
 		this.results = results;
 		this.start = start;
 		this.rows = rows;
@@ -40,18 +40,18 @@ public class OntologyResponse {
 		this.error = err;
 	}
 	
-	public OntologyResponse(List<EFOAnnotation> results, int start, int rows, long total) {
+	public SearchResponse(List<T> results, int start, int rows, long total) {
 		this(results, start, rows, total, null);
 	}
-
-	public OntologyResponse(String err) {
+	
+	public SearchResponse(String err) {
 		this(null, 0, 0, -1, err);
 	}
 
 	/**
 	 * @return the results
 	 */
-	public List<EFOAnnotation> getResults() {
+	public List<T> getResults() {
 		return results;
 	}
 
@@ -82,5 +82,5 @@ public class OntologyResponse {
 	public String getError() {
 		return error;
 	}
-
+	
 }
