@@ -37,6 +37,8 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSearch {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrDocumentSearch.class);
+	
+	private static final String EFO_URI_FIELD = "efo_uri";
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -76,8 +78,38 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 
 	@Override
 	public ResultsList<Document> searchByEfoUri(int start, int rows, String... uris) throws SearchEngineException {
-		// TODO Auto-generated method stub
-		return null;
+		ResultsList<Document> results = null;
+		
+		try {
+			SolrQuery query = new SolrQuery();
+			query.addFilterQuery(EFO_URI_FIELD + ":" + buildUriFilter(uris));
+			query.setStart(start);
+			query.setRows(rows);
+			query.setRequestHandler(config.getDocumentUriRequestHandler());
+
+			QueryResponse response = server.query(query);
+			List<Document> docs = response.getBeans(Document.class);
+			results = new ResultsList<>(docs, start, (start / rows), response.getResults().getNumFound());
+		} catch (SolrServerException e) {
+			throw new SearchEngineException(e);
+		}
+		
+		return results;
+	}
+	
+	private String buildUriFilter(String... uris) {
+		StringBuilder builder = new StringBuilder();
+		int count = 0;
+		
+		for (String uri : uris) {
+			if (count > 0) {
+				builder.append(" OR ");
+			}
+			builder.append('"').append(uri).append('"');
+			count ++;
+		}
+		
+		return builder.toString();
 	}
 
 }

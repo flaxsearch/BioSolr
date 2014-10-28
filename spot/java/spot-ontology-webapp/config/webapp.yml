@@ -69,3 +69,5 @@ solr:
   # The request handler for searching documents (by URI)
   documentUriRequestHandler: "/uriSearch"
   
+  # The maximum number of ontology terms to retrieve
+  ontologyTermCount: 3

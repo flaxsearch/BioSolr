@@ -37,6 +37,8 @@ public class SolrConfiguration {
 	
 	private String documentUriRequestHandler;
 	
+	private int ontologyTermCount;
+	
 	public String getOntologyUrl() {
 		return ontologyUrl;
 	}
@@ -61,6 +63,13 @@ public class SolrConfiguration {
 	 */
 	public String getDocumentUriRequestHandler() {
 		return documentUriRequestHandler;
+	}
+
+	/**
+	 * @return the ontologyTermCount
+	 */
+	public int getOntologyTermCount() {
+		return ontologyTermCount;
 	}
 
 }

@@ -19,6 +19,7 @@ import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
 import uk.co.flax.biosolr.ontology.resources.IndexResource;
 import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
+import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
@@ -48,6 +49,7 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		environment.jersey().register(new IndexResource());
 		environment.jersey().register(new OntologySearchResource(ontologySearch));
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
+		environment.jersey().register(new SearchResource(ontologySearch, documentSearch, configuration.getSolr()));
 		
 		// Add healthchecks
 		environment.healthChecks().register("solr-ontology", new SolrHealthCheck(ontologySearch));

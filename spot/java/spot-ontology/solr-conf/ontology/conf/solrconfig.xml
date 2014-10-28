@@ -927,7 +927,7 @@
        <!-- Query settings -->
        <str name="defType">edismax</str>
        <str name="qf">
-          short_form label synonyms description
+          label^2.0 synonyms description^0.5
        </str>
        <str name="df">text</str>
        <str name="mm">75%</str>
