@@ -1,0 +1,53 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+      
+# Logging
+logging:
+
+  level: WARN
+
+  loggers:
+    # Set info logging for Flax code
+    "uk.co.flax": DEBUG
+    
+  appenders:
+
+    # Set up console logging  
+    - type: console
+      threshold: WARN
+      target: stderr
+      
+    # Set up file logging
+  
+    # Settings for logging to a file.
+    - type: file
+  
+      # Do not write log statements below this threshold to the file.
+      threshold: ALL
+  
+      # The time zone in which dates should be displayed.
+      timeZone: UTC
+  
+      # A custom Logback format string.
+      logFormat: null
+  
+      # The file to which statements will be logged.
+      #
+      # If enabled is true, this must be specified.
+      currentLogFilename: logs/ontology-webapp.log
+  
+      # When the log file rolls over, the file will be archived to
+      # app-2012-03-15.log.gz, example.log will be truncated,
+      # and new statements written to it.
+      #
+      # If archive is true, this must be specified.
+      archivedLogFilenamePattern: logs/ontology-webapp-%d.log.gz
+  
+      # The maximum number of log files to archive.
+      archivedFileCount: 5
+    

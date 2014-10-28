@@ -9,6 +9,8 @@
 
 	<modules>
 		<module>spot-ontology</module>
+		<module>spot-ontology-api</module>
+		<module>spot-ontology-webapp</module>
 	</modules>
 
 	<properties>
