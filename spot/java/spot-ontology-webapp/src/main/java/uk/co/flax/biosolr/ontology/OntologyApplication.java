@@ -16,10 +16,13 @@
 package uk.co.flax.biosolr.ontology;
 
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
+import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
 import uk.co.flax.biosolr.ontology.resources.IndexResource;
 import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
+import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
+import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -37,14 +40,18 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 	@Override
 	public void run(OntologyConfiguration configuration, Environment environment) throws Exception {
 		// Create the ontolgy search engine
-		OntologySearch ontologySearch = new SolrOntologySearch(configuration.getSolr()); 
+		OntologySearch ontologySearch = new SolrOntologySearch(configuration.getSolr());
+		// Create the document search engine
+		DocumentSearch documentSearch = new SolrDocumentSearch(configuration.getSolr());
 		
 		// Add resources
 		environment.jersey().register(new IndexResource());
 		environment.jersey().register(new OntologySearchResource(ontologySearch));
+		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
 		
 		// Add healthchecks
-		environment.healthChecks().register("ontology", new SolrHealthCheck(ontologySearch));
+		environment.healthChecks().register("solr-ontology", new SolrHealthCheck(ontologySearch));
+		environment.healthChecks().register("solr-documents", new SolrHealthCheck(documentSearch));
 	}
 	
 	public static void main(String[] args) throws Exception {

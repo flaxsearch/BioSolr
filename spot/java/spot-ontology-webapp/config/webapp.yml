@@ -62,4 +62,10 @@ solr:
   
   # The URL for the Document Solr core
   documentUrl: "http://localhost:8983/solr/documents"
-
+  
+  # The request handler for searching documents (by string)
+  documentRequestHandler: "/documentSearch"
+  
+  # The request handler for searching documents (by URI)
+  documentUriRequestHandler: "/uriSearch"
+  

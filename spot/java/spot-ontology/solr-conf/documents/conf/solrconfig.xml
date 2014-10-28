@@ -919,7 +919,42 @@
      </lst>
   </requestHandler>
 
- 
+  <!-- Document-specific search handler -->
+  <requestHandler name="/documentSearch" class="solr.SearchHandler">
+     <lst name="defaults">
+       <str name="echoParams">explicit</str>
+
+       <!-- Query settings -->
+       <str name="defType">edismax</str>
+       <str name="qf">
+          title first_author publication
+       </str>
+       <str name="df">text</str>
+       <str name="mm">75%</str>
+       <str name="q.alt">*:*</str>
+       <str name="rows">10</str>
+       <str name="fl">*,score</str>
+     </lst>
+  </requestHandler>
+
+  <!-- Document-specific search handler -->
+  <requestHandler name="/uriSearch" class="solr.SearchHandler">
+     <lst name="defaults">
+       <str name="echoParams">explicit</str>
+
+       <!-- Query settings -->
+       <str name="defType">edismax</str>
+       <str name="qf">
+          title first_author publication
+       </str>
+       <str name="df">text</str>
+       <str name="mm">75%</str>
+       <str name="q.alt">*:*</str>
+       <str name="rows">10</str>
+       <str name="fl">*,score</str>
+     </lst>
+  </requestHandler>
+
   <!-- A Robust Example 
        
        This example SearchHandler declaration shows off usage of the

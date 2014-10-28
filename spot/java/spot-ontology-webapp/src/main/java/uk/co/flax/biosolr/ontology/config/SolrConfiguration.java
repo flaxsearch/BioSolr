@@ -33,6 +33,10 @@ public class SolrConfiguration {
 	@NotNull @Valid
 	private String documentUrl;
 	
+	private String documentRequestHandler;
+	
+	private String documentUriRequestHandler;
+	
 	public String getOntologyUrl() {
 		return ontologyUrl;
 	}
@@ -43,6 +47,20 @@ public class SolrConfiguration {
 	
 	public String getDocumentUrl() {
 		return documentUrl;
+	}
+
+	/**
+	 * @return the documentRequestHandler
+	 */
+	public String getDocumentRequestHandler() {
+		return documentRequestHandler;
+	}
+
+	/**
+	 * @return the documentUriRequestHandler
+	 */
+	public String getDocumentUriRequestHandler() {
+		return documentUriRequestHandler;
 	}
 
 }

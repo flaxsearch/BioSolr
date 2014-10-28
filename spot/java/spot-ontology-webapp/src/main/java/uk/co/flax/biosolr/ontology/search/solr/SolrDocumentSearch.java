@@ -25,27 +25,25 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
+import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
-import uk.co.flax.biosolr.ontology.search.OntologySearch;
+import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
- * Solr implementation of the Ontology search engine.
- * 
  * @author Matt Pearce
  */
-public class SolrOntologySearch extends SolrSearchEngine implements OntologySearch {
+public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSearch {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SolrOntologySearch.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SolrDocumentSearch.class);
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
-
-	public SolrOntologySearch(SolrConfiguration config) {
+	
+	public SolrDocumentSearch(SolrConfiguration config) {
 		this.config = config;
-		this.server = new HttpSolrServer(config.getOntologyUrl());
+		this.server = new HttpSolrServer(config.getDocumentUrl());
 	}
 	
 	protected SolrServer getServer() {
@@ -57,23 +55,29 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	}
 
 	@Override
-	public ResultsList<EFOAnnotation> searchOntology(String term, int start, int rows) throws SearchEngineException {
-		ResultsList<EFOAnnotation> results = null;
+	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException {
+		ResultsList<Document> results = null;
 		
 		try {
 			SolrQuery query = new SolrQuery(term);
 			query.setStart(start);
 			query.setRows(rows);
-			query.setRequestHandler(config.getOntologyRequestHandler());
-			
+			query.setRequestHandler(config.getDocumentRequestHandler());
+
 			QueryResponse response = server.query(query);
-			List<EFOAnnotation> annotations = response.getBeans(EFOAnnotation.class);
-			results = new ResultsList<>(annotations, rows, (start / rows), response.getResults().getNumFound());
+			List<Document> docs = response.getBeans(Document.class);
+			results = new ResultsList<>(docs, start, (start / rows), response.getResults().getNumFound());
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
 		
 		return results;
+	}
+
+	@Override
+	public ResultsList<Document> searchByEfoUri(int start, int rows, String... uris) throws SearchEngineException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
