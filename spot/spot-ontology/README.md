@@ -1,0 +1,19 @@
+# SPOT Ontology applications
+
+This is the top-level folder for the SPOT Ontology applications. The various subdirectories
+can be broken down by functionality:
+
+* `solr-conf` contains the Solr configuration for both the ontology and
+document indexes. Note that the data directories are in the Git ignore file,
+so it should not be possible to accidentally add them to the repository.
+* `spot-ontology-api` contains Java classes common to both the indexers and
+web application.
+* `spot-ontology-indexer` contains the indexers. These are fairly basic
+Java applications for reading the Ontology and document data and pushing it into
+Solr.
+* `spot-ontology-webapp` contains a DropWizard web application, providing
+both an API for searching across the document data, and a simple front-end.
+
+The whole project can be built at this level using maven. The web application
+will build a fat jar, containing all the files required to run it in a
+standalone environment, except for the server configuration details.
