@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>uk.co.flax</groupId>
-		<artifactId>spot</artifactId>
+		<artifactId>spot-ontology</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	
