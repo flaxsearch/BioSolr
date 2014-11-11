@@ -37,21 +37,23 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSearch {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrDocumentSearch.class);
-	
+
 	private static final String EFO_URI_FIELD = "efo_uri";
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
-	
+
 	public SolrDocumentSearch(SolrConfiguration config) {
 		this.config = config;
 		this.server = new HttpSolrServer(config.getDocumentUrl());
 	}
-	
+
+	@Override
 	protected SolrServer getServer() {
 		return server;
 	}
-	
+
+	@Override
 	protected Logger getLogger() {
 		return LOGGER;
 	}
@@ -59,7 +61,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	@Override
 	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException {
 		ResultsList<Document> results = null;
-		
+
 		try {
 			SolrQuery query = new SolrQuery(term);
 			query.setStart(start);
@@ -72,16 +74,16 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
-		
+
 		return results;
 	}
 
 	@Override
-	public ResultsList<Document> searchByEfoUri(int start, int rows, String... uris) throws SearchEngineException {
+	public ResultsList<Document> searchByEfoUri(int start, int rows, String term, String... uris) throws SearchEngineException {
 		ResultsList<Document> results = null;
-		
+
 		try {
-			SolrQuery query = new SolrQuery();
+			SolrQuery query = new SolrQuery(term);
 			query.addFilterQuery(EFO_URI_FIELD + ":" + buildUriFilter(uris));
 			query.setStart(start);
 			query.setRows(rows);
@@ -93,14 +95,14 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
-		
+
 		return results;
 	}
-	
+
 	private String buildUriFilter(String... uris) {
 		StringBuilder builder = new StringBuilder();
 		int count = 0;
-		
+
 		for (String uri : uris) {
 			if (count > 0) {
 				builder.append(" OR ");
@@ -108,7 +110,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			builder.append('"').append(uri).append('"');
 			count ++;
 		}
-		
+
 		return builder.toString();
 	}
 

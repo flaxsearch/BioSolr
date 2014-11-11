@@ -41,25 +41,25 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
  */
 @Path("/search")
 public class SearchResource {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
-	
+
 	private final OntologySearch ontology;
 	private final DocumentSearch documents;
 	private final SolrConfiguration solrConfig;
-	
+
 	public SearchResource(OntologySearch ont, DocumentSearch doc, SolrConfiguration solrConfig) {
 		this.ontology = ont;
 		this.documents = doc;
 		this.solrConfig = solrConfig;
 	}
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
 			@QueryParam("rows") int rows) {
 		SearchResponse<Document> response;
-		
+
 		try {
 			ResultsList<EFOAnnotation> annotationResults = ontology.searchOntology(query, 0, solrConfig.getOntologyTermCount());
 			if (annotationResults.getNumResults() == 0) {
@@ -70,15 +70,15 @@ public class SearchResource {
 				for (EFOAnnotation ann : annotationResults.getResults()) {
 					uris.add(ann.getUri());
 				}
-				
-				ResultsList<Document> results = documents.searchByEfoUri(start, rows, uris.toArray(new String[uris.size()]));
+
+				ResultsList<Document> results = documents.searchByEfoUri(start, rows, query, uris.toArray(new String[uris.size()]));
 				response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 			}
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown during search: {}", e);
 			response = new SearchResponse<>(e.getMessage());
 		}
-		
+
 		return response;
 	}
 

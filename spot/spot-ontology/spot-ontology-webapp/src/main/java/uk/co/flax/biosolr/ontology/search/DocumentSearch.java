@@ -21,7 +21,7 @@ import uk.co.flax.biosolr.ontology.api.Document;
  * @author Matt Pearce
  */
 public interface DocumentSearch extends SearchEngine {
-	
+
 	/**
 	 * Search the documents for a particular term.
 	 * @param term the term to search.
@@ -31,7 +31,7 @@ public interface DocumentSearch extends SearchEngine {
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
 	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException;
-	
+
 	/**
 	 * Search the documents using one or more ontology URIs.
 	 * @param start the starting offset (0-indexed).
@@ -40,6 +40,6 @@ public interface DocumentSearch extends SearchEngine {
 	 * @return a results list wrapping the documents found.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<Document> searchByEfoUri(int start, int rows, String... uris) throws SearchEngineException;
+	public ResultsList<Document> searchByEfoUri(int start, int rows, String term, String... uris) throws SearchEngineException;
 
 }
