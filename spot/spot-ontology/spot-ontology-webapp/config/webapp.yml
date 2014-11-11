@@ -8,7 +8,7 @@ server:
       
 # The URL path from which resources should be served.
 # Without this, it is impossible to serve static files from /
-urlPattern: /service
+urlPattern: "/service/*"
       
 # Logging
 logging:
@@ -24,7 +24,7 @@ logging:
     # Set up console logging  
     - type: console
       threshold: ALL
-      target: stderr
+      target: stdout
       
     # Set up file logging
   

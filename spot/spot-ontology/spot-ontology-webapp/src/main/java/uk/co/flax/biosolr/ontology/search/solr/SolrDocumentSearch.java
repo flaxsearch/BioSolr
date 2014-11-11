@@ -83,11 +83,13 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		ResultsList<Document> results = null;
 
 		try {
-			SolrQuery query = new SolrQuery(term);
-			query.addFilterQuery(EFO_URI_FIELD + ":" + buildUriFilter(uris));
+			SolrQuery query = new SolrQuery(term + " OR " + EFO_URI_FIELD + ":" + buildUriFilter(uris));
+			// query.addFilterQuery(EFO_URI_FIELD + ":" + buildUriFilter(uris));
 			query.setStart(start);
 			query.setRows(rows);
 			query.setRequestHandler(config.getDocumentUriRequestHandler());
+
+			LOGGER.debug("Solr query: {}", query);
 
 			QueryResponse response = server.query(query);
 			List<Document> docs = response.getBeans(Document.class);

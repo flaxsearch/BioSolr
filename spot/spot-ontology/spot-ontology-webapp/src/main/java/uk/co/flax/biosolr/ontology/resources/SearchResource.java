@@ -60,6 +60,11 @@ public class SearchResource {
 			@QueryParam("rows") int rows) {
 		SearchResponse<Document> response;
 
+		// Default rows value if not set
+		if (rows == 0) {
+			rows = 10;
+		}
+
 		try {
 			ResultsList<EFOAnnotation> annotationResults = ontology.searchOntology(query, 0, solrConfig.getOntologyTermCount());
 			if (annotationResults.getNumResults() == 0) {

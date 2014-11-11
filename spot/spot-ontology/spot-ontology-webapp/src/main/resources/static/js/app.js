@@ -1,0 +1,1 @@
+var ontologyApp = angular.module('ontologyApp', []);
