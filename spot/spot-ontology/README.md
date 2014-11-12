@@ -17,3 +17,9 @@ both an API for searching across the document data, and a simple front-end.
 The whole project can be built at this level using maven. The web application
 will build a fat jar, containing all the files required to run it in a
 standalone environment, except for the server configuration details.
+
+### Running Solr
+
+There are example scripts for Bash and Windows to run Solr. You will need to change
+the `SOLR_DIR` variable to point to your local Solr install, and `SOLR_HOME` to
+point at the location of the `solr-conf` directory.
