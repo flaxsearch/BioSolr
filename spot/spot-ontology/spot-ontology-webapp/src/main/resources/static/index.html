@@ -12,16 +12,17 @@
         <script src="/js/controllers.js"></script>
 
         <link rel="stylesheet" href="/webjars/bootstrap/3.3.0/css/bootstrap.css" />
+        <link rel="stylesheet" href="/css/spot_ontology.css" />
     </head>
 
     <body ng-controller="OntologyPageCtrl">
     
         <div class="container">
     
-            <div class="row"><div class="col-md-10">
-                <form ng-submit="search()">
-                    <input type="text" ng-model="query" />
-                    <button type="submit">Submit</button>
+            <div class="row search_form"><div class="col-md-10">
+                <form ng-submit="search()" class="form-inline">
+                    <input type="text" ng-model="query" class="form-control" />
+                    <button type="submit" class="btn">Search</button>
                 </form>
             </div></div>
             
@@ -30,7 +31,7 @@
             </div></div>
             
             <div ng-show="results">
-                <div class="row"><div class="col-md-10">
+                <div class="row results_header"><div class="col-md-10">
                     Showing records {{ start }}-{{ end }} of {{ total }} results.
                 </div></div>
             
