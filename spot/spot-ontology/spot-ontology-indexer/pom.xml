@@ -60,13 +60,6 @@
             <artifactId>owlapi-distribution</artifactId>
             <version>3.5.0</version>
         </dependency>
-        <!-- 
-		<dependency>
-			<groupId>org.semanticweb.elk</groupId>
-			<artifactId>elk-owlapi</artifactId>
-			<version>0.4.1</version>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>

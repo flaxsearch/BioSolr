@@ -927,7 +927,7 @@
        <!-- Query settings -->
        <str name="defType">edismax</str>
        <str name="qf">
-          title first_author publication
+          title first_author publication efo_labels
        </str>
        <str name="df">text</str>
        <str name="mm">75%</str>

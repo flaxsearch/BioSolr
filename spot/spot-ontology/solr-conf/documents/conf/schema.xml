@@ -67,6 +67,10 @@
 	<field name="efo_uri" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="efo_uri_hash" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
+	
+    <field name="efo_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_parent_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />

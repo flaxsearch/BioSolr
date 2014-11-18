@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.api;
 
+import java.util.List;
+
 import org.apache.solr.client.solrj.beans.Field;
 
 /**
@@ -61,6 +63,15 @@ public class Document {
 	
 	@Field("uri_key")
 	private int uriKey;
+	
+	@Field("efo_labels")
+	private List<String> efoLabels;
+	
+	@Field("efo_parent_labels")
+	private List<String> parentLabels;
+	
+	@Field("efo_child_labels")
+	private List<String> childLabels;
 
 	/**
 	 * @return the gid
@@ -242,6 +253,48 @@ public class Document {
 	 */
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	/**
+	 * @return the uriLabel
+	 */
+	public List<String> getEfoLabels() {
+		return efoLabels;
+	}
+
+	/**
+	 * @param uriLabel the uriLabel to set
+	 */
+	public void setEfoLabels(List<String> uriLabels) {
+		this.efoLabels = uriLabels;
+	}
+
+	/**
+	 * @return the parentLabels
+	 */
+	public List<String> getParentLabels() {
+		return parentLabels;
+	}
+
+	/**
+	 * @param parentLabels the parentLabels to set
+	 */
+	public void setParentLabels(List<String> parentLabels) {
+		this.parentLabels = parentLabels;
+	}
+
+	/**
+	 * @return the childLabels
+	 */
+	public List<String> getChildLabels() {
+		return childLabels;
+	}
+
+	/**
+	 * @param childLabels the childLabels to set
+	 */
+	public void setChildLabels(List<String> childLabels) {
+		this.childLabels = childLabels;
 	}
 
 }
