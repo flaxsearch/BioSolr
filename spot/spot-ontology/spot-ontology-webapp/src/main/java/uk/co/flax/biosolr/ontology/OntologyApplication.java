@@ -56,7 +56,7 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		// Add resources
 		environment.jersey().register(new OntologySearchResource(ontologySearch));
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
-		environment.jersey().register(new SearchResource(ontologySearch, documentSearch, configuration.getSolr()));
+		environment.jersey().register(new SearchResource(documentSearch));
 		
 		// Add healthchecks
 		environment.healthChecks().register("solr-ontology", new SolrHealthCheck(ontologySearch));

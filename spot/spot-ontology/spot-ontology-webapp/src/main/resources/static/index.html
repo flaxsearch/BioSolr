@@ -40,7 +40,25 @@
                         <div class="col-md-1">{{ $index+1 }}.</div>
                         <div class="col-md-9">
                             <strong>{{ result.title }}</strong><br />
-                            {{result.firstAuthor}} - {{result.publication}}
+                            {{result.firstAuthor}} - {{result.publication}}<br />
+                            <div ng-show="result.efoLabels">
+                                <strong>EFO Label(s)</strong>:
+                                <span ng-repeat="label in result.efoLabels">
+                                    {{ label }}
+                                </span>
+                            </div>
+                            <div ng-show="result.childLabels">
+                                <strong>EFO children</strong>:
+                                <span ng-repeat="label in result.childLabels">
+                                    {{ label }}
+                                </span>
+                            </div>
+                            <div ng-show="result.parentLabels">
+                                <strong>EFO parent(s)</strong>:
+                                <span ng-repeat="label in result.parentLabels">
+                                    {{ label }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
