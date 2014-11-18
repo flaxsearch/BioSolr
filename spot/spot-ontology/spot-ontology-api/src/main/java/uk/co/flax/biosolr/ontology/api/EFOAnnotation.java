@@ -47,6 +47,12 @@ public class EFOAnnotation {
 	
 	@Field("description")
     private List<String> description;
+	
+	@Field("superclass_uris")
+	private List<String> superclassUris;
+	
+	@Field("subclass_uris")
+	private List<String> subclassUris;
 
     public EFOAnnotation() {
     }
@@ -144,5 +150,33 @@ public class EFOAnnotation {
 	 */
 	public void setIdKey(int idKey) {
 		this.idKey = idKey;
+	}
+
+	/**
+	 * @return the superclassUris
+	 */
+	public List<String> getSuperclassUris() {
+		return superclassUris;
+	}
+
+	/**
+	 * @param superclassUris the superclassUris to set
+	 */
+	public void setSuperclassUris(List<String> superclassUris) {
+		this.superclassUris = superclassUris;
+	}
+
+	/**
+	 * @return the subclassUris
+	 */
+	public List<String> getSubclassUris() {
+		return subclassUris;
+	}
+
+	/**
+	 * @param subclassUris the subclassUris to set
+	 */
+	public void setSubclassUris(List<String> subclassUris) {
+		this.subclassUris = subclassUris;
 	}
 }

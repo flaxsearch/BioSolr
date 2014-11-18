@@ -161,13 +161,14 @@ public class OWLIndexer {
                     }
                     synonymToClassMap.get(l.toLowerCase()).add(owlClass);
                 }
-
-
+                
                 anno.setUri(owlClass.getIRI().toString());
                 anno.setShortForm(sfp.getShortForm(owlClass));
                 anno.setLabel(new ArrayList<String>(getClassRDFSLabels(owlClass, efo)));
                 anno.setSynonym(new ArrayList<String>(getClassSynonyms(owlClass, efo)));
                 anno.setDescription(new ArrayList<String>(getClassDescriptions(owlClass, efo)));
+                anno.setSubclassUris(new ArrayList<String>(getSubClassUris(owlClass, efo)));
+                anno.setSuperclassUris(new ArrayList<String>(getSuperClassUris(owlClass, efo)));
                 // TODO: To join, need a unique integer for each annotation
                 String annoId = generateAnnotationId(owlClass.getIRI().toString());
                 int uriKey = annoId.hashCode(); 
@@ -285,6 +286,32 @@ public class OWLIndexer {
         }
 
         return classSynonyms;
+    }
+    
+    private Set<String> getSubClassUris(OWLClass owlClass, OWLOntology efo) {
+    	Set<String> subClasses = new HashSet<>();
+    	
+    	for (OWLClassExpression expr : owlClass.getSubClasses(efo)) {
+    		if (!expr.isAnonymous()) {
+    			String uri = expr.asOWLClass().getIRI().toURI().toString();
+    			subClasses.add(uri);
+    		}
+    	}
+    	
+    	return subClasses;
+    }
+
+    private Set<String> getSuperClassUris(OWLClass owlClass, OWLOntology efo) {
+    	Set<String> superClasses = new HashSet<>();
+    	
+    	for (OWLClassExpression expr : owlClass.getSuperClasses(efo)) {
+    		if (!expr.isAnonymous()) {
+    			String uri = expr.asOWLClass().getIRI().toURI().toString();
+    			superClasses.add(uri);
+    		}
+    	}
+    	
+    	return superClasses;
     }
 
     /**

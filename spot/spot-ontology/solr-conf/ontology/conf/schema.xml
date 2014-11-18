@@ -60,6 +60,9 @@
 	<field name="label" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="synonyms" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="description" type="text_general" indexed="true" stored="true" multiValued="true" />
+	
+	<field name="subclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="superclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
