@@ -57,20 +57,22 @@ public class BigQParser extends QParser {
 		if (qstr.length() == 0) {
 			//FIXME: stream request body
 			//TODO: use content types to determine how to parse content
-			StringBuffer s = new StringBuffer();
-			for (ContentStream content : req.getContentStreams()) {
-				try {
-			        BufferedReader reader = new BufferedReader(new InputStreamReader(content.getStream()));
-			        String line;
-			        while ((line = reader.readLine()) != null) {
-			            s.append(line);
-			        }
- 				} catch (IOException e) {
-					//FIXME: how does SOLR prefer this to be handled?
-					throw new RuntimeException(e);
+			if (req.getContentStreams() != null) {
+				StringBuffer s = new StringBuffer();
+				for (ContentStream content : req.getContentStreams()) {
+					try {
+				        BufferedReader reader = new BufferedReader(new InputStreamReader(content.getStream()));
+				        String line;
+				        while ((line = reader.readLine()) != null) {
+				            s.append(line);
+				        }
+	 				} catch (IOException e) {
+						//FIXME: how does SOLR prefer this to be handled?
+						throw new RuntimeException(e);
+					}
 				}
+				qstr = s.toString();
 			}
-			qstr = s.toString();
 		}
 		
 		BooleanQuery query = new BooleanQuery(true);
