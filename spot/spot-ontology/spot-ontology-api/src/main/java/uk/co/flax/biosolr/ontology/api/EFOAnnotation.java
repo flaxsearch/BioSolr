@@ -1,7 +1,9 @@
 package uk.co.flax.biosolr.ontology.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.client.solrj.beans.Field;
@@ -53,7 +55,10 @@ public class EFOAnnotation {
 	
 	@Field("subclass_uris")
 	private List<String> subclassUris;
-
+	
+	@Field("*_rel")
+	private Map<String, List<String>> relations = new HashMap<>();
+	
     public EFOAnnotation() {
     }
 
@@ -179,4 +184,19 @@ public class EFOAnnotation {
 	public void setSubclassUris(List<String> subclassUris) {
 		this.subclassUris = subclassUris;
 	}
+
+	/**
+	 * @return the relations
+	 */
+	public Map<String, List<String>> getRelations() {
+		return relations;
+	}
+
+	/**
+	 * @param relations the relations to set
+	 */
+	public void setRelations(Map<String, List<String>> relations) {
+		this.relations = relations;
+	}
+
 }

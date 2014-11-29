@@ -62,6 +62,7 @@
 	<field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />
 	<field name="snp" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="disease_trait" type="text_general" indexed="true" stored="true" multiValued="false" />
+    <field name="disease_trait_str" type="string" indexed="true" stored="false" multiValued="false" />
 	<field name="p_value" type="double" indexed="true" stored="true" multiValued="false" />
 
 	<field name="efo_uri" type="string" indexed="true" stored="true" multiValued="false" />
@@ -80,6 +81,8 @@
 
 	<!-- Field to use to determine and enforce document uniqueness. Unless this field is marked with required="false", it will be a required field -->
 	<uniqueKey>id</uniqueKey>
+	
+	<copyField source="disease_trait" dest="disease_trait_str" />
 
 
 	<!-- field type definitions. The "name" attribute is just a label to be used by field definitions. The "class" attribute and any other attributes 

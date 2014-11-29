@@ -21,9 +21,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,16 +43,28 @@ import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
+import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
+import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**
  * @author Matt Pearce
@@ -71,11 +85,14 @@ public class OWLIndexer {
     private String efoObsoleteClassURI = "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass";
     private String solrUrl = "http://localhost:8983/solr/ontology";
     
-    private SolrServer solrServer;
+    private final OWLReasonerFactory reasonerFactory;
+    
+    private final SolrServer solrServer;
 
 	public OWLIndexer(String props) throws IOException {
 		initialiseFromProperties(props);
 		this.solrServer = new HttpSolrServer(solrUrl);
+		this.reasonerFactory = new StructuralReasonerFactory();
 	}
 	
 	private void initialiseFromProperties(String propFilePath) throws IOException {
@@ -111,17 +128,18 @@ public class OWLIndexer {
 	
 	public void run() throws OWLOntologyCreationException, IOException, SolrServerException {
         // set property to make sure we can parse all of EFO
-        System.setProperty("entityExpansionLimit", "258000");
+        System.setProperty("entityExpansionLimit", "1000000");
 
         LOGGER.info("Loading EFO from " + efoURI + "...");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         IRI iri = IRI.create(efoURI);
         OWLOntology efo = manager.loadOntologyFromOntologyDocument(iri);
+        OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(efo);
 
         LOGGER.info("Loaded " + efo.getOntologyID().getOntologyIRI() + " ok, creating indexes...");
 
         // Get the annotations
-        Set<EFOAnnotation> annos = getAnnotations(manager, efo);
+        Set<EFOAnnotation> annos = getAnnotations(manager, efo, reasoner);
         LOGGER.info("Extracted {} annotations", annos.size());
         
         // Index the annotations
@@ -129,7 +147,7 @@ public class OWLIndexer {
  	}
 	
 	
-	private Set<EFOAnnotation> getAnnotations(OWLOntologyManager manager, OWLOntology efo) {
+	private Set<EFOAnnotation> getAnnotations(OWLOntologyManager manager, OWLOntology efo, OWLReasoner reasoner) {
         Map<String, Set<OWLClass>> labelToClassMap = new HashMap<>();
         Map<String, Set<OWLClass>> synonymToClassMap = new HashMap<>();
         Map<IRI, OWLClass> iriToClassMap = new HashMap<>();
@@ -143,7 +161,7 @@ public class OWLIndexer {
         Set<EFOAnnotation> annos = new HashSet<EFOAnnotation>();
         for (OWLClass owlClass : efo.getClassesInSignature()) {
             // check this isn't an obsolete class
-            if (!isObsolete(owlClass, efo, obsoleteClassUri)) {
+            if (!isObsolete(owlClass, efo, obsoleteClassUri, reasoner)) {
                 // get class names, and enter them in the maps
 
                 EFOAnnotation anno = new EFOAnnotation();
@@ -167,8 +185,13 @@ public class OWLIndexer {
                 anno.setLabel(new ArrayList<String>(getClassRDFSLabels(owlClass, efo)));
                 anno.setSynonym(new ArrayList<String>(getClassSynonyms(owlClass, efo)));
                 anno.setDescription(new ArrayList<String>(getClassDescriptions(owlClass, efo)));
-                anno.setSubclassUris(new ArrayList<String>(getSubClassUris(owlClass, efo)));
-                anno.setSuperclassUris(new ArrayList<String>(getSuperClassUris(owlClass, efo)));
+                anno.setSubclassUris(new ArrayList<String>(getSubClassUris(owlClass, efo, reasoner)));
+                anno.setSuperclassUris(new ArrayList<String>(getSuperClassUris(owlClass, efo, reasoner)));
+                
+                // Look up restrictions
+                Map<String, List<String>> someValues = getRestrictions(owlClass, efo, sfp);
+                anno.setRelations(someValues);
+                
                 // TODO: To join, need a unique integer for each annotation
                 String annoId = generateAnnotationId(owlClass.getIRI().toString());
                 int uriKey = annoId.hashCode(); 
@@ -216,15 +239,13 @@ public class OWLIndexer {
                         .getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 
         // get all label annotations
-        Set<OWLAnnotation> labelAnnotations = owlClass.getAnnotations(
-                efo, labelAnnotationProperty);
-
-        for (OWLAnnotation labelAnnotation : labelAnnotations) {
-            OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-            if (labelAnnotationValue instanceof OWLLiteral) {
-                classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
-            }
-        }
+		for (OWLAnnotation labelAnnotation : Searcher.annotations(efo.getAnnotationAssertionAxioms(owlClass.getIRI()), labelAnnotationProperty)) {
+			OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
+			if (labelAnnotationValue instanceof OWLLiteral) {
+				classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+			}
+		}
+		
         return classNames;
     }
 
@@ -245,8 +266,7 @@ public class OWLIndexer {
                         .getOWLAnnotationProperty(IRI.create(efoSynonymAnnotationURI));
 
         // get all synonym annotations
-        Set<OWLAnnotation> synonymAnnotations = owlClass.getAnnotations(
-                efo, synonymAnnotationProperty);
+        Collection<OWLAnnotation> synonymAnnotations = Searcher.annotations(efo.getAnnotationAssertionAxioms(owlClass.getIRI()), synonymAnnotationProperty);
 
         for (OWLAnnotation synonymAnnotation : synonymAnnotations) {
             OWLAnnotationValue synonymAnnotationValue = synonymAnnotation.getValue();
@@ -275,8 +295,7 @@ public class OWLIndexer {
                         .getOWLAnnotationProperty(IRI.create(efoDefinitionAnnotationURI));
 
         // get all synonym annotations
-        Set<OWLAnnotation> synonymAnnotations = owlClass.getAnnotations(
-                efo, synonymAnnotationProperty);
+        Collection<OWLAnnotation> synonymAnnotations = Searcher.annotations(efo.getAnnotationAssertionAxioms(owlClass.getIRI()), synonymAnnotationProperty);
 
         for (OWLAnnotation synonymAnnotation : synonymAnnotations) {
             OWLAnnotationValue synonymAnnotationValue = synonymAnnotation.getValue();
@@ -288,26 +307,30 @@ public class OWLIndexer {
         return classSynonyms;
     }
     
-    private Set<String> getSubClassUris(OWLClass owlClass, OWLOntology efo) {
+    private Set<String> getSubClassUris(OWLClass owlClass, OWLOntology efo, OWLReasoner reasoner) {
     	Set<String> subClasses = new HashSet<>();
     	
-    	for (OWLClassExpression expr : owlClass.getSubClasses(efo)) {
-    		if (!expr.isAnonymous()) {
-    			String uri = expr.asOWLClass().getIRI().toURI().toString();
-    			subClasses.add(uri);
+    	for (Node<OWLClass> node : reasoner.getSubClasses(owlClass, true)) {
+    		for (OWLClass expr : node.getEntities()) {
+    			if (!expr.isAnonymous()) {
+    				String uri = expr.asOWLClass().getIRI().toURI().toString();
+    				subClasses.add(uri);
+    			}
     		}
     	}
     	
     	return subClasses;
     }
 
-    private Set<String> getSuperClassUris(OWLClass owlClass, OWLOntology efo) {
+    private Set<String> getSuperClassUris(OWLClass owlClass, OWLOntology efo, OWLReasoner reasoner) {
     	Set<String> superClasses = new HashSet<>();
     	
-    	for (OWLClassExpression expr : owlClass.getSuperClasses(efo)) {
-    		if (!expr.isAnonymous()) {
-    			String uri = expr.asOWLClass().getIRI().toURI().toString();
-    			superClasses.add(uri);
+    	for (Node<OWLClass> node : reasoner.getSuperClasses(owlClass, true)) {
+    		for (OWLClass expr : node.getEntities()) {
+    			if (!expr.isAnonymous()) {
+    				String uri = expr.asOWLClass().getIRI().toURI().toString();
+    				superClasses.add(uri);
+    			}
     		}
     	}
     	
@@ -321,9 +344,9 @@ public class OWLIndexer {
      * @param owlClass the owlClass to check for obsolesence
      * @return true if obsoleted, false otherwise
      */
-    private boolean isObsolete(OWLClass owlClass, OWLOntology efo, URI obsoleteUri) {
-        Set<OWLClassExpression> superclasses = owlClass.getSuperClasses(efo);
-        for (OWLClassExpression oce : superclasses) {
+    private boolean isObsolete(OWLClass owlClass, OWLOntology efo, URI obsoleteUri, OWLReasoner reasoner) {
+        NodeSet<OWLClass> superclasses = reasoner.getSuperClasses(owlClass, false);
+        for (OWLClassExpression oce : superclasses.getFlattened()) {
             if (!oce.isAnonymous() && oce.asOWLClass().getIRI().toURI().equals(obsoleteUri)) {
                 return true;
             }
@@ -333,20 +356,74 @@ public class OWLIndexer {
     }
     
     private String generateAnnotationId(String uri) {
-    	return DigestUtils.md2Hex(uri);
+    	return DigestUtils.md5Hex(uri);
     }
     
+    private Map<String, List<String>> getRestrictions(OWLClass owlClass, OWLOntology efo, ShortFormProvider sfp) {
+    	RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(efo));
+		for (OWLSubClassOfAxiom ax : efo.getSubClassAxiomsForSubClass(owlClass)) {
+			OWLClassExpression superCls = ax.getSuperClass();
+			// Ask our superclass to accept a visit from the RestrictionVisitor
+			// - if it is an existential restriction then our restriction visitor
+			// will answer it - if not our visitor will ignore it
+			superCls.accept(visitor);
+		}
+		
+		Map<String, List<String>> restrictions = new HashMap<>();
+		for (OWLObjectSomeValuesFrom val : visitor.getSomeValues()) {
+			OWLPropertyExpression prop = val.getProperty();
+			OWLClassExpression exp = val.getFiller();
+			
+			// Get the shortname of the property expression
+			String shortForm = null;
+			Set<OWLObjectProperty> signatureProps = prop.getObjectPropertiesInSignature();
+			for (OWLObjectProperty sigProp : signatureProps) {
+				shortForm = sfp.getShortForm(sigProp) + "_rel";
+			}
+
+			if (shortForm != null && !exp.isAnonymous()) {
+				// Get the labels of the class expression
+				Set<String> labels = getClassRDFSLabels(exp.asOWLClass(), efo);
+				String expUri = exp.asOWLClass().getIRI().toURI().toString();
+
+				if (!restrictions.containsKey(shortForm)) {
+					restrictions.put(shortForm, new ArrayList<String>());
+				}
+				restrictions.get(shortForm).addAll(labels);
+				LOGGER.debug("Added restriction - {} {}", shortForm, expUri);
+			}
+		}
+		
+		return restrictions;
+    }
+    
+//    private RestrictionVisitor buildRestrictions(OWLClass owlClass, OWLOntology efo) {
+//    	Set<String> restrictions = new HashSet<>();
+//    	
+//    	RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(efo));
+//		for (OWLSubClassOfAxiom ax : efo.getSubClassAxiomsForSubClass(owlClass)) {
+//			OWLClassExpression superCls = ax.getSuperClass();
+//			// Ask our superclass to accept a visit from the RestrictionVisitor
+//			// - if it is an existential restriction then our restriction visitor
+//			// will answer it - if not our visitor will ignore it
+//			superCls.accept(visitor);
+//		}
+//		
+//		return visitor;
+//	}
+    
     private void indexAnnotations(Set<EFOAnnotation> annotations) throws IOException, SolrServerException, OWLOntologyCreationException {
-    	int count = 0;
-    	for (EFOAnnotation anno : annotations) {
-    		UpdateResponse response = solrServer.addBean(anno, COMMIT_WITHIN);
+		List<EFOAnnotation> beans = new ArrayList<>(annotations);
+
+		int count = 0;
+		while (count < annotations.size()) {
+			int end = (count + SOLR_BATCH_SIZE > beans.size() ? beans.size() : count + SOLR_BATCH_SIZE);
+    		UpdateResponse response = solrServer.addBeans(beans.subList(count, end), COMMIT_WITHIN);
     		if (response.getStatus() != 0) {
     			throw new OntologyIndexingException("Solr error adding records: " + response);
     		}
-    		count ++;
-    		if (count % SOLR_BATCH_SIZE == 0) {
-    			LOGGER.info("Indexed {} / {}", count, annotations.size());
-    		}
+    		count = end;
+    		LOGGER.info("Indexed {} / {}", count, annotations.size());
     	}
     	
 		LOGGER.info("Indexed {} / {}", count, annotations.size());

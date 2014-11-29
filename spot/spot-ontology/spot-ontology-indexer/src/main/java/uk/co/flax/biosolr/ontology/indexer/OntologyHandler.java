@@ -28,11 +28,15 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
+import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +49,8 @@ public class OntologyHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHandler.class);
 	
 	private final OWLOntology ontology;
+    private final OWLReasonerFactory reasonerFactory;
+    private final OWLReasoner reasoner;
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
@@ -57,12 +63,14 @@ public class OntologyHandler {
 	 */
 	public OntologyHandler(String ontologyUri) throws OWLOntologyCreationException {
         // Set property to make sure we can parse all of EFO
-        System.setProperty("entityExpansionLimit", "258000");
+        System.setProperty("entityExpansionLimit", "1000000");
         
         LOGGER.info("Loading ontology from " + ontologyUri + "...");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         IRI iri = IRI.create(ontologyUri);
         ontology = manager.loadOntologyFromOntologyDocument(iri);
+		this.reasonerFactory = new StructuralReasonerFactory();
+		this.reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
         
         // Initialise the class map
         initialiseClassMap();
@@ -93,15 +101,13 @@ public class OntologyHandler {
         	OWLAnnotationProperty labelAnnotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
         			.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 
-        	// get all label annotations
-        	Set<OWLAnnotation> labelAnnotations = owlClass.getAnnotations(ontology, labelAnnotationProperty);
-
-        	for (OWLAnnotation labelAnnotation : labelAnnotations) {
-        		OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-        		if (labelAnnotationValue instanceof OWLLiteral) {
-        			classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
-        		}
-        	}
+            // get all label annotations
+    		for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(owlClass.getIRI()), labelAnnotationProperty)) {
+    			OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
+    			if (labelAnnotationValue instanceof OWLLiteral) {
+    				classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+    			}
+    		}
 
         	labels.put(owlClass.getIRI(), classNames);
         }
@@ -112,10 +118,12 @@ public class OntologyHandler {
 	public Collection<String> findChildLabels(OWLClass owlClass) {
 		Set<String> labels = new HashSet<>();
 		
-    	for (OWLClassExpression expr : owlClass.getSubClasses(ontology)) {
-    		if (!expr.isAnonymous()) {
-    			Collection<String> childLabels = findLabels(expr.asOWLClass());
-    			labels.addAll(childLabels);
+    	for (Node<OWLClass> node : reasoner.getSubClasses(owlClass, true)) {
+    		for (OWLClass expr : node.getEntities()) {
+    			if (!expr.isAnonymous()) {
+        			Collection<String> childLabels = findLabels(expr.asOWLClass());
+        			labels.addAll(childLabels);
+    			}
     		}
     	}
     	
@@ -125,10 +133,12 @@ public class OntologyHandler {
 	public Collection<String> findParentLabels(OWLClass owlClass) {
 		Set<String> labels = new HashSet<>();
 		
-    	for (OWLClassExpression expr : owlClass.getSuperClasses(ontology)) {
-    		if (!expr.isAnonymous()) {
-    			Collection<String> parentLabels = findLabels(expr.asOWLClass());
-    			labels.addAll(parentLabels);
+    	for (Node<OWLClass> node : reasoner.getSuperClasses(owlClass, true)) {
+    		for (OWLClass expr : node.getEntities()) {
+    			if (!expr.isAnonymous()) {
+        			Collection<String> parentLabels = findLabels(expr.asOWLClass());
+        			labels.addAll(parentLabels);
+    			}
     		}
     	}
     	

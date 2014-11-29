@@ -934,6 +934,10 @@
        <str name="q.alt">*:*</str>
        <str name="rows">10</str>
        <str name="fl">*,score</str>
+       
+       <!-- Grouping -->
+       <str name="group">true</str>
+       <str name="group.field">study_id</str>
      </lst>
   </requestHandler>
 
