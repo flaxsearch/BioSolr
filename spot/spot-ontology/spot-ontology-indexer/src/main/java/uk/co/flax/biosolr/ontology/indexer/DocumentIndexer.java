@@ -33,6 +33,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,7 @@ public class DocumentIndexer {
 	private static final String DB_USER_KEY = "database.user";
 	private static final String DB_PASSWORD_KEY = "database.password";
 	private static final String SOLR_URL_KEY = "documents.solrUrl";
+	private static final String EFO_URI_KEY = "efoURI";
 	
 	private static final int BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
@@ -60,12 +63,15 @@ public class DocumentIndexer {
 	private String dbUser;
 	private String dbPassword;
 	private String solrUrl;
+	private String efoUri;
 	
-	private SolrServer solrServer;
+	private final SolrServer solrServer;
+	private final OntologyHandler ontologyHandler;
 	
-	public DocumentIndexer(String configFilepath) throws IOException {
+	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
 		initialiseFromProperties(configFilepath);
 		solrServer = new HttpSolrServer(solrUrl);
+		ontologyHandler = new OntologyHandler(efoUri);
 	}
 
 	private void initialiseFromProperties(String propFilePath) throws IOException {
@@ -90,6 +96,8 @@ public class DocumentIndexer {
 					this.dbPassword = parts[1];
 				} else if (parts[0].equals(SOLR_URL_KEY)) {
 					this.solrUrl = parts[1];
+				} else if (parts[0].equals(EFO_URI_KEY)) {
+					this.efoUri = parts[1];
 				}
 			}
 		} finally {
@@ -169,14 +177,37 @@ public class DocumentIndexer {
 				doc.setpValue(rs.getDouble("pvaluefloat"));
 				String efoUri = rs.getString("efouri");
 				doc.setEfoUri(efoUri);
-				doc.setEfoUriHash(DigestUtils.md2Hex(efoUri));
+				doc.setEfoUriHash(DigestUtils.md5Hex(efoUri));
 				doc.setUriKey(efoUri.hashCode());
+				
+				OWLClass efoClass = findEfoClass(efoUri);
+				if (efoClass != null) {
+					doc.setEfoLabels(lookupEfoLabels(efoClass));
+					doc.setChildLabels(lookupChildLabels(efoClass));
+					doc.setParentLabels(lookupParentLabels(efoClass));
+				}
 				
 				documents.add(doc);
 			}
 		}
 		
 		return documents;
+	}
+	
+	private OWLClass findEfoClass(String uri) {
+		return ontologyHandler.findOWLClass(uri);
+	}
+	
+	private List<String> lookupEfoLabels(OWLClass efoClass) {
+		return new ArrayList<String>(ontologyHandler.findLabels(efoClass));
+	}
+	
+	private List<String> lookupChildLabels(OWLClass efoClass) {
+		return new ArrayList<String>(ontologyHandler.findChildLabels(efoClass));
+	}
+	
+	private List<String> lookupParentLabels(OWLClass efoClass) {
+		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass));
 	}
 	
     private void indexDocuments(List<Document> documents) throws IOException, SolrServerException {
@@ -204,6 +235,8 @@ public class DocumentIndexer {
 			LOGGER.error("Solr exception indexing documents: " + e.getMessage());
 		} catch (SQLException e) {
 			LOGGER.error("SQL exception getting documents: {}", e.getMessage());
+		} catch (OWLOntologyCreationException e) {
+			LOGGER.error("Ontology creation exception: {}", e.getMessage());
 		}
 	}
 
