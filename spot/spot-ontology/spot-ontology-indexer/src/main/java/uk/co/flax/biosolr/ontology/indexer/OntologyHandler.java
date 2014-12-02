@@ -45,9 +45,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.Searcher;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
-import org.semanticweb.owlapi.util.ShortFormProvider;
-import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +61,6 @@ public class OntologyHandler {
 	private final OWLOntology ontology;
     private final OWLReasonerFactory reasonerFactory;
     private final OWLReasoner reasoner;
-    private final ShortFormProvider shortFormProvider;
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
@@ -85,7 +81,6 @@ public class OntologyHandler {
         ontology = manager.loadOntologyFromOntologyDocument(iri);
 		this.reasonerFactory = new StructuralReasonerFactory();
 		this.reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
-        this.shortFormProvider = new  BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
         
         // Initialise the class map
         initialiseClassMap();
@@ -109,26 +104,30 @@ public class OntologyHandler {
 	}
 	
 	public Collection<String> findLabels(OWLClass owlClass) {
+		return findLabels(owlClass.getIRI());
+ 	}
+	
+	private Collection<String> findLabels(IRI iri) {
         Set<String> classNames = new HashSet<>();
 
-        if (!labels.containsKey(owlClass.getIRI())) {
+        if (!labels.containsKey(iri)) {
         	// get label annotation property
         	OWLAnnotationProperty labelAnnotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
         			.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 
             // get all label annotations
-    		for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(owlClass.getIRI()), labelAnnotationProperty)) {
+    		for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(iri), labelAnnotationProperty)) {
     			OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
     			if (labelAnnotationValue instanceof OWLLiteral) {
     				classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
     			}
     		}
 
-        	labels.put(owlClass.getIRI(), classNames);
+        	labels.put(iri, classNames);
         }
 		
-        return labels.get(owlClass.getIRI());
- 	}
+        return labels.get(iri);
+	}
 	
 	public Collection<String> findChildLabels(OWLClass owlClass) {
 		Set<String> labels = new HashSet<>();
@@ -179,11 +178,9 @@ public class OntologyHandler {
 			String shortForm = null;
 			Set<OWLObjectProperty> signatureProps = prop.getObjectPropertiesInSignature();
 			for (OWLObjectProperty sigProp : signatureProps) {
-				String sf = shortFormProvider.getShortForm(sigProp);
-				// Skip any short forms which are OWL references
-				if (sf.matches("[a-z_]+")) {
-					shortForm = sf;
-					break;
+				Collection<String> labels = findLabels(sigProp.getIRI());
+				if (labels.size() > 0) {
+					shortForm = new ArrayList<String>(labels).get(0);
 				}
 			}
 
