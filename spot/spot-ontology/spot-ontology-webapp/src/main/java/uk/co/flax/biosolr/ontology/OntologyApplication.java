@@ -21,6 +21,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
+import uk.co.flax.biosolr.ontology.resources.DynamicLabelFieldLookupResource;
 import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
 import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
@@ -57,6 +58,7 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		environment.jersey().register(new OntologySearchResource(ontologySearch));
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
 		environment.jersey().register(new SearchResource(documentSearch));
+		environment.jersey().register(new DynamicLabelFieldLookupResource(documentSearch));
 		
 		// Add healthchecks
 		environment.healthChecks().register("solr-ontology", new SolrHealthCheck(ontologySearch));

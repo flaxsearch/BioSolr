@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.search;
 
+import java.util.List;
+
 /**
  * @author Matt Pearce
  */
@@ -25,5 +27,12 @@ public interface SearchEngine {
 	 * @return <code>true</code> if the search engine is available.
 	 */
 	public boolean isSearchEngineReady();
+	
+	/**
+	 * Get the list of dynamic fields being used by the search engine.
+	 * @return the list of fields.
+	 * @throws SearchEngineException if problems occur looking up the fields.
+	 */
+	public List<String> getDynamicFieldNames() throws SearchEngineException;
 
 }

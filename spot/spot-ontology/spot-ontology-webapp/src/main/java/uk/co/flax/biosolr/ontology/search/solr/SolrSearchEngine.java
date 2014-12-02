@@ -16,13 +16,21 @@
 package uk.co.flax.biosolr.ontology.search.solr;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.request.LukeRequest;
+import org.apache.solr.client.solrj.response.LukeResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 
 import uk.co.flax.biosolr.ontology.search.SearchEngine;
+import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
  * @author Matt Pearce
@@ -51,6 +59,38 @@ public abstract class SolrSearchEngine implements SearchEngine {
 		}
 
 		return ready;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<String> getDynamicFieldNames() throws SearchEngineException {
+		List<String> fields = new ArrayList<>();
+		
+		LukeRequest request = new LukeRequest();
+		request.setNumTerms(0);
+		request.setShowSchema(false);
+		try {
+			LukeResponse response = request.process(getServer());
+			NamedList<Object> flds = (NamedList<Object>) response.getResponse().get("fields");
+			if (flds != null) {
+				for (Map.Entry<String, Object> field : flds) {
+					String name = field.getKey();
+					for (Entry<String, Object> prop : (NamedList<Object>)field.getValue()) {
+						if ("dynamicBase".equals(prop.getKey())) {
+							fields.add(name);
+							break;
+						}
+					}
+				}
+			}
+
+		} catch (SolrServerException e) {
+			throw new SearchEngineException(e);
+		} catch (IOException e) {
+			throw new SearchEngineException(e);
+		}
+		
+		return fields;
 	}
 	
 	protected abstract SolrServer getServer();
