@@ -89,5 +89,10 @@
 			<artifactId>underscorejs</artifactId>
 			<version>1.7.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>angular-ui-bootstrap</artifactId>
+			<version>0.12.0</version>
+		</dependency>
 	</dependencies>
 </project>

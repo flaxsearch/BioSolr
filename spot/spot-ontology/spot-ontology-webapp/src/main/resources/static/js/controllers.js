@@ -23,10 +23,19 @@ ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, 
 		}
 	}
 	
+	$scope.changePage = function() {
+		var start = 10 * ($scope.currentPage - 1);
+		var params = { q: $scope.query, additionalFields: $scope.additionalFields, start: start }
+		self.updateModel(params);
+	}
+	
 	// Event handler to catch search form submit
 	$scope.search = function() {
 		var params = { q: $scope.query, additionalFields: $scope.additionalFields };
-		
+		self.updateModel(params);
+	}
+	
+	self.updateModel = function(params) {
 		$http({
 			method: 'GET',
 			url: '/service/search',
@@ -42,6 +51,7 @@ ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, 
 				$scope.total = data.totalResults;
 				$scope.start = data.start + 1;
 				$scope.end = data.start + data.rows;
+				$scope.currentPage = (data.start / data.rows) + 1;
 			}
 		});
 	}

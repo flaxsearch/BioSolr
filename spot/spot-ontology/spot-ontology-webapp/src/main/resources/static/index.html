@@ -11,6 +11,7 @@
         <script src="/webjars/underscorejs/1.7.0/underscore-min.js"></script>
         <!-- checklist-model enables arrays of checklists -->
         <script src="/js/checklist-model.js"></script>
+        <script src="/webjars/angular-ui-bootstrap/0.12.0/ui-bootstrap-tpls.min.js"></script>
     
         <script src="/js/app.js"></script>
         <script src="/js/controllers.js"></script>
@@ -45,53 +46,54 @@
                     Showing records {{ start }}-{{ end }} of {{ total }} results.
                 </div></div>
             
-                <div ng-repeat="result in results">
-                    <div class="row">
-                        <div class="col-md-1">{{ $index+1 }}.</div>
-                        <div class="col-md-9">
-                            <strong>{{ result.title }}</strong><br />
-                            {{result.firstAuthor}} - {{result.publication}}<br />
-                            <div ng-show="result.efoLabels" class="row">
-                                <div class="col-md-2"><strong>EFO Label(s)</strong></div>
-                                <div class="col-md-9">
-	                                <ul class="label-display">
-	                                    <li ng-repeat="label in result.efoLabels">{{ label }}</li>
-	                                </ul>
-                                </div>
-                            </div>
-                            <div ng-show="result.childLabels" class="row">
-                                <div class="col-md-2"><strong>EFO children</strong></div>
-                                <div class="col-md-9">
-                                <ul class="label-display">
-                                    <li ng-repeat="label in result.childLabels">{{ label }}</li>
-                                </ul>
-                                </div>
-                            </div>
-                            <div ng-show="result.parentLabels" class="row">
-                                <div class="col-md-2"><strong>EFO parent(s)</strong></div>
-                                <div class="col-md-9">
-                                <ul class="label-display">
-                                    <li ng-repeat="label in result.parentLabels">{{ label }}</li>
-                                </ul>
-                                </div>
-                            </div>
-                            <div ng-show="hasRelated(result)" class="row">
-                                <div class="col-md-2"><strong>Related</strong></div>
-                                <div class="col-md-9"><ul>
-	                                <li ng-repeat="(key, labels) in result.relatedLabels">
-	                                    {{ formatRelatedType(key) }}
-	                                    <ul class="label-display">
-		                                    <li ng-repeat="label in labels">{{ label }}</li>
-	                                    </ul>
-	                                </li>
-                                </ul>
+                <div class="row" ng-repeat="result in results">
+                    <div class="col-md-1">{{ start+$index }}.</div>
+                    <div class="col-md-9">
+                        <strong>{{ result.title }}</strong><br />
+                        {{result.firstAuthor}} - {{result.publication}}<br />
+                        <div ng-show="result.efoLabels" class="row">
+                            <div class="col-md-2"><strong>EFO Label(s)</strong></div>
+                            <div class="col-md-10">
+                             <ul class="label-display">
+                                 <li ng-repeat="label in result.efoLabels">{{ label }}</li>
+                             </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                        <div ng-show="result.childLabels" class="row">
+                            <div class="col-md-2"><strong>EFO children</strong></div>
+                            <div class="col-md-10">
+                            <ul class="label-display">
+                                <li ng-repeat="label in result.childLabels">{{ label }}</li>
+                            </ul>
+                            </div>
+                        </div>
+                        <div ng-show="result.parentLabels" class="row">
+                            <div class="col-md-2"><strong>EFO parent(s)</strong></div>
+                            <div class="col-md-10">
+                            <ul class="label-display">
+                                <li ng-repeat="label in result.parentLabels">{{ label }}</li>
+                            </ul>
+                            </div>
+                        </div>
+                        <div ng-show="hasRelated(result)" class="row">
+                            <div class="col-md-2"><strong>Related</strong></div>
+                            <div class="col-md-10">
+	                            <div ng-repeat="(key, labels) in result.relatedLabels" class="row">
+	                                <div class="col-md-2">{{ formatRelatedType(key) }}</div>
+	                                <div class="col-md-10"><ul class="label-display">
+	                                    <li ng-repeat="label in labels">{{ label }}</li>
+	                                </ul></div>
+	                            </div>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div><!-- row -->
         
-        </div>
+	            <pagination boundary-links="true" total-items="total" ng-model="currentPage" 
+	                previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" 
+	                last-text="&raquo;" max-size="5" ng-change="changePage()"></pagination>
+            </div><!-- Results -->
     
+        </div><!-- Container -->
     </body>
 </html>

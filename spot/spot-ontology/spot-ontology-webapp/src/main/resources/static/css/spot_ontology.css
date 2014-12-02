@@ -8,13 +8,14 @@
 	margin: 10px 0;
 }
 
-.label-display ul {
+ul.label-display {
 	display: inline;
+	padding-left: 0;
 }
 
 .label-display li {
 	background-color: #FFEBE0;
-	display: inline;
+	display: inline-block;
 	margin-right: 4px;
 	padding: 2px;
 }
