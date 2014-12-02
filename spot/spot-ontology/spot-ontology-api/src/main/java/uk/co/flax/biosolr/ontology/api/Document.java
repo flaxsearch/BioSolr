@@ -15,7 +15,9 @@
  */
 package uk.co.flax.biosolr.ontology.api;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.beans.Field;
 
@@ -24,6 +26,9 @@ import org.apache.solr.client.solrj.beans.Field;
  *
  */
 public class Document {
+	
+	public static final String RELATED_IRI_SUFFIX = "_rel_iris";
+	public static final String RELATED_LABEL_SUFFIX = "_rel_labels";
 	
 	@Field("id")
 	private String id;
@@ -73,6 +78,11 @@ public class Document {
 	@Field("efo_child_labels")
 	private List<String> childLabels;
 
+	@Field("*_rel_iris")
+	private Map<String, List<String>> relatedIris = new HashMap<>();
+	@Field("*_rel_labels")
+	private Map<String, List<String>> relatedLabels = new HashMap<>();
+	
 	/**
 	 * @return the gid
 	 */
@@ -295,6 +305,34 @@ public class Document {
 	 */
 	public void setChildLabels(List<String> childLabels) {
 		this.childLabels = childLabels;
+	}
+
+	/**
+	 * @return the relatedIris
+	 */
+	public Map<String, List<String>> getRelatedIris() {
+		return relatedIris;
+	}
+
+	/**
+	 * @param relatedIris the relatedIris to set
+	 */
+	public void setRelatedIris(Map<String, List<String>> relatedIris) {
+		this.relatedIris = relatedIris;
+	}
+
+	/**
+	 * @return the relatedLabels
+	 */
+	public Map<String, List<String>> getRelatedLabels() {
+		return relatedLabels;
+	}
+
+	/**
+	 * @param relatedLabels the relatedLabels to set
+	 */
+	public void setRelatedLabels(Map<String, List<String>> relatedLabels) {
+		this.relatedLabels = relatedLabels;
 	}
 
 }

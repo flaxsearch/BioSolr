@@ -69,6 +69,11 @@
 	<field name="efo_uri_hash" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
 	
+    <!-- Dynamic field(s), named for relation type and holding IRIs -->
+    <dynamicField name="*_rel_iris" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Dynamic field(s) holding relation labels -->
+    <dynamicField name="*_rel_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+
     <field name="efo_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_parent_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />

@@ -15,9 +15,12 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,18 +31,28 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.Searcher;
+import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.ShortFormProvider;
+import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**
  * @author Matt Pearce
@@ -51,6 +64,7 @@ public class OntologyHandler {
 	private final OWLOntology ontology;
     private final OWLReasonerFactory reasonerFactory;
     private final OWLReasoner reasoner;
+    private final ShortFormProvider shortFormProvider;
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
@@ -71,6 +85,7 @@ public class OntologyHandler {
         ontology = manager.loadOntologyFromOntologyDocument(iri);
 		this.reasonerFactory = new StructuralReasonerFactory();
 		this.reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
+        this.shortFormProvider = new  BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
         
         // Initialise the class map
         initialiseClassMap();
@@ -145,4 +160,45 @@ public class OntologyHandler {
 		return labels;
 	}
 
+    public Map<String, List<RelatedItem>> getRestrictions(OWLClass owlClass) {
+    	RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
+		for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
+			OWLClassExpression superCls = ax.getSuperClass();
+			// Ask our superclass to accept a visit from the RestrictionVisitor
+			// - if it is an existential restriction then our restriction visitor
+			// will answer it - if not our visitor will ignore it
+			superCls.accept(visitor);
+		}
+		
+		Map<String, List<RelatedItem>> restrictions = new HashMap<>();
+		for (OWLObjectSomeValuesFrom val : visitor.getSomeValues()) {
+			OWLPropertyExpression prop = val.getProperty();
+			OWLClassExpression exp = val.getFiller();
+			
+			// Get the shortname of the property expression
+			String shortForm = null;
+			Set<OWLObjectProperty> signatureProps = prop.getObjectPropertiesInSignature();
+			for (OWLObjectProperty sigProp : signatureProps) {
+				String sf = shortFormProvider.getShortForm(sigProp);
+				// Skip any short forms which are OWL references
+				if (sf.matches("[a-z_]+")) {
+					shortForm = sf;
+					break;
+				}
+			}
+
+			if (shortForm != null && !exp.isAnonymous()) {
+				// Get the labels of the class expression
+				Set<String> labels = new HashSet<>(findLabels(exp.asOWLClass()));
+				IRI iri = exp.asOWLClass().getIRI();
+				
+				if (!restrictions.containsKey(shortForm)) {
+					restrictions.put(shortForm, new ArrayList<RelatedItem>());
+				}
+				restrictions.get(shortForm).add(new RelatedItem(iri, labels));
+			}
+		}
+		
+		return restrictions;
+    }
 }

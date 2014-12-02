@@ -36,6 +36,7 @@ import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
  * restricted.
  */
 public class RestrictionVisitor extends OWLClassExpressionVisitorAdapter {
+	
 	@Nonnull
 	private final Set<OWLClass> processedClasses;
 	private final Set<OWLOntology> onts;
