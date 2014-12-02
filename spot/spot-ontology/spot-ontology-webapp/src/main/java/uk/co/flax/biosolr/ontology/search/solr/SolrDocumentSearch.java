@@ -15,13 +15,13 @@
  */
 package uk.co.flax.biosolr.ontology.search.solr;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,9 +68,15 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			query.setStart(start);
 			query.setRows(rows);
 			query.setRequestHandler(config.getDocumentRequestHandler());
+			LOGGER.debug("Query: {}", query);
 
 			QueryResponse response = server.query(query);
-			List<Document> docs = response.getBeans(Document.class);
+			List<Document> docs;
+			if (response.getResults().getNumFound() == 0) {
+				docs = new ArrayList<>();
+			} else {
+				docs = response.getBeans(Document.class);
+			}
 			results = new ResultsList<>(docs, start, (start / rows), response.getResults().getNumFound());
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);

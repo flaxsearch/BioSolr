@@ -27,4 +27,19 @@ ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, 
 		});
 	}
 	
+	$scope.hasRelated = function(result) {
+		// Use underscore.js's size function
+		return _.size(result.relatedLabels) > 0;
+	}
+	
+	$scope.formatRelatedType = function(type) {
+		var ret = '';
+		var words = type.split('_');
+		for (var i = 0; i < words.length - 2; i ++) {
+			ret = ret + (i > 0 ? ' ' : '') + words[i];
+		}
+		ret = ret.charAt(0).toUpperCase() + ret.slice(1);
+		return ret;
+	}
+	
 }]);

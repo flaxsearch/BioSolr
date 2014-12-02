@@ -7,3 +7,14 @@
 	background-color: #FFEBE0;
 	margin: 10px 0;
 }
+
+.label-display ul {
+	display: inline;
+}
+
+.label-display li {
+	background-color: #FFEBE0;
+	display: inline;
+	margin-right: 4px;
+	padding: 2px;
+}
