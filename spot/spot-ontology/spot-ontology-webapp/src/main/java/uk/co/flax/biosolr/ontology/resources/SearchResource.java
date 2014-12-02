@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.resources;
 
+import java.util.List;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -47,7 +49,7 @@ public class SearchResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
-			@QueryParam("rows") int rows) {
+			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields) {
 		SearchResponse<Document> response;
 
 		// Default rows value if not set
@@ -56,7 +58,7 @@ public class SearchResource {
 		}
 
 		try {
-			ResultsList<Document> results = documents.searchDocuments(query, start, rows);
+			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields);
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown during search: {}", e);

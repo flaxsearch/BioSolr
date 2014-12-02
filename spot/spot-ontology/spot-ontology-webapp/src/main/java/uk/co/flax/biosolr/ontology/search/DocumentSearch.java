@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.search;
 
+import java.util.List;
+
 import uk.co.flax.biosolr.ontology.api.Document;
 
 /**
@@ -27,10 +29,11 @@ public interface DocumentSearch extends SearchEngine {
 	 * @param term the term to search.
 	 * @param start the starting offset (0-indexed).
 	 * @param rows the maximum number of rows to return.
+	 * @param additionalFields any fields that should be searched in addition to the defaults.
 	 * @return a results list wrapping the documents found.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException;
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields) throws SearchEngineException;
 
 	/**
 	 * Search the documents using one or more ontology URIs.

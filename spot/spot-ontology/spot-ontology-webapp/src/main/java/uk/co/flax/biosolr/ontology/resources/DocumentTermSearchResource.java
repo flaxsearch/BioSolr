@@ -50,7 +50,7 @@ public class DocumentTermSearchResource {
 		SearchResponse<Document> response;
 		
 		try {
-			ResultsList<Document> results = search.searchDocuments(query, start, rows);
+			ResultsList<Document> results = search.searchDocuments(query, start, rows, null);
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown searching ontologies: {}", e.getMessage());

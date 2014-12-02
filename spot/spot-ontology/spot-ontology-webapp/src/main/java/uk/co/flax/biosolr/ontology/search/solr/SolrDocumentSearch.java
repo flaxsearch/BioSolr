@@ -23,6 +23,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.DisMaxParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,18 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrDocumentSearch.class);
 
 	private static final String EFO_URI_FIELD = "efo_uri";
+	private static final String TITLE_FIELD = "title";
+	private static final String FIRST_AUTHOR_FIELD = "first_author";
+	private static final String PUBLICATION_FIELD = "publication";
+	private static final String EFO_LABELS_FIELD = "efo_labels";
+	
+	private static final List<String> DEFAULT_SEARCH_FIELDS = new ArrayList<>();
+	static {
+		DEFAULT_SEARCH_FIELDS.add(TITLE_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(FIRST_AUTHOR_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(PUBLICATION_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(EFO_LABELS_FIELD);
+	}
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -61,7 +74,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	}
 
 	@Override
-	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException {
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields) throws SearchEngineException {
 		ResultsList<Document> results = null;
 
 		try {
@@ -69,6 +82,11 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			query.setStart(start);
 			query.setRows(rows);
 			query.setRequestHandler(config.getDocumentRequestHandler());
+			List<String> queryFields = new ArrayList<>(DEFAULT_SEARCH_FIELDS);
+			if (additionalFields != null) {
+				queryFields.addAll(additionalFields);
+			}
+			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
 			LOGGER.debug("Query: {}", query);
 
 			QueryResponse response = server.query(query);

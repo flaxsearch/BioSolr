@@ -1,1 +1,1 @@
-var ontologyApp = angular.module('ontologyApp', []);
+var ontologyApp = angular.module('ontologyApp', ['checklist-model']);
