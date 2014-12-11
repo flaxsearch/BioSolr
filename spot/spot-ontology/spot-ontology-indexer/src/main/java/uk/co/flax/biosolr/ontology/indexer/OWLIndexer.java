@@ -21,7 +21,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,16 +33,9 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.search.Searcher;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,10 +116,6 @@ public class OWLIndexer {
 	
 	
 	private Set<EFOAnnotation> getAnnotations() {
-        Map<String, Set<OWLClass>> labelToClassMap = new HashMap<>();
-        Map<String, Set<OWLClass>> synonymToClassMap = new HashMap<>();
-        Map<IRI, OWLClass> iriToClassMap = new HashMap<>();
-
         OWLOntology efo = ontologyHandler.getOntology();
 
         // Get the obsolete class
@@ -141,21 +129,7 @@ public class OWLIndexer {
                 // get class names, and enter them in the maps
 
                 EFOAnnotation anno = new EFOAnnotation();
-                iriToClassMap.put(owlClass.getIRI(), owlClass);
-                for (String l : getClassRDFSLabels(owlClass, efo)) {
-                    if (!labelToClassMap.containsKey(l.toLowerCase())) {
-                        labelToClassMap.put(l.toLowerCase(), new HashSet<OWLClass>());
-                    }
-                    labelToClassMap.get(l.toLowerCase()).add(owlClass);
-                }
 
-                for (String l : getClassSynonyms(owlClass, efo)) {
-                    if (!synonymToClassMap.containsKey(l.toLowerCase())) {
-                        synonymToClassMap.put(l.toLowerCase(), new HashSet<OWLClass>());
-                    }
-                    synonymToClassMap.get(l.toLowerCase()).add(owlClass);
-                }
-                
                 anno.setUri(owlClass.getIRI().toString());
                 anno.setShortForm(ontologyHandler.getShortFormProvider().getShortForm(owlClass));
                 anno.setLabel(new ArrayList<>(ontologyHandler.findLabels(owlClass)));
@@ -199,61 +173,6 @@ public class OWLIndexer {
         return obsoleteClass.getIRI().toURI();
 	}
 	
-    /**
-     * Recovers all string values of the rdfs:label annotation attribute on the supplied class.  This is computed over
-     * the inferred hierarchy, so labels of any equivalent classes will also be returned.
-     *
-     * @param owlClass the class to recover labels for
-     * @return the literal values of the rdfs:label annotation
-     */
-    public Set<String> getClassRDFSLabels(OWLClass owlClass, OWLOntology efo) {
-        Set<String> classNames = new HashSet<String>();
-
-        // get label annotation property
-        OWLAnnotationProperty labelAnnotationProperty =
-                efo.getOWLOntologyManager().getOWLDataFactory()
-                        .getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-
-        // get all label annotations
-		for (OWLAnnotation labelAnnotation : Searcher.annotations(efo.getAnnotationAssertionAxioms(owlClass.getIRI()), labelAnnotationProperty)) {
-			OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-			if (labelAnnotationValue instanceof OWLLiteral) {
-				classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
-			}
-		}
-		
-        return classNames;
-    }
-
-    /**
-     * Recovers all synonyms for the supplied owl class, based on the literal value of the efo synonym annotation.  The
-     * actual URI for this annotation is recovered from zooma-uris.properties, but at the time of writing was
-     * 'http://www.ebi.ac.uk/efo/alternative_term'.  This class uses the
-     *
-     * @param owlClass the class to retrieve the synonyms of
-     * @return a set of strings containing all aliases of the supplied class
-     */
-    private Set<String> getClassSynonyms(OWLClass owlClass, OWLOntology efo) {
-        Set<String> classSynonyms = new HashSet<String>();
-
-        // get synonym annotation property
-        OWLAnnotationProperty synonymAnnotationProperty =
-                efo.getOWLOntologyManager().getOWLDataFactory()
-                        .getOWLAnnotationProperty(IRI.create(efoSynonymAnnotationURI));
-
-        // get all synonym annotations
-        Collection<OWLAnnotation> synonymAnnotations = Searcher.annotations(efo.getAnnotationAssertionAxioms(owlClass.getIRI()), synonymAnnotationProperty);
-
-        for (OWLAnnotation synonymAnnotation : synonymAnnotations) {
-            OWLAnnotationValue synonymAnnotationValue = synonymAnnotation.getValue();
-            if (synonymAnnotationValue instanceof OWLLiteral) {
-                classSynonyms.add(((OWLLiteral) synonymAnnotationValue).getLiteral());
-            }
-        }
-
-        return classSynonyms;
-    }
-
     /**
      * Returns true if this ontology term is obsolete in EFO, false otherwise.  In EFO, a term is defined to be obsolete
      * if and only if it is a subclass of ObsoleteTerm.
@@ -302,7 +221,6 @@ public class OWLIndexer {
     		LOGGER.info("Indexed {} / {}", count, annotations.size());
     	}
     	
-		LOGGER.info("Indexed {} / {}", count, annotations.size());
 		solrServer.commit();
     }
     
