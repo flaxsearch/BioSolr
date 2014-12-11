@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,10 +42,14 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.Searcher;
+import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
+import org.semanticweb.owlapi.util.ShortFormProvider;
+import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +64,8 @@ public class OntologyHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHandler.class);
 	
 	private final OWLOntology ontology;
-    private final OWLReasonerFactory reasonerFactory;
     private final OWLReasoner reasoner;
+    private final ShortFormProvider shortFormProvider;
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
@@ -79,8 +84,9 @@ public class OntologyHandler {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         IRI iri = IRI.create(ontologyUri);
         ontology = manager.loadOntologyFromOntologyDocument(iri);
-		this.reasonerFactory = new StructuralReasonerFactory();
+		OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
 		this.reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
+		shortFormProvider = new BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
         
         // Initialise the class map
         initialiseClassMap();
@@ -90,6 +96,14 @@ public class OntologyHandler {
 		for (OWLClass clazz : ontology.getClassesInSignature()) {
 			owlClassMap.put(clazz.getIRI(), clazz);
 		}
+	}
+	
+	public OWLOntology getOntology() {
+		return ontology;
+	}
+	
+	public ShortFormProvider getShortFormProvider() {
+		return shortFormProvider;
 	}
 	
 	public OWLClass findOWLClass(String uri) {
@@ -114,14 +128,8 @@ public class OntologyHandler {
         	// get label annotation property
         	OWLAnnotationProperty labelAnnotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
         			.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-
-            // get all label annotations
-    		for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(iri), labelAnnotationProperty)) {
-    			OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-    			if (labelAnnotationValue instanceof OWLLiteral) {
-    				classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
-    			}
-    		}
+        	
+        	classNames = new HashSet<>(findAnnotations(iri, labelAnnotationProperty));
 
         	labels.put(iri, classNames);
         }
@@ -129,25 +137,63 @@ public class OntologyHandler {
         return labels.get(iri);
 	}
 	
-	public Collection<String> findChildLabels(OWLClass owlClass) {
-		Set<String> labels = new HashSet<>();
+	public Collection<String> findLabelsByAnnotationURI(OWLClass owlClass, String annotationUri) {
+        // get synonym annotation property
+		OWLAnnotationProperty annotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
+				.getOWLAnnotationProperty(IRI.create(annotationUri));
+        
+        return findAnnotations(owlClass.getIRI(), annotationProperty);
+	}
+	
+	private Collection<String> findAnnotations(IRI iri, OWLAnnotationProperty typeAnnotation) {
+        Set<String> classNames = new HashSet<>();
+
+        // get all label annotations
+        for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(iri), typeAnnotation)) {
+        	OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
+        	if (labelAnnotationValue instanceof OWLLiteral) {
+        		classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+        	}
+        }
 		
-    	for (Node<OWLClass> node : reasoner.getSubClasses(owlClass, true)) {
+        return classNames;
+	}
+	
+	public Collection<String> getSubClassUris(OWLClass owlClass) {
+    	return getUrisFromNodeSet(reasoner.getSubClasses(owlClass, true));
+    }
+
+    public Collection<String> getSuperClassUris(OWLClass owlClass) {
+    	return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, true));
+    }
+    
+    private Collection<String> getUrisFromNodeSet(NodeSet<OWLClass> nodeSet) {
+    	Set<String> uris = new HashSet<>();
+    	
+    	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
     			if (!expr.isAnonymous()) {
-        			Collection<String> childLabels = findLabels(expr.asOWLClass());
-        			labels.addAll(childLabels);
+    				String uri = expr.asOWLClass().getIRI().toURI().toString();
+    				uris.add(uri);
     			}
     		}
     	}
     	
-		return labels;
+    	return uris;
+    }
+
+	public Collection<String> findChildLabels(OWLClass owlClass) {
+		return getLabelsFromNodeSet(reasoner.getSubClasses(owlClass, true));
 	}
 
 	public Collection<String> findParentLabels(OWLClass owlClass) {
+		return getLabelsFromNodeSet(reasoner.getSuperClasses(owlClass, true));
+	}
+	
+	private Collection<String> getLabelsFromNodeSet(NodeSet<OWLClass> nodeSet) {
 		Set<String> labels = new HashSet<>();
 		
-    	for (Node<OWLClass> node : reasoner.getSuperClasses(owlClass, true)) {
+    	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
     			if (!expr.isAnonymous()) {
         			Collection<String> parentLabels = findLabels(expr.asOWLClass());
@@ -156,7 +202,7 @@ public class OntologyHandler {
     		}
     	}
     	
-		return labels;
+    	return labels;
 	}
 
     public Map<String, List<RelatedItem>> getRestrictions(OWLClass owlClass) {
@@ -198,4 +244,16 @@ public class OntologyHandler {
 		
 		return restrictions;
     }
+    
+    public boolean isChildOf(OWLClass owlClass, URI parentUri) {
+        NodeSet<OWLClass> superclasses = reasoner.getSuperClasses(owlClass, false);
+        for (OWLClassExpression oce : superclasses.getFlattened()) {
+            if (!oce.isAnonymous() && oce.asOWLClass().getIRI().toURI().equals(parentUri)) {
+                return true;
+            }
+        }
+        // if no superclasses are obsolete, this class isn't obsolete
+        return false;
+    }
+    
 }
