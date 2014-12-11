@@ -13,40 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology;
-
-import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
-import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
+package uk.co.flax.biosolr.ontology.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.dropwizard.Configuration;
-
 /**
+ * Configuration details specific to Apache Jena.
+ * 
  * @author Matt Pearce
- *
  */
-public class OntologyConfiguration extends Configuration {
+public class JenaConfiguration {
 	
-	@JsonProperty
-	private String urlPattern;
-	
-	@JsonProperty("solr")
-	private SolrConfiguration solr;
-	
-	@JsonProperty("jena")
-	private JenaConfiguration jena;
-	
-	public String getUrlPattern() {
-		return urlPattern;
+	@JsonProperty("ontologyUri")
+	private String ontologyUri;
+
+	/**
+	 * @return the ontologyUri
+	 */
+	public String getOntologyUri() {
+		return ontologyUri;
 	}
-	
-	public SolrConfiguration getSolr() {
-		return solr;
-	}
-	
-	public JenaConfiguration getJena() {
-		return jena;
-	}
-	
+
 }

@@ -6,13 +6,13 @@
 		<artifactId>spot-ontology</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	
+
 	<artifactId>spot-ontology-webapp</artifactId>
-	
+
 	<properties>
 		<mainClass>uk.co.flax.biosolr.OntologyApplication</mainClass>
 	</properties>
-	
+
 	<build>
 		<plugins>
 			<!-- Plugin to generate "fat" jar file -->
@@ -93,6 +93,22 @@
 			<groupId>org.webjars</groupId>
 			<artifactId>angular-ui-bootstrap</artifactId>
 			<version>0.12.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-text</artifactId>
+			<version>1.1.1</version>
+			<!-- Exclude logging dependencies -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>

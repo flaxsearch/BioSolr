@@ -1,0 +1,5 @@
+{
+    "prefix":"PREFIX : <http://example/>\nPREFIX text: <http://jena.apache.org/text#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+    "query":"SELECT *\n{ ?s text:query (rdfs:label 'lung') ;\nrdfs:label ?label\n}",
+    "rows":10
+}

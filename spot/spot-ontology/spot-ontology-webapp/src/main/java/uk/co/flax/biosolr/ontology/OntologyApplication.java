@@ -22,10 +22,12 @@ import io.dropwizard.setup.Environment;
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
 import uk.co.flax.biosolr.ontology.resources.DynamicLabelFieldLookupResource;
+import uk.co.flax.biosolr.ontology.resources.JenaSearchResource;
 import uk.co.flax.biosolr.ontology.resources.OntologySearchResource;
 import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
+import uk.co.flax.biosolr.ontology.search.jena.JenaOntologySearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 
@@ -50,6 +52,8 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		OntologySearch ontologySearch = new SolrOntologySearch(configuration.getSolr());
 		// Create the document search engine
 		DocumentSearch documentSearch = new SolrDocumentSearch(configuration.getSolr());
+		// Create the Jena ontology search engine
+		JenaOntologySearch jenaSearch = new JenaOntologySearch(configuration.getJena(), configuration.getSolr());
 		
 		// If you don't set the URL pattern, the AssetsBundle defined above don't work!
 		environment.jersey().setUrlPattern(configuration.getUrlPattern());
@@ -59,6 +63,7 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
 		environment.jersey().register(new SearchResource(documentSearch));
 		environment.jersey().register(new DynamicLabelFieldLookupResource(documentSearch));
+		environment.jersey().register(new JenaSearchResource(jenaSearch));
 		
 		// Add healthchecks
 		environment.healthChecks().register("solr-ontology", new SolrHealthCheck(ontologySearch));

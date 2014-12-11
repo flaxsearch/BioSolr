@@ -17,5 +17,16 @@
 			<artifactId>solr-solrj</artifactId>
 			<version>${solr-version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.dropwizard</groupId>
+			<artifactId>dropwizard-jackson</artifactId>
+			<version>${dropwizard-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.dropwizard</groupId>
+			<artifactId>dropwizard-testing</artifactId>
+			<version>${dropwizard-version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

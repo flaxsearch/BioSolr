@@ -75,3 +75,9 @@ solr:
   
   # The maximum number of ontology terms to retrieve
   ontologyTermCount: 3
+
+# Apache Jena configuration
+jena:
+
+  # The URI for the ontology to be read
+  ontologyUri: file:/Users/Matt/Downloads/efo.owl
