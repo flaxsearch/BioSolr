@@ -42,6 +42,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
@@ -78,7 +79,7 @@ public class JenaOntologySearch {
 		Dataset ds1 = DatasetFactory.create(model);
 		// Define the index mapping
 		EntityDefinition entDef = new EntityDefinition(URI_FIELD, LABEL_FIELD, RDFS.label.asNode());
-		// Lucene, in memory.
+		// Define the Solr server
 		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
 		// Join together into a dataset
 		Dataset ds = TextDatasetFactory.createSolrIndex(ds1, server, entDef);
@@ -97,15 +98,7 @@ public class JenaOntologySearch {
 			ResultSet rs = qexec.execSelect();
 			List<String> vars = rs.getResultVars();
 			while (rs.hasNext()) {
-				Map<String, String> resultMap = new HashMap<>();
-				QuerySolution qs = rs.next();
-				for (String var : vars) {
-					RDFNode node = qs.get(var);
-					if (node != null) {
-						resultMap.put(var, node.toString());
-					}
-				}
-				
+				Map<String, String> resultMap = extractResultMap(rs.next(), vars);
 				if (!resultMap.isEmpty()) {
 					resultsList.add(resultMap);
 				}
@@ -119,6 +112,23 @@ public class JenaOntologySearch {
 		}
 		
 		return results;
+	}
+	
+	private Map<String, String> extractResultMap(QuerySolution qs, List<String> vars) {
+		Map<String, String> resultMap = new HashMap<>();
+
+		for (String var : vars) {
+			RDFNode node = qs.get(var);
+			if (node != null) {
+				if (node instanceof Literal) {
+					resultMap.put(var, ((Literal)node).getLexicalForm());
+				} else {
+					resultMap.put(var, node.toString());
+				}
+			}
+		}
+		
+		return resultMap;
 	}
 
 }

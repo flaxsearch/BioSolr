@@ -1,4 +1,5 @@
-ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, $http) {
+ontologyApp
+.controller('SearchCtrl', ['$scope', '$http', function($scope, $http) {
 	
 	var self = this;
 	
@@ -12,7 +13,7 @@ ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, 
 		});
 		
 		$scope.additionalFields = [];
-		// Kludge so we can use checkbox-model for the parent/child label checkboxes
+		// Kludge so we can use checklist-model for the parent/child label checkboxes
 		$scope.efo_child_labels = 'efo_child_labels';
 		$scope.efo_parent_labels = 'efo_parent_labels';
 	}
@@ -73,5 +74,29 @@ ontologyApp.controller('OntologyPageCtrl', ['$scope', '$http', function($scope, 
 	
 	// Initialise the page
 	self.init();
+	
+}])
+.controller('SparqlCtrl', ['$scope', '$http', function($scope, $http) {
+	
+	var self = this;
+	
+	$scope.prefix = 'PREFIX : <http://example/>\nPREFIX text: <http://jena.apache.org/text#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>';
+	$scope.query = 'SELECT *\n{ ?s text:query (rdfs:label \'lung\') ;\nrdfs:label ?label\n}';
+	
+	$scope.search = function() {
+		var queryData = {
+				'prefix': $scope.prefix,
+				'query': $scope.query,
+				'rows': 10
+		};
+		
+		$http({
+			method: 'POST',
+			url: '/service/jenaSearch',
+			data: queryData
+		}).success(function(data) {
+			$scope.results = data.results;
+		});
+	}
 	
 }]);

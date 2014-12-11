@@ -6,6 +6,7 @@
         
 <!--         <script src="/webjars/angularjs/1.3.2/angular.min.js"></script> -->
         <script src="/webjars/angularjs/1.3.2/angular.js"></script>
+        <script src="/webjars/angularjs/1.3.2/angular-route.min.js"></script>
         <script src="/webjars/jquery/1.11.1/jquery.min.js"></script>
         <script src="/webjars/bootstrap/3.3.0/js/bootstrap.min.js"></script>
         <script src="/webjars/underscorejs/1.7.0/underscore-min.js"></script>
@@ -20,79 +21,11 @@
         <link rel="stylesheet" href="/css/spot_ontology.css" />
     </head>
 
-    <body ng-controller="OntologyPageCtrl">
+    <body>
     
         <div class="container">
-    
-            <div class="row search_form"><div class="col-md-10">
-                <form ng-submit="search()" class="form-inline">
-                    <input type="text" ng-model="query" class="form-control" />
-                    <button type="submit" class="btn">Search</button>
-                    <input type="checkbox" checklist-model="additionalFields" checklist-value="efo_child_labels" /> Include child labels
-                    <input type="checkbox" checklist-model="additionalFields" checklist-value="efo_parent_labels" /> Include parent labels
-                    
-                    <div ng-show="dynamicLabels">Include additional labels in search:
-                        <span ng-repeat="label in dynamicLabels"><input type="checkbox" checklist-model="additionalFields" checklist-value="label" /> "{{formatRelatedType(label)}}" </span>
-                    </div>
-                </form>
-            </div></div>
-            
-            <div class="row"><div class="col-md-10">
-                <div ng-show="error">{{ error }}</div>
-            </div></div>
-            
-            <div ng-show="results">
-                <div class="row results_header"><div class="col-md-10">
-                    Showing records {{ start }}-{{ end }} of {{ total }} results.
-                </div></div>
-            
-                <div class="row" ng-repeat="result in results">
-                    <div class="col-md-1">{{ start+$index }}.</div>
-                    <div class="col-md-9">
-                        <strong>{{ result.title }}</strong><br />
-                        {{result.firstAuthor}} - {{result.publication}}<br />
-                        <div ng-show="result.efoLabels" class="row">
-                            <div class="col-md-2"><strong>EFO Label(s)</strong></div>
-                            <div class="col-md-10">
-                             <ul class="label-display">
-                                 <li ng-repeat="label in result.efoLabels">{{ label }}</li>
-                             </ul>
-                            </div>
-                        </div>
-                        <div ng-show="result.childLabels" class="row">
-                            <div class="col-md-2"><strong>EFO children</strong></div>
-                            <div class="col-md-10">
-                            <ul class="label-display">
-                                <li ng-repeat="label in result.childLabels">{{ label }}</li>
-                            </ul>
-                            </div>
-                        </div>
-                        <div ng-show="result.parentLabels" class="row">
-                            <div class="col-md-2"><strong>EFO parent(s)</strong></div>
-                            <div class="col-md-10">
-                            <ul class="label-display">
-                                <li ng-repeat="label in result.parentLabels">{{ label }}</li>
-                            </ul>
-                            </div>
-                        </div>
-                        <div ng-show="hasRelated(result)" class="row">
-                            <div class="col-md-2"><strong>Related</strong></div>
-                            <div class="col-md-10">
-	                            <div ng-repeat="(key, labels) in result.relatedLabels" class="row">
-	                                <div class="col-md-2">{{ formatRelatedType(key) }}</div>
-	                                <div class="col-md-10"><ul class="label-display">
-	                                    <li ng-repeat="label in labels">{{ label }}</li>
-	                                </ul></div>
-	                            </div>
-	                        </div>
-	                    </div>
-	                </div>
-	            </div><!-- row -->
         
-	            <pagination boundary-links="true" total-items="total" ng-model="currentPage" 
-	                previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" 
-	                last-text="&raquo;" max-size="5" ng-change="changePage()"></pagination>
-            </div><!-- Results -->
+            <div ng-view></div>
     
         </div><!-- Container -->
     </body>

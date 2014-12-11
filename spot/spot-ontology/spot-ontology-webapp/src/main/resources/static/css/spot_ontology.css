@@ -19,3 +19,8 @@ ul.label-display {
 	margin-right: 4px;
 	padding: 2px;
 }
+
+textarea {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 10pt;
+}

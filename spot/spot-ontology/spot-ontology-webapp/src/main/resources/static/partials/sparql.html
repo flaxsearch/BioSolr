@@ -1,0 +1,38 @@
+<div class="row" ng-show="error"><div class="col-md-10">
+    <div>{{ error }}</div>
+</div></div>
+
+<div ng-show="results">
+    <div ng-repeat="result in results" class="row">
+        <div class="col-md-4">{{ result.label }}</div>
+        <div class="col-md-4">{{ result.s }}</div>
+    </div>
+</div>
+
+<form ng-submit="search()" class="search_form">
+    <!-- Prefix entry -->
+	<div class="row">
+        <div class="col-md-1">
+            <label for="prefix">Prefix</label>
+        </div>
+        <div class="col-md-9">
+            <textarea name="prefix" rows="4" cols="80" ng-model="prefix"></textarea>
+        </div>
+	</div>
+	
+	<!-- Query entry -->
+    <div class="row">
+        <div class="col-md-1">
+            <label for="prefix">Query</label>
+        </div>
+        <div class="col-md-9">
+            <textarea name="prefix" rows="4" cols="80" ng-model="query"></textarea>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-1">
+            <button type="submit" class="btn">Search</button>
+        </div>
+    </div>
+</form>
