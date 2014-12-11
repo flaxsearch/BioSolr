@@ -1,3 +1,6 @@
+body {
+	padding-top: 70px;
+}
 
 .search_form {
 	margin: 10px 0;
@@ -23,4 +26,9 @@ ul.label-display {
 textarea {
 	font-family: "Lucida Console", Monaco, monospace;
 	font-size: 10pt;
+}
+
+.buttonRight {
+	margin-top: 10px;
+	text-align: right;
 }
