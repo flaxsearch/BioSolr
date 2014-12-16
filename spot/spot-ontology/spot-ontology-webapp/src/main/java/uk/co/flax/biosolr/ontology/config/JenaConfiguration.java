@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class JenaConfiguration {
 	
 	@JsonProperty("ontologyUri")
-	private String ontologyUri;
+	private String ontologyUri = null;
 	
 	@JsonProperty("tdbPath")
 	private String tdbPath = null;
