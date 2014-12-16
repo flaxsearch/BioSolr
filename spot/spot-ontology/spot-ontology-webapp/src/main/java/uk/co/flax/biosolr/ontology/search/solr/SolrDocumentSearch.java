@@ -22,6 +22,9 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.Group;
+import org.apache.solr.client.solrj.response.GroupCommand;
+import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.DisMaxParams;
 import org.slf4j.Logger;
@@ -91,12 +94,24 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 
 			QueryResponse response = server.query(query);
 			List<Document> docs;
-			if (response.getResults().getNumFound() == 0) {
+			long total = 0;
+			
+			if (response.getGroupResponse() != null) {
+				docs = new ArrayList<>(rows);
+				GroupResponse gResponse = response.getGroupResponse();
+				for (GroupCommand gCommand : gResponse.getValues()) {
+					total += gCommand.getNGroups();
+					for (Group group : gCommand.getValues()) {
+						docs.addAll(server.getBinder().getBeans(Document.class, group.getResult()));
+					}
+				}
+			} else if (response.getResults().getNumFound() == 0) {
 				docs = new ArrayList<>();
 			} else {
 				docs = response.getBeans(Document.class);
+				total = response.getResults().getNumFound();
 			}
-			results = new ResultsList<>(docs, start, (start / rows), response.getResults().getNumFound());
+			results = new ResultsList<>(docs, start, (start / rows), total);
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}

@@ -956,7 +956,8 @@
        <!-- Grouping -->
        <str name="group">true</str>
        <str name="group.field">study_id</str>
-       <str name="group.main">true</str>
+       <str name="group.ngroups">true</str>
+       <str name="group.format">simple</str>
      </lst>
   </requestHandler>
 
