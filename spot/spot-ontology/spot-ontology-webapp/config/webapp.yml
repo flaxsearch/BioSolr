@@ -68,7 +68,7 @@ solr:
   documentUrl: "http://localhost:8983/solr/documents"
   
   # The request handler for searching documents (by string)
-  documentRequestHandler: "/documentSearch"
+  documentRequestHandler: "/groupedDocumentSearch"
   
   # The request handler for searching documents (by URI)
   documentUriRequestHandler: "/uriSearch"
