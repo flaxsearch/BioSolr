@@ -26,12 +26,19 @@ public class JenaConfiguration {
 	
 	@JsonProperty("ontologyUri")
 	private String ontologyUri;
+	
+	@JsonProperty("tdbPath")
+	private String tdbPath = null;
 
 	/**
 	 * @return the ontologyUri
 	 */
 	public String getOntologyUri() {
 		return ontologyUri;
+	}
+	
+	public String getTdbPath() {
+		return tdbPath;
 	}
 
 }

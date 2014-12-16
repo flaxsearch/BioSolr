@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.text.EntityDefinition;
 import org.apache.jena.query.text.TextDatasetFactory;
 import org.apache.solr.client.solrj.SolrServer;
@@ -45,10 +46,14 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
+ * Search engine providing SPARQL search through Apache Jena, using
+ * Solr as a back-end to search labels.
+ * 
  * @author Matt Pearce
  */
 public class JenaOntologySearch {
@@ -71,19 +76,33 @@ public class JenaOntologySearch {
 	
 	private Dataset buildDataSet() {
 		LOGGER.info("Construct a dataset backed by Solr");
-		// Build a text dataset by code.
-		FileManager fileManager = FileManager.get();
-		Model model = fileManager.loadModel(jenaConfig.getOntologyUri());
+		Dataset jenaData = buildBaseDataset();
 
-		// Build the base dataset backed by the model loaded from the URI
-		Dataset ds1 = DatasetFactory.create(model);
 		// Define the index mapping
 		EntityDefinition entDef = new EntityDefinition(URI_FIELD, LABEL_FIELD, RDFS.label.asNode());
 		// Define the Solr server
 		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
 		// Join together into a dataset
-		Dataset ds = TextDatasetFactory.createSolrIndex(ds1, server, entDef);
+		Dataset ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
 		return ds;
+	}
+	
+	private Dataset buildBaseDataset() {
+		Dataset jenaData;
+		
+		if (StringUtils.isNotBlank(jenaConfig.getTdbPath())) {
+			LOGGER.debug("Building dataset from TDB data at {}", jenaConfig.getTdbPath());
+			jenaData = TDBFactory.createDataset(jenaConfig.getTdbPath());
+		} else {
+			LOGGER.debug("Building dataset from ontology URI {}", jenaConfig.getOntologyUri());
+			FileManager fileManager = FileManager.get();
+			Model model = fileManager.loadModel(jenaConfig.getOntologyUri());
+			
+			// Build the base dataset backed by the model loaded from the URI
+			jenaData = DatasetFactory.create(model);
+		}
+		
+		return jenaData;
 	}
 
 	public ResultsList<Map<String, String>> searchOntology(String prefix, String query, int rows) throws SearchEngineException {
