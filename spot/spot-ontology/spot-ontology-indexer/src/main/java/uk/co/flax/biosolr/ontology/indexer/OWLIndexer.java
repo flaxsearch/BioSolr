@@ -41,9 +41,15 @@ import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 
+import com.hp.hpl.jena.sparql.core.DatasetGraph;
+import com.hp.hpl.jena.tdb.TDBFactory;
+import com.hp.hpl.jena.tdb.TDBLoader;
+import com.hp.hpl.jena.tdb.sys.TDBInternal;
+
 /**
+ * Indexer application for building the Ontology core.
+ * 
  * @author Matt Pearce
- *
  */
 public class OWLIndexer {
 	
@@ -52,7 +58,13 @@ public class OWLIndexer {
 	private static final int SOLR_BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
 	
+	private static final String EFO_URI_KEY = "efoURI";
+	private static final String EFO_SYNONYM_URI_KEY = "efoSynonymAnnotationURI";
+	private static final String EFO_DEFINITION_URI_KEY = "efoDefinitionAnnotationURI";
+	private static final String EFO_OBSOLETE_URI_KEY = "efoObsoleteClassURI";
+	
 	private static final String SOLR_URL_KEY = "ontology.solrUrl";
+	private static final String TDB_PATH_KEY = "tdbPath";
 	
 	private static final String RELATION_FIELD_SUFFIX = "_rel";
 	
@@ -61,6 +73,7 @@ public class OWLIndexer {
     private String efoDefinitionAnnotationURI = "http://www.ebi.ac.uk/efo/definition";
     private String efoObsoleteClassURI = "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass";
     private String solrUrl = "http://localhost:8983/solr/ontology";
+    private String tdbPath = null;
     
     private final SolrServer solrServer;
 	private final OntologyHandler ontologyHandler;
@@ -83,16 +96,18 @@ public class OWLIndexer {
 				}
 
 				String[] parts = line.split("\\s*=\\s*");
-				if (parts[0].equals("efoURI")) {
+				if (parts[0].equals(EFO_URI_KEY)) {
 					this.efoURI = parts[1];
-				} else if (parts[0].equals("efoSynonymAnnotationURI")) {
+				} else if (parts[0].equals(EFO_SYNONYM_URI_KEY)) {
 					this.efoSynonymAnnotationURI = parts[1];
-				} else if (parts[0].equals("efoDefinitionAnnotationURI")) {
+				} else if (parts[0].equals(EFO_DEFINITION_URI_KEY)) {
 					this.efoDefinitionAnnotationURI = parts[1];
-				} else if (parts[0].equals("efoObsoleteClassURI")) {
+				} else if (parts[0].equals(EFO_OBSOLETE_URI_KEY)) {
 					this.efoObsoleteClassURI = parts[1];
 				} else if (parts[0].equals(SOLR_URL_KEY)) {
 					this.solrUrl = parts[1];
+				} else if (parts[0].equals(TDB_PATH_KEY)) {
+					this.tdbPath = parts[1];
 				}
 			}
 		} finally {
@@ -103,15 +118,15 @@ public class OWLIndexer {
 	}
 	
 	public void run() throws OWLOntologyCreationException, IOException, SolrServerException {
-        // set property to make sure we can parse all of EFO
-        System.setProperty("entityExpansionLimit", "1000000");
-
         // Get the annotations
         Set<EFOAnnotation> annos = getAnnotations();
         LOGGER.info("Extracted {} annotations", annos.size());
         
         // Index the annotations
         indexAnnotations(annos);
+        
+        // Build the TDB dataset, if path is set
+        buildTdbDataset();
  	}
 	
 	
@@ -222,6 +237,14 @@ public class OWLIndexer {
     	}
     	
 		solrServer.commit();
+    }
+    
+    private void buildTdbDataset() {
+    	if (StringUtils.isNotBlank(tdbPath)) {
+    		DatasetGraph dataset = TDBFactory.createDatasetGraph(tdbPath);
+    		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), efoURI, true);
+    		dataset.close();
+		}
     }
     
 	public static void main(String[] args) {

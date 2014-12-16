@@ -40,10 +40,11 @@ a `tdbPath` to a TDB database directory, or set the `ontologyUri` property to po
 to the location of the ontology (this can be web-based or a local file). The
 TDB setting will be chosen as a priority over the URI.
 
-To build a TDB database, you will need the Apache Jena binary distribution,
+The TDB database can be built by the Ontology Indexer at the same time as the
+Solr Ontology core. It can also be built using the Jena `tdbloader` 
+application. To do this, you will need the Apache Jena binary distribution,
 which can be found at the [project download page](http://jena.apache.org/download/index.cgi).
-You can use the `tdbloader` script to create a TDB database from the  `efo.owl`
-ontology file:
+Use the following command to call `tdbloader`:
 
     tdbloader --loc=<dirpath> http://www.ebi.ac.uk/efo/efo.owl
 

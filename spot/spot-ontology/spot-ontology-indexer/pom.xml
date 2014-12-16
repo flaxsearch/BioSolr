@@ -88,5 +88,10 @@
 			<artifactId>spot-ontology-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-tdb</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 	</dependencies>
 </project>

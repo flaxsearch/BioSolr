@@ -13,6 +13,9 @@ The ontology indexer can be run using the following command:
 where `config.properties` points to a file similar to the example_config.properties
 file in the config subdirectory.
 
+If a `tdbPath` setting is given in the configuration details, this will build
+a TDB database from the ontology file at the same time as the ontology core. 
+
 
 ## Indexing the documents
 
