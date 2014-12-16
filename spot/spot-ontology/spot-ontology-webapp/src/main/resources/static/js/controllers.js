@@ -99,4 +99,20 @@ ontologyApp
 		});
 	}
 	
+	$scope.resultKeys = function() {
+		var ret = [];
+		
+		if ($scope.results && $scope.results.length > 0) {
+			var keys = Object.keys($scope.results[0]);
+			var result = $scope.results[0];
+			for (i = 0; i < keys.length; i ++) {
+				if (keys[i].indexOf('$') == -1) {
+					ret.push(keys[i]);
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
 }]);

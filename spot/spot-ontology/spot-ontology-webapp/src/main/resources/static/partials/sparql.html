@@ -3,10 +3,18 @@
 </div></div>
 
 <div ng-show="results">
-    <div ng-repeat="result in results" class="row">
-        <div class="col-md-4">{{ result.label }}</div>
-        <div class="col-md-4">{{ result.s }}</div>
-    </div>
+    <table class="table table-striped">
+        <thead>
+	        <tr>
+	            <th ng-repeat="key in resultKeys()">{{ key }}</th>
+	        </tr>
+        </thead>
+        <tbody>
+	        <tr ng-repeat="result in results">
+	            <td ng-repeat="key in resultKeys()">{{ result[key] }}</td>
+	        </tr>
+        </tbody>
+    </table>
 </div>
 
 <form ng-submit="search()" class="search_form">
