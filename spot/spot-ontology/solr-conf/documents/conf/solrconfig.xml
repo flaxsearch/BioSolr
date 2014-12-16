@@ -956,6 +956,7 @@
        <!-- Grouping -->
        <str name="group">true</str>
        <str name="group.field">study_id</str>
+       <str name="group.main">true</str>
      </lst>
   </requestHandler>
 
