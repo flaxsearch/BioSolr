@@ -179,8 +179,9 @@ public class DocumentIndexer {
 				doc.setpValue(rs.getDouble("pvaluefloat"));
 				String efoUri = rs.getString("efouri");
 				doc.setEfoUri(efoUri);
-				doc.setEfoUriHash(DigestUtils.md5Hex(efoUri));
-				doc.setUriKey(efoUri.hashCode());
+				String uriHash = DigestUtils.md5Hex(efoUri);
+				doc.setEfoUriHash(uriHash);
+				doc.setUriKey(uriHash.hashCode());
 				
 				OWLClass efoClass = findEfoClass(efoUri);
 				if (efoClass != null) {
