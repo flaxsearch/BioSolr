@@ -27,8 +27,7 @@ public class Main {
 			float identityPctL = new Float(args[2]);
 			float identityPctH = new Float(args[3]);
 			
-	        FastaJob job = new FastaJob(fasta, sequence, eVal);
-			job.setIdentityPercents(identityPctL,  identityPctH);
+	        FastaJob job = new FastaJob(fasta, sequence, eVal, identityPctL,  identityPctH);
 			job.run();
 			
 			if (job.getException() != null) {

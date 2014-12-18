@@ -28,14 +28,15 @@ public class TestFastaJob {
 		when(fasta.getResultTypes(null)).thenReturn(types);
 		when(fasta.getResult(null, null, null)).thenReturn(result);
 		
-		FastaJob job = new FastaJob(fasta, "", 100.0d);
+		FastaJob job = new FastaJob(fasta, "", 100.0d, 0.0f, 100.0f);
 		job.run();
+		FastaJobResults results = job.getResults();
 		
-		assertEquals(1000, job.getNumChains());
-		assertEquals(317, job.getNumEntries());
+		assertEquals(1000, results.getNumChains());
+		assertEquals(317, results.getNumEntries());
 		
-		List<String> order = job.getResultOrder();
-		Map<String, Alignment> alignments = job.getAlignments();
+		List<String> order = results.getResultOrder();
+		Map<String, Alignment> alignments = results.getAlignments();
 
 		String pdbIdChain = order.get(0);
 		String sequence = alignments.get(pdbIdChain).getReturnSequenceString();
