@@ -21,9 +21,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,28 +33,23 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
-import org.semanticweb.owlapi.util.SimpleShortFormProvider;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 
+import com.hp.hpl.jena.sparql.core.DatasetGraph;
+import com.hp.hpl.jena.tdb.TDBFactory;
+import com.hp.hpl.jena.tdb.TDBLoader;
+import com.hp.hpl.jena.tdb.sys.TDBInternal;
+
 /**
+ * Indexer application for building the Ontology core.
+ * 
  * @author Matt Pearce
- *
  */
 public class OWLIndexer {
 	
@@ -63,19 +58,30 @@ public class OWLIndexer {
 	private static final int SOLR_BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
 	
+	private static final String EFO_URI_KEY = "efoURI";
+	private static final String EFO_SYNONYM_URI_KEY = "efoSynonymAnnotationURI";
+	private static final String EFO_DEFINITION_URI_KEY = "efoDefinitionAnnotationURI";
+	private static final String EFO_OBSOLETE_URI_KEY = "efoObsoleteClassURI";
+	
 	private static final String SOLR_URL_KEY = "ontology.solrUrl";
+	private static final String TDB_PATH_KEY = "tdbPath";
+	
+	private static final String RELATION_FIELD_SUFFIX = "_rel";
 	
     private String efoURI = "http://www.ebi.ac.uk/efo";
     private String efoSynonymAnnotationURI = "http://www.ebi.ac.uk/efo/alternative_term";
     private String efoDefinitionAnnotationURI = "http://www.ebi.ac.uk/efo/definition";
     private String efoObsoleteClassURI = "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass";
     private String solrUrl = "http://localhost:8983/solr/ontology";
+    private String tdbPath = null;
     
-    private SolrServer solrServer;
+    private final SolrServer solrServer;
+	private final OntologyHandler ontologyHandler;
 
-	public OWLIndexer(String props) throws IOException {
+	public OWLIndexer(String props) throws IOException, OWLOntologyCreationException {
 		initialiseFromProperties(props);
 		this.solrServer = new HttpSolrServer(solrUrl);
+		this.ontologyHandler = new OntologyHandler(efoURI);
 	}
 	
 	private void initialiseFromProperties(String propFilePath) throws IOException {
@@ -90,16 +96,18 @@ public class OWLIndexer {
 				}
 
 				String[] parts = line.split("\\s*=\\s*");
-				if (parts[0].equals("efoURI")) {
+				if (parts[0].equals(EFO_URI_KEY)) {
 					this.efoURI = parts[1];
-				} else if (parts[0].equals("efoSynonymAnnotationURI")) {
+				} else if (parts[0].equals(EFO_SYNONYM_URI_KEY)) {
 					this.efoSynonymAnnotationURI = parts[1];
-				} else if (parts[0].equals("efoDefinitionAnnotationURI")) {
+				} else if (parts[0].equals(EFO_DEFINITION_URI_KEY)) {
 					this.efoDefinitionAnnotationURI = parts[1];
-				} else if (parts[0].equals("efoObsoleteClassURI")) {
+				} else if (parts[0].equals(EFO_OBSOLETE_URI_KEY)) {
 					this.efoObsoleteClassURI = parts[1];
 				} else if (parts[0].equals(SOLR_URL_KEY)) {
 					this.solrUrl = parts[1];
+				} else if (parts[0].equals(TDB_PATH_KEY)) {
+					this.tdbPath = parts[1];
 				}
 			}
 		} finally {
@@ -110,32 +118,21 @@ public class OWLIndexer {
 	}
 	
 	public void run() throws OWLOntologyCreationException, IOException, SolrServerException {
-        // set property to make sure we can parse all of EFO
-        System.setProperty("entityExpansionLimit", "258000");
-
-        LOGGER.info("Loading EFO from " + efoURI + "...");
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        IRI iri = IRI.create(efoURI);
-        OWLOntology efo = manager.loadOntologyFromOntologyDocument(iri);
-
-        LOGGER.info("Loaded " + efo.getOntologyID().getOntologyIRI() + " ok, creating indexes...");
-
         // Get the annotations
-        Set<EFOAnnotation> annos = getAnnotations(manager, efo);
+        Set<EFOAnnotation> annos = getAnnotations();
         LOGGER.info("Extracted {} annotations", annos.size());
         
         // Index the annotations
         indexAnnotations(annos);
+        
+        // Build the TDB dataset, if path is set
+        buildTdbDataset();
  	}
 	
 	
-	private Set<EFOAnnotation> getAnnotations(OWLOntologyManager manager, OWLOntology efo) {
-        Map<String, Set<OWLClass>> labelToClassMap = new HashMap<>();
-        Map<String, Set<OWLClass>> synonymToClassMap = new HashMap<>();
-        Map<IRI, OWLClass> iriToClassMap = new HashMap<>();
+	private Set<EFOAnnotation> getAnnotations() {
+        OWLOntology efo = ontologyHandler.getOntology();
 
-        BidirectionalShortFormProviderAdapter sfp = new  BidirectionalShortFormProviderAdapter(manager, Collections.singleton(efo), new SimpleShortFormProvider());
-        
         // Get the obsolete class
         URI obsoleteClassUri = getObsoleteClassUri(efo);
         
@@ -143,31 +140,23 @@ public class OWLIndexer {
         Set<EFOAnnotation> annos = new HashSet<EFOAnnotation>();
         for (OWLClass owlClass : efo.getClassesInSignature()) {
             // check this isn't an obsolete class
-            if (!isObsolete(owlClass, efo, obsoleteClassUri)) {
+            if (!isObsolete(owlClass, obsoleteClassUri)) {
                 // get class names, and enter them in the maps
 
                 EFOAnnotation anno = new EFOAnnotation();
-                iriToClassMap.put(owlClass.getIRI(), owlClass);
-                for (String l : getClassRDFSLabels(owlClass, efo)) {
-                    if (!labelToClassMap.containsKey(l.toLowerCase())) {
-                        labelToClassMap.put(l.toLowerCase(), new HashSet<OWLClass>());
-                    }
-                    labelToClassMap.get(l.toLowerCase()).add(owlClass);
-                }
-
-                for (String l : getClassSynonyms(owlClass, efo)) {
-                    if (!synonymToClassMap.containsKey(l.toLowerCase())) {
-                        synonymToClassMap.put(l.toLowerCase(), new HashSet<OWLClass>());
-                    }
-                    synonymToClassMap.get(l.toLowerCase()).add(owlClass);
-                }
-
 
                 anno.setUri(owlClass.getIRI().toString());
-                anno.setShortForm(sfp.getShortForm(owlClass));
-                anno.setLabel(new ArrayList<String>(getClassRDFSLabels(owlClass, efo)));
-                anno.setSynonym(new ArrayList<String>(getClassSynonyms(owlClass, efo)));
-                anno.setDescription(new ArrayList<String>(getClassDescriptions(owlClass, efo)));
+                anno.setShortForm(ontologyHandler.getShortFormProvider().getShortForm(owlClass));
+                anno.setLabel(new ArrayList<>(ontologyHandler.findLabels(owlClass)));
+                anno.setSynonym(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoSynonymAnnotationURI)));
+                anno.setDescription(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoDefinitionAnnotationURI)));
+                anno.setSubclassUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass)));
+                anno.setSuperclassUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass)));
+                
+                // Look up restrictions
+                Map<String, List<String>> relatedItems = getRestrictions(owlClass);
+                anno.setRelations(relatedItems);
+                
                 // TODO: To join, need a unique integer for each annotation
                 String annoId = generateAnnotationId(owlClass.getIRI().toString());
                 int uriKey = annoId.hashCode(); 
@@ -200,130 +189,62 @@ public class OWLIndexer {
 	}
 	
     /**
-     * Recovers all string values of the rdfs:label annotation attribute on the supplied class.  This is computed over
-     * the inferred hierarchy, so labels of any equivalent classes will also be returned.
-     *
-     * @param owlClass the class to recover labels for
-     * @return the literal values of the rdfs:label annotation
-     */
-    public Set<String> getClassRDFSLabels(OWLClass owlClass, OWLOntology efo) {
-        Set<String> classNames = new HashSet<String>();
-
-        // get label annotation property
-        OWLAnnotationProperty labelAnnotationProperty =
-                efo.getOWLOntologyManager().getOWLDataFactory()
-                        .getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-
-        // get all label annotations
-        Set<OWLAnnotation> labelAnnotations = owlClass.getAnnotations(
-                efo, labelAnnotationProperty);
-
-        for (OWLAnnotation labelAnnotation : labelAnnotations) {
-            OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-            if (labelAnnotationValue instanceof OWLLiteral) {
-                classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
-            }
-        }
-        return classNames;
-    }
-
-    /**
-     * Recovers all synonyms for the supplied owl class, based on the literal value of the efo synonym annotation.  The
-     * actual URI for this annotation is recovered from zooma-uris.properties, but at the time of writing was
-     * 'http://www.ebi.ac.uk/efo/alternative_term'.  This class uses the
-     *
-     * @param owlClass the class to retrieve the synonyms of
-     * @return a set of strings containing all aliases of the supplied class
-     */
-    private Set<String> getClassSynonyms(OWLClass owlClass, OWLOntology efo) {
-        Set<String> classSynonyms = new HashSet<String>();
-
-        // get synonym annotation property
-        OWLAnnotationProperty synonymAnnotationProperty =
-                efo.getOWLOntologyManager().getOWLDataFactory()
-                        .getOWLAnnotationProperty(IRI.create(efoSynonymAnnotationURI));
-
-        // get all synonym annotations
-        Set<OWLAnnotation> synonymAnnotations = owlClass.getAnnotations(
-                efo, synonymAnnotationProperty);
-
-        for (OWLAnnotation synonymAnnotation : synonymAnnotations) {
-            OWLAnnotationValue synonymAnnotationValue = synonymAnnotation.getValue();
-            if (synonymAnnotationValue instanceof OWLLiteral) {
-                classSynonyms.add(((OWLLiteral) synonymAnnotationValue).getLiteral());
-            }
-        }
-
-        return classSynonyms;
-    }
-
-    /**
-     * Recovers the full description for the supplied owl class, based on the literal value of the efo synonym annotation.  The
-     * actual URI for this annotation is recovered from zooma-uris.properties, but at the time of writing was
-     * 'http://www.ebi.ac.uk/efo/definition'.  This class uses the
-     *
-     * @param owlClass the class to retrieve the synonyms of
-     * @return a set of strings containing all aliases of the supplied class
-     */
-    private Set<String> getClassDescriptions(OWLClass owlClass, OWLOntology efo) {
-        Set<String> classSynonyms = new HashSet<String>();
-
-        // get synonym annotation property
-        OWLAnnotationProperty synonymAnnotationProperty =
-                efo.getOWLOntologyManager().getOWLDataFactory()
-                        .getOWLAnnotationProperty(IRI.create(efoDefinitionAnnotationURI));
-
-        // get all synonym annotations
-        Set<OWLAnnotation> synonymAnnotations = owlClass.getAnnotations(
-                efo, synonymAnnotationProperty);
-
-        for (OWLAnnotation synonymAnnotation : synonymAnnotations) {
-            OWLAnnotationValue synonymAnnotationValue = synonymAnnotation.getValue();
-            if (synonymAnnotationValue instanceof OWLLiteral) {
-                classSynonyms.add(((OWLLiteral) synonymAnnotationValue).getLiteral());
-            }
-        }
-
-        return classSynonyms;
-    }
-
-    /**
      * Returns true if this ontology term is obsolete in EFO, false otherwise.  In EFO, a term is defined to be obsolete
      * if and only if it is a subclass of ObsoleteTerm.
      *
      * @param owlClass the owlClass to check for obsolesence
      * @return true if obsoleted, false otherwise
      */
-    private boolean isObsolete(OWLClass owlClass, OWLOntology efo, URI obsoleteUri) {
-        Set<OWLClassExpression> superclasses = owlClass.getSuperClasses(efo);
-        for (OWLClassExpression oce : superclasses) {
-            if (!oce.isAnonymous() && oce.asOWLClass().getIRI().toURI().equals(obsoleteUri)) {
-                return true;
-            }
-        }
-        // if no superclasses are obsolete, this class isn't obsolete
-        return false;
+    private boolean isObsolete(OWLClass owlClass, URI obsoleteUri) {
+    	return ontologyHandler.isChildOf(owlClass, obsoleteUri);
     }
     
     private String generateAnnotationId(String uri) {
-    	return DigestUtils.md2Hex(uri);
+    	return DigestUtils.md5Hex(uri);
+    }
+    
+    private Map<String, List<String>> getRestrictions(OWLClass owlClass) {
+    	Map<String, List<RelatedItem>> items = ontologyHandler.getRestrictions(owlClass);
+    	Map<String, List<String>> restrictions = new HashMap<>();
+    	
+    	for (String relation : items.keySet()) {
+    		// Create the relation key
+    		String key = relation + RELATION_FIELD_SUFFIX;
+    		List<String> uris = new ArrayList<>(items.get(relation).size());
+    		
+    		for (RelatedItem item : items.get(relation)) {
+    			uris.add(item.getIri().toURI().toString());
+    		}
+    		
+    		restrictions.put(key, uris);
+    	}
+    	
+    	return restrictions;
     }
     
     private void indexAnnotations(Set<EFOAnnotation> annotations) throws IOException, SolrServerException, OWLOntologyCreationException {
-    	int count = 0;
-    	for (EFOAnnotation anno : annotations) {
-    		UpdateResponse response = solrServer.addBean(anno, COMMIT_WITHIN);
+		List<EFOAnnotation> beans = new ArrayList<>(annotations);
+
+		int count = 0;
+		while (count < annotations.size()) {
+			int end = (count + SOLR_BATCH_SIZE > beans.size() ? beans.size() : count + SOLR_BATCH_SIZE);
+    		UpdateResponse response = solrServer.addBeans(beans.subList(count, end), COMMIT_WITHIN);
     		if (response.getStatus() != 0) {
     			throw new OntologyIndexingException("Solr error adding records: " + response);
     		}
-    		count ++;
-    		if (count % SOLR_BATCH_SIZE == 0) {
-    			LOGGER.info("Indexed {} / {}", count, annotations.size());
-    		}
+    		count = end;
+    		LOGGER.info("Indexed {} / {}", count, annotations.size());
     	}
     	
-		LOGGER.info("Indexed {} / {}", count, annotations.size());
 		solrServer.commit();
+    }
+    
+    private void buildTdbDataset() {
+    	if (StringUtils.isNotBlank(tdbPath)) {
+    		DatasetGraph dataset = TDBFactory.createDatasetGraph(tdbPath);
+    		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), efoURI, true);
+    		dataset.close();
+		}
     }
     
 	public static void main(String[] args) {

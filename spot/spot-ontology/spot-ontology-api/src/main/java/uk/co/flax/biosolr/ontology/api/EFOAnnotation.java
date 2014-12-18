@@ -1,7 +1,9 @@
 package uk.co.flax.biosolr.ontology.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.client.solrj.beans.Field;
@@ -47,7 +49,16 @@ public class EFOAnnotation {
 	
 	@Field("description")
     private List<String> description;
-
+	
+	@Field("superclass_uris")
+	private List<String> superclassUris;
+	
+	@Field("subclass_uris")
+	private List<String> subclassUris;
+	
+	@Field("*_rel")
+	private Map<String, List<String>> relations = new HashMap<>();
+	
     public EFOAnnotation() {
     }
 
@@ -145,4 +156,47 @@ public class EFOAnnotation {
 	public void setIdKey(int idKey) {
 		this.idKey = idKey;
 	}
+
+	/**
+	 * @return the superclassUris
+	 */
+	public List<String> getSuperclassUris() {
+		return superclassUris;
+	}
+
+	/**
+	 * @param superclassUris the superclassUris to set
+	 */
+	public void setSuperclassUris(List<String> superclassUris) {
+		this.superclassUris = superclassUris;
+	}
+
+	/**
+	 * @return the subclassUris
+	 */
+	public List<String> getSubclassUris() {
+		return subclassUris;
+	}
+
+	/**
+	 * @param subclassUris the subclassUris to set
+	 */
+	public void setSubclassUris(List<String> subclassUris) {
+		this.subclassUris = subclassUris;
+	}
+
+	/**
+	 * @return the relations
+	 */
+	public Map<String, List<String>> getRelations() {
+		return relations;
+	}
+
+	/**
+	 * @param relations the relations to set
+	 */
+	public void setRelations(Map<String, List<String>> relations) {
+		this.relations = relations;
+	}
+
 }

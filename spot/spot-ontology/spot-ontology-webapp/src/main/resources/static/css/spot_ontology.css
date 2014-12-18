@@ -1,3 +1,6 @@
+body {
+	padding-top: 70px;
+}
 
 .search_form {
 	margin: 10px 0;
@@ -6,4 +9,26 @@
 .results_header {
 	background-color: #FFEBE0;
 	margin: 10px 0;
+}
+
+ul.label-display {
+	display: inline;
+	padding-left: 0;
+}
+
+.label-display li {
+	background-color: #FFEBE0;
+	display: inline-block;
+	margin-right: 4px;
+	padding: 2px;
+}
+
+textarea {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 10pt;
+}
+
+.buttonRight {
+	margin-top: 10px;
+	text-align: right;
 }

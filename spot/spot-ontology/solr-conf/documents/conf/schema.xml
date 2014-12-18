@@ -62,11 +62,21 @@
 	<field name="title" type="text_general" indexed="true" stored="true" multiValued="false" />
 	<field name="snp" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="disease_trait" type="text_general" indexed="true" stored="true" multiValued="false" />
+    <field name="disease_trait_str" type="string" indexed="true" stored="false" multiValued="false" />
 	<field name="p_value" type="double" indexed="true" stored="true" multiValued="false" />
 
 	<field name="efo_uri" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="efo_uri_hash" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
+	
+    <!-- Dynamic field(s), named for relation type and holding IRIs -->
+    <dynamicField name="*_rel_iris" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Dynamic field(s) holding relation labels -->
+    <dynamicField name="*_rel_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+
+    <field name="efo_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_parent_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
@@ -76,6 +86,8 @@
 
 	<!-- Field to use to determine and enforce document uniqueness. Unless this field is marked with required="false", it will be a required field -->
 	<uniqueKey>id</uniqueKey>
+	
+	<copyField source="disease_trait" dest="disease_trait_str" />
 
 
 	<!-- field type definitions. The "name" attribute is just a label to be used by field definitions. The "class" attribute and any other attributes 

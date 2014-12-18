@@ -15,13 +15,18 @@
  */
 package uk.co.flax.biosolr.ontology.search.solr;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.Group;
+import org.apache.solr.client.solrj.response.GroupCommand;
+import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.DisMaxParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +37,7 @@ import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
+ * Solr-specific implementation of the {@link DocumentSearch} search engine.
  * @author Matt Pearce
  */
 public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSearch {
@@ -39,6 +45,18 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrDocumentSearch.class);
 
 	private static final String EFO_URI_FIELD = "efo_uri";
+	private static final String TITLE_FIELD = "title";
+	private static final String FIRST_AUTHOR_FIELD = "first_author";
+	private static final String PUBLICATION_FIELD = "publication";
+	private static final String EFO_LABELS_FIELD = "efo_labels";
+	
+	private static final List<String> DEFAULT_SEARCH_FIELDS = new ArrayList<>();
+	static {
+		DEFAULT_SEARCH_FIELDS.add(TITLE_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(FIRST_AUTHOR_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(PUBLICATION_FIELD);
+		DEFAULT_SEARCH_FIELDS.add(EFO_LABELS_FIELD);
+	}
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -59,7 +77,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	}
 
 	@Override
-	public ResultsList<Document> searchDocuments(String term, int start, int rows) throws SearchEngineException {
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields) throws SearchEngineException {
 		ResultsList<Document> results = null;
 
 		try {
@@ -67,10 +85,33 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			query.setStart(start);
 			query.setRows(rows);
 			query.setRequestHandler(config.getDocumentRequestHandler());
+			List<String> queryFields = new ArrayList<>(DEFAULT_SEARCH_FIELDS);
+			if (additionalFields != null) {
+				queryFields.addAll(additionalFields);
+			}
+			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
+			LOGGER.debug("Query: {}", query);
 
 			QueryResponse response = server.query(query);
-			List<Document> docs = response.getBeans(Document.class);
-			results = new ResultsList<>(docs, start, (start / rows), response.getResults().getNumFound());
+			List<Document> docs;
+			long total = 0;
+			
+			if (response.getGroupResponse() != null) {
+				docs = new ArrayList<>(rows);
+				GroupResponse gResponse = response.getGroupResponse();
+				for (GroupCommand gCommand : gResponse.getValues()) {
+					total += gCommand.getNGroups();
+					for (Group group : gCommand.getValues()) {
+						docs.addAll(server.getBinder().getBeans(Document.class, group.getResult()));
+					}
+				}
+			} else if (response.getResults().getNumFound() == 0) {
+				docs = new ArrayList<>();
+			} else {
+				docs = response.getBeans(Document.class);
+				total = response.getResults().getNumFound();
+			}
+			results = new ResultsList<>(docs, start, (start / rows), total);
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
@@ -115,5 +156,5 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 
 		return builder.toString();
 	}
-
+	
 }

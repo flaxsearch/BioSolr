@@ -15,56 +15,47 @@
  */
 package uk.co.flax.biosolr.ontology.resources;
 
-import java.util.List;
+import java.util.Map;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.JenaRequest;
 import uk.co.flax.biosolr.ontology.api.SearchResponse;
-import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
+import uk.co.flax.biosolr.ontology.search.jena.JenaOntologySearch;
 
 /**
  * @author Matt Pearce
  */
-@Path("/search")
-public class SearchResource {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
-
-	private final DocumentSearch documents;
-
-	public SearchResource(DocumentSearch doc) {
-		this.documents = doc;
+@Path("/jenaSearch")
+public class JenaSearchResource {
+	
+	private final JenaOntologySearch jenaSearch;
+	
+	public JenaSearchResource(JenaOntologySearch search) {
+		this.jenaSearch = search;
 	}
-
-	@GET
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
-			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields) {
-		SearchResponse<Document> response;
-
-		// Default rows value if not set
-		if (rows == 0) {
-			rows = 10;
-		}
-
+	public SearchResponse<Map<String, String>> handlePost(JenaRequest request) {
+		SearchResponse<Map<String,String>> response;
+		
 		try {
-			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields);
-			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
+			ResultsList<Map<String, String>> results = jenaSearch.searchOntology(request.getPrefix(),
+					request.getQuery(), request.getRows());
+			response = new SearchResponse<Map<String, String>>(results.getResults(), 0, results.getPageSize(), 
+					results.getResults().size());
 		} catch (SearchEngineException e) {
-			LOGGER.error("Exception thrown during search: {}", e);
 			response = new SearchResponse<>(e.getMessage());
 		}
-
+		
 		return response;
 	}
 

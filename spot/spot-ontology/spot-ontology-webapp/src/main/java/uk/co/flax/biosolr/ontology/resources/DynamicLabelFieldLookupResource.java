@@ -15,49 +15,53 @@
  */
 package uk.co.flax.biosolr.ontology.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.ontology.api.Document;
-import uk.co.flax.biosolr.ontology.api.SearchResponse;
-import uk.co.flax.biosolr.ontology.search.DocumentSearch;
-import uk.co.flax.biosolr.ontology.search.ResultsList;
+import uk.co.flax.biosolr.ontology.search.SearchEngine;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
  * @author Matt Pearce
  */
-@Path("/documentTerm")
-public class DocumentTermSearchResource {
+@Path("/dynamicLabelFields")
+public class DynamicLabelFieldLookupResource {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentTermSearchResource.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DynamicLabelFieldLookupResource.class);
 	
-	private final DocumentSearch search;
+	private static final String LABEL_FIELD_REGEX = ".*_rel_labels$";
 	
-	public DocumentTermSearchResource(DocumentSearch search) {
-		this.search = search;
+	private final SearchEngine searchEngine;
+
+	public DynamicLabelFieldLookupResource(SearchEngine searchEngine) {
+		this.searchEngine = searchEngine;
 	}
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public SearchResponse<Document> search(@QueryParam("q") String query, @QueryParam("start") int start, @QueryParam("rows") int rows) {
-		SearchResponse<Document> response;
+	public List<String> handleGet() {
+		List<String> retList = new ArrayList<>();
 		
 		try {
-			ResultsList<Document> results = search.searchDocuments(query, start, rows, null);
-			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
+			List<String> fieldList = searchEngine.getDynamicFieldNames();
+			for (String fieldName : fieldList) {
+				if (fieldName.matches(LABEL_FIELD_REGEX)) {
+					retList.add(fieldName);
+				}
+			}
 		} catch (SearchEngineException e) {
-			LOGGER.error("Exception thrown searching ontologies: {}", e.getMessage());
-			response = new SearchResponse<>(e.getMessage());
+			LOGGER.error("Error thrown finding dynamic document fields: {}", e.getMessage());
 		}
 		
-		return response;
+		return retList;
 	}
 
 }

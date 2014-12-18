@@ -13,40 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology;
-
-import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
-import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
+package uk.co.flax.biosolr.ontology.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.dropwizard.Configuration;
-
 /**
  * @author Matt Pearce
- *
  */
-public class OntologyConfiguration extends Configuration {
+public class JenaRequest {
 	
-	@JsonProperty
-	private String urlPattern;
+	@JsonProperty("prefix")
+	private final String prefix;
 	
-	@JsonProperty("solr")
-	private SolrConfiguration solr;
+	@JsonProperty("query")
+	private final String query;
 	
-	@JsonProperty("jena")
-	private JenaConfiguration jena;
-	
-	public String getUrlPattern() {
-		return urlPattern;
+	@JsonProperty("rows")
+	private final int rows;
+
+	public JenaRequest(@JsonProperty("prefix") String prefix, @JsonProperty("query") String query,
+			@JsonProperty("rows") int rows) {
+		this.prefix = prefix;
+		this.query = query;
+		this.rows = rows;
 	}
-	
-	public SolrConfiguration getSolr() {
-		return solr;
+
+	/**
+	 * @return the prefix
+	 */
+	public String getPrefix() {
+		return prefix;
 	}
-	
-	public JenaConfiguration getJena() {
-		return jena;
+
+	/**
+	 * @return the query
+	 */
+	public String getQuery() {
+		return query;
 	}
-	
+
+	/**
+	 * @return the rows
+	 */
+	public int getRows() {
+		return rows;
+	}
+
 }

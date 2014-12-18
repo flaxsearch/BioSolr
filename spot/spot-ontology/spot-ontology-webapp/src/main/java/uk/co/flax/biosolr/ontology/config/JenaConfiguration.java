@@ -13,26 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.search;
+package uk.co.flax.biosolr.ontology.config;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Configuration details specific to Apache Jena.
+ * 
  * @author Matt Pearce
  */
-public interface SearchEngine {
+public class JenaConfiguration {
 	
-	/**
-	 * Check whether the search engine is ready.
-	 * @return <code>true</code> if the search engine is available.
-	 */
-	public boolean isSearchEngineReady();
+	@JsonProperty("ontologyUri")
+	private String ontologyUri = null;
 	
+	@JsonProperty("tdbPath")
+	private String tdbPath = null;
+
 	/**
-	 * Get the list of dynamic fields being used by the search engine.
-	 * @return the list of fields.
-	 * @throws SearchEngineException if problems occur looking up the fields.
+	 * @return the ontologyUri
 	 */
-	public List<String> getDynamicFieldNames() throws SearchEngineException;
+	public String getOntologyUri() {
+		return ontologyUri;
+	}
+	
+	public String getTdbPath() {
+		return tdbPath;
+	}
 
 }

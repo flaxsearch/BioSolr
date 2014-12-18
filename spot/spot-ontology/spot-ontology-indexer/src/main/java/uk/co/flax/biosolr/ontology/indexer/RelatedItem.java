@@ -13,26 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.search;
+package uk.co.flax.biosolr.ontology.indexer;
 
-import java.util.List;
+import java.util.Set;
+
+import org.semanticweb.owlapi.model.IRI;
 
 /**
  * @author Matt Pearce
  */
-public interface SearchEngine {
+public class RelatedItem {
 	
-	/**
-	 * Check whether the search engine is ready.
-	 * @return <code>true</code> if the search engine is available.
-	 */
-	public boolean isSearchEngineReady();
+	private final IRI iri;
 	
+	private final Set<String> labels;
+	
+	public RelatedItem(IRI iri, Set<String> labels) {
+		this.iri = iri;
+		this.labels = labels;
+	}
+
 	/**
-	 * Get the list of dynamic fields being used by the search engine.
-	 * @return the list of fields.
-	 * @throws SearchEngineException if problems occur looking up the fields.
+	 * @return the iri
 	 */
-	public List<String> getDynamicFieldNames() throws SearchEngineException;
+	public IRI getIri() {
+		return iri;
+	}
+
+	/**
+	 * @return the labels
+	 */
+	public Set<String> getLabels() {
+		return labels;
+	}
 
 }
