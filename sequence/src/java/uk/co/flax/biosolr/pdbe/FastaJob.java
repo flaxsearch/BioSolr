@@ -1,6 +1,10 @@
 package uk.co.flax.biosolr.pdbe;
 
-import java.rmi.RemoteException;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,11 +38,18 @@ public class FastaJob implements Runnable {
     // outputs
     private Map<String, Alignment> alignments = new HashMap<>();
     private Map<String, Alignment> alignmentsToShow = new HashMap<>();
-    private Map<String, List<Alignment>> alignPdbIdCode = new HashMap<>();
+    private Map<String, List<Alignment>> pdbIdAlignments = new HashMap<>();
     private List<String> resPdbIdCodes = new ArrayList<>();
     private Map<String, Map<String, List<String>>> pdbIdSequenceGroups = new HashMap<>();
     private Map<String, Set<String>> pdbIdChainSelectionGroups = new HashMap<>();
     private Set<String> pdbIdCodes = new HashSet<>();
+    
+    // regexp patterns
+    private Pattern pattern1 = Pattern.compile("^PDB:(.*?_.*?)\\s+(.+?)\\s+([0-9.e-]+?)$|^PRE_PDB:(\\w{4} Entity)\\s+(.+?)\\s+([0-9.e-]+?)$");
+    private Pattern pattern2 = Pattern.compile("^>>PDB:(.*?_.*?)\\s+.*?$|^>>PRE_PDB:(\\w{4} Entity).*?$");
+    private Pattern pattern3 = Pattern.compile("^Smith-Waterman score:.*?\\;(.*?)\\% .*? overlap \\((.*?)\\)$");
+    private Pattern pattern4 = Pattern.compile("^EMBOS  (\\s*.*?)$");            
+    private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
     
     public Exception getException() {
     	return exception;
@@ -61,7 +72,7 @@ public class FastaJob implements Runnable {
     }
 
     public Map<String, List<Alignment>> getAlignPdbIdCodes() {
-    	return alignPdbIdCode;
+    	return pdbIdAlignments;
     }
     
     public String getQuerySequence() {
@@ -130,12 +141,13 @@ public class FastaJob implements Runnable {
 	        
 	        if (status.equals(FastaStatus.DONE)) {
 	        	String id = fasta.getResultTypes(jobId)[0].getIdentifier();
-	            String result = new String(fasta.getResult(jobId, id, null));
-	        	parseResults(result);
+	            byte[] result = fasta.getResult(jobId, id, null);
+	            InputStream in = new ByteArrayInputStream(result);
+	        	parseResults(new BufferedReader(new InputStreamReader(in)));
 	        } else {
 	            LOG.log(Level.SEVERE, "Error with job: " + jobId + " (" + status + ")");
 	        }
-    	} catch (RemoteException | InterruptedException e) {
+    	} catch (InterruptedException | IOException e) {
     		exception = e;
     	}
     }
@@ -154,34 +166,29 @@ public class FastaJob implements Runnable {
         return new Alignment(pdbId, chain, eValue);
     }
     
-    private void parseResults(String result) throws RemoteException {
-        String[] output = result.split("\n");
-
-        Pattern pattern = Pattern.compile("^PDB:(.*?_.*?)\\s+(.+?)\\s+([0-9.e-]+?)$|^PRE_PDB:(\\w{4} Entity)\\s+(.+?)\\s+([0-9.e-]+?)$");
-        Pattern pattern1 = Pattern.compile("^>>PDB:(.*?_.*?)\\s+.*?$|^>>PRE_PDB:(\\w{4} Entity).*?$");
-        Pattern pattern2 = Pattern.compile("^Smith-Waterman score:.*?\\;(.*?)\\% .*? overlap \\((.*?)\\)$");
-        Pattern pattern3 = Pattern.compile("^EMBOS  (\\s*.*?)$");            
-        Pattern pattern4 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
-
-        for (int i = 1; i < output.length; i++) {
-            Matcher matcher = pattern.matcher(output[i]);
-            Matcher matcher1 = pattern1.matcher(output[i]);
-            if (matcher.find()) {
-                Alignment a = parseAlignment(matcher);
+    private void parseResults(BufferedReader reader) throws IOException {
+    	String line = "";
+        while (line != null) {
+            Matcher matcher1 = pattern1.matcher(line);
+            Matcher matcher2 = pattern2.matcher(line);
+            if (matcher1.find()) {
+                Alignment a = parseAlignment(matcher1);
                 
                 pdbIdCodes.add(a.getPdbId());
                 resPdbIdCodes.add(a.getPdbIdChain());
                 alignments.put(a.getPdbIdChain(), a);
 
-                List<Alignment> v = alignPdbIdCode.get(a.getPdbId());
-                if (v == null) {
-                	v = new ArrayList<>();
-                    alignPdbIdCode.put(a.getPdbId(), v);
+                List<Alignment> alignList = pdbIdAlignments.get(a.getPdbId());
+                if (alignList == null) {
+                	alignList = new ArrayList<>();
+                    pdbIdAlignments.put(a.getPdbId(), alignList);
                 }
-                v.add(a);
-            } else if (matcher1.find()) {
-            	int n = firstGroup(matcher1);
-                String pdbId_chain1 = matcher1.group(n);
+                alignList.add(a);
+                
+                line = reader.readLine();
+            } else if (matcher2.find()) {
+            	int n = firstGroup(matcher2);
+                String pdbId_chain1 = matcher2.group(n);
                 
                 if (pdbId_chain1.contains("Entity")) {
                 	pdbId_chain1 = pdbId_chain1.replaceFirst(" ", "_");  
@@ -192,16 +199,16 @@ public class FastaJob implements Runnable {
                 	continue;
                 }
 
-                for (int j = i + 1; j < output.length; j++) {
-                    Matcher m1 = pattern1.matcher(output[j]);
-                    Matcher m2 = pattern2.matcher(output[j]);
-                    Matcher m3 = pattern3.matcher(output[j]);
-                    Matcher m4 = pattern4.matcher(output[j]);
+                while ((line = reader.readLine()) != null) {
+                    Matcher m2 = pattern2.matcher(line);
+                    Matcher m3 = pattern3.matcher(line);
+                    Matcher m4 = pattern4.matcher(line);
+                    Matcher m5 = pattern5.matcher(line);
 
-                    if (m2.find()) {
-                        double identity = new Double(m2.group(1));
+                    if (m3.find()) {
+                        double identity = new Double(m3.group(1));
                         a.setPercentIdentity(identity);
-                        String overLap = m2.group(2);
+                        String overLap = m3.group(2);
                         String[] o = overLap.split(":");
                         String[] oIn = o[0].split("-");
                         String[] oOut = o[1].split("-");
@@ -209,14 +216,13 @@ public class FastaJob implements Runnable {
                         a.setQueryOverlapEnd(oIn[1]);
                         a.setDBOverlapStart(oOut[0]);
                         a.setDBOverlapEnd(oOut[1]);
-                    } else if (m1.find()) {
-                        i = j - 1;
+                    } else if (m2.find()) {
                         break;
-                    } else if (m3.find()) {
-                        a.addQuerySequence(m3.group(1));
                     } else if (m4.find()) {
-                        int n4 = firstGroup(m4);
-                        a.addReturnSequence(m4.group(n4));
+                        a.addQuerySequence(m4.group(1));
+                    } else if (m5.find()) {
+                        int n4 = firstGroup(m5);
+                        a.addReturnSequence(m5.group(n4));
                     }
                 }
                 
@@ -231,12 +237,14 @@ public class FastaJob implements Runnable {
                     seq.put(a.getReturnSequenceString(), chains);
                 }
                 chains.add(a.getChain());
+            } else {
+            	line = reader.readLine();
             }
         }
         
-        for (String pdbCode : pdbIdSequenceGroups.keySet()) {
+        for (String pdbId : pdbIdSequenceGroups.keySet()) {
             Set<String> uniqueChains = new HashSet<>();
-            Map<String, List<String>> temp = pdbIdSequenceGroups.get(pdbCode);
+            Map<String, List<String>> temp = pdbIdSequenceGroups.get(pdbId);
             for (String ss : temp.keySet()) {
             	List<String> chains = temp.get(ss);
                 String uChain = null;
@@ -244,8 +252,8 @@ public class FastaJob implements Runnable {
                     if (uChain == null) {
                         uChain = chain;
                     } else {
-                        Alignment a1 = alignments.get(pdbCode + "_" + chain);
-                        Alignment a2 = alignments.get(pdbCode + "_" + uChain);
+                        Alignment a1 = alignments.get(pdbId + "_" + chain);
+                        Alignment a2 = alignments.get(pdbId + "_" + uChain);
                         /*if (a2.getNumAnnotCategories() < a1.getNumAnnotCategories()) {
                             uChain = chain;
                         }*/ //FIXME: doesn't work because there are no annot categories in Alignment
@@ -253,9 +261,10 @@ public class FastaJob implements Runnable {
                 }
                 assert uChain != null;
                 uniqueChains.add(uChain);
-                alignmentsToShow.put(pdbCode + "_" + uChain, alignments.get(pdbCode + "_" + uChain));
+                alignmentsToShow.put(pdbId + "_" + uChain, alignments.get(pdbId + "_" + uChain));
             }
-            pdbIdChainSelectionGroups.put(pdbCode, uniqueChains);
+            pdbIdChainSelectionGroups.put(pdbId, uniqueChains);
         }
     }
+    
 }
