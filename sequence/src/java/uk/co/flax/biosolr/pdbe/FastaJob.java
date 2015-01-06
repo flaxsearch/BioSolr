@@ -5,12 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -21,7 +15,7 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 
 public class FastaJob implements Runnable {
 	
-	private static final Logger LOG  = Logger.getLogger(FastaJob.class.getName());
+	private static final Logger LOG = Logger.getLogger(FastaJob.class.getName());
 
     private static final String EMAIL = "sameer@ebi.ac.uk";
 

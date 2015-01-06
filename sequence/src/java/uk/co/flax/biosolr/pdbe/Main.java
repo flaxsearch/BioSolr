@@ -29,6 +29,9 @@ public class Main {
 			
 	        FastaJob job = new FastaJob(fasta, sequence, eVal, identityPctL,  identityPctH);
 			job.run();
+			FastaJobResults results = job.getResults();
+			LOG.log(Level.INFO, "Number of chains: " + results.getNumChains());
+			LOG.log(Level.INFO, "Number of entries: " + results.getNumEntries());
 			
 			if (job.getException() != null) {
 				LOG.log(Level.SEVERE, "Error during run()", job.getException());
