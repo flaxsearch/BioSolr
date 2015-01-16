@@ -7,7 +7,7 @@ body {
 }
 
 .results_header {
-	background-color: #FFEBE0;
+	background-color: #dee7e7;
 	margin: 10px 0;
 }
 
@@ -17,7 +17,7 @@ ul.label-display {
 }
 
 .label-display li {
-	background-color: #FFEBE0;
+	background-color: #dee7e7;
 	display: inline-block;
 	margin-right: 4px;
 	padding: 2px;

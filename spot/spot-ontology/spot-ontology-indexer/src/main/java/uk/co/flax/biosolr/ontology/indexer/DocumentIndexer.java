@@ -207,11 +207,11 @@ public class DocumentIndexer {
 	}
 	
 	private List<String> lookupChildLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findChildLabels(efoClass));
+		return new ArrayList<String>(ontologyHandler.findChildLabels(efoClass, false));
 	}
 	
 	private List<String> lookupParentLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass));
+		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass, false));
 	}
 	
 	private Map<String, List<RelatedItem>> lookupRelatedItems(OWLClass efoClass) {

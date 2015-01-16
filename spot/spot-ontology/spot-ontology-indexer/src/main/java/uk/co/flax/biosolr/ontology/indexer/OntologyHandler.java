@@ -63,12 +63,16 @@ public class OntologyHandler {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHandler.class);
 	
+	public static final String ORGANIZATIONAL_CLASS_URI = "http://www.ebi.ac.uk/efo/organizational_class";
+	
 	private final OWLOntology ontology;
     private final OWLReasoner reasoner;
     private final ShortFormProvider shortFormProvider;
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
+	
+	private final OWLAnnotationProperty organizationalClass;
 
 	/**
 	 * Construct a handler for a particular ontology.
@@ -90,12 +94,20 @@ public class OntologyHandler {
         
         // Initialise the class map
         initialiseClassMap();
+        
+        // Set up the organizational class annotation property
+		this.organizationalClass = findAnnotationProperty(ORGANIZATIONAL_CLASS_URI);
 	}
 	
 	private void initialiseClassMap() {
 		for (OWLClass clazz : ontology.getClassesInSignature()) {
 			owlClassMap.put(clazz.getIRI(), clazz);
 		}
+	}
+	
+	private OWLAnnotationProperty findAnnotationProperty(String propertyIRI) {
+		return ontology.getOWLOntologyManager().getOWLDataFactory()
+				.getOWLAnnotationProperty(IRI.create(propertyIRI));
 	}
 	
 	public OWLOntology getOntology() {
@@ -182,12 +194,12 @@ public class OntologyHandler {
     	return uris;
     }
 
-	public Collection<String> findChildLabels(OWLClass owlClass) {
-		return getLabelsFromNodeSet(reasoner.getSubClasses(owlClass, true));
+	public Collection<String> findChildLabels(OWLClass owlClass, boolean direct) {
+		return getLabelsFromNodeSet(reasoner.getSubClasses(owlClass, direct));
 	}
 
-	public Collection<String> findParentLabels(OWLClass owlClass) {
-		return getLabelsFromNodeSet(reasoner.getSuperClasses(owlClass, true));
+	public Collection<String> findParentLabels(OWLClass owlClass, boolean direct) {
+		return getLabelsFromNodeSet(reasoner.getSuperClasses(owlClass, direct));
 	}
 	
 	private Collection<String> getLabelsFromNodeSet(NodeSet<OWLClass> nodeSet) {
@@ -195,7 +207,7 @@ public class OntologyHandler {
 		
     	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
-    			if (!expr.isAnonymous()) {
+    			if (!expr.isAnonymous() && !isOrganisationalClass(expr)) {
         			Collection<String> parentLabels = findLabels(expr.asOWLClass());
         			labels.addAll(parentLabels);
     			}
@@ -254,6 +266,10 @@ public class OntologyHandler {
         }
         // if no superclasses are obsolete, this class isn't obsolete
         return false;
+    }
+    
+    private boolean isOrganisationalClass(OWLClass owlClass) {
+		return !findAnnotations(owlClass.getIRI(), organizationalClass).isEmpty();
     }
     
 }
