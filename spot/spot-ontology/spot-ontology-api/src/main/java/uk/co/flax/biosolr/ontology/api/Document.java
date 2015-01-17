@@ -83,6 +83,9 @@ public class Document {
 	@Field("*_rel_labels")
 	private Map<String, List<String>> relatedLabels = new HashMap<>();
 	
+	@Field("child_hierarchy")
+	private String childHierarchy;
+	
 	/**
 	 * @return the gid
 	 */
@@ -333,6 +336,20 @@ public class Document {
 	 */
 	public void setRelatedLabels(Map<String, List<String>> relatedLabels) {
 		this.relatedLabels = relatedLabels;
+	}
+
+	/**
+	 * @return the childHierarchy
+	 */
+	public String getChildHierarchy() {
+		return childHierarchy;
+	}
+
+	/**
+	 * @param childHierarchy the childHierarchy to set
+	 */
+	public void setChildHierarchy(String childHierarchy) {
+		this.childHierarchy = childHierarchy;
 	}
 
 }

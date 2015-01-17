@@ -40,7 +40,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.EFONode;
 
 /**
  * @author Matt Pearce
@@ -186,7 +190,10 @@ public class DocumentIndexer {
 				OWLClass efoClass = findEfoClass(efoUri);
 				if (efoClass != null) {
 					doc.setEfoLabels(lookupEfoLabels(efoClass));
-					doc.setChildLabels(lookupChildLabels(efoClass));
+					
+					List<EFONode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
+					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
+					doc.setChildLabels(extractLabels(childHierarchy));
 					doc.setParentLabels(lookupParentLabels(efoClass));
 					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
 				}
@@ -245,6 +252,30 @@ public class DocumentIndexer {
 		if (response.getStatus() != 0) {
 			throw new OntologyIndexingException("Solr error adding records: " + response);
 		}
+    }
+    
+    private String convertHierarchyToJson(List<EFONode> hierarchy) {
+    	String json = null;
+    	
+    	try {
+        	ObjectMapper mapper = new ObjectMapper();
+			json = mapper.writeValueAsString(hierarchy);
+		} catch (JsonProcessingException e) {
+			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
+		}
+    	
+    	return json;
+    }
+    
+    private List<String> extractLabels(List<EFONode> hierarchy) {
+    	List<String> labels = new ArrayList<>();
+    	
+    	for (EFONode node : hierarchy) {
+    		labels.addAll(node.getLabels());
+    		labels.addAll(extractLabels(node.getChildren()));
+    	}
+    	
+    	return labels;
     }
     
 	public static void main(String[] args) {

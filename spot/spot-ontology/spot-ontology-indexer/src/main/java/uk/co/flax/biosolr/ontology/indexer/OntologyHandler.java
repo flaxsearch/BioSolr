@@ -54,6 +54,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.co.flax.biosolr.ontology.api.EFONode;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**
@@ -73,6 +74,7 @@ public class OntologyHandler {
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
 	
 	private final OWLAnnotationProperty organizationalClass;
+	private final IRI owlNothingIRI;
 
 	/**
 	 * Construct a handler for a particular ontology.
@@ -97,6 +99,7 @@ public class OntologyHandler {
         
         // Set up the organizational class annotation property
 		this.organizationalClass = findAnnotationProperty(ORGANIZATIONAL_CLASS_URI);
+        this.owlNothingIRI = manager.getOWLDataFactory().getOWLNothing().getIRI();
 	}
 	
 	private void initialiseClassMap() {
@@ -215,6 +218,30 @@ public class OntologyHandler {
     	}
     	
     	return labels;
+	}
+	
+	public List<EFONode> getChildHierarchy(OWLClass parent) {
+		List<EFONode> hierarchy = new ArrayList<>();
+		
+		for (Node<OWLClass> child : reasoner.getSubClasses(parent, true)) {
+			hierarchy.add(buildEFONode(child.getRepresentativeElement()));
+		}
+		
+		return hierarchy;
+	}
+	
+	private EFONode buildEFONode(OWLClass owlClass) {
+		String uri = owlClass.getIRI().toURI().toString();
+		List<String> labels = new ArrayList<>(findLabels(owlClass));
+		List<EFONode> children = new ArrayList<>();
+		for (Node<OWLClass> child : reasoner.getSubClasses(owlClass, true)) {
+			OWLClass childClass = child.getRepresentativeElement();
+			if (!childClass.getIRI().equals(owlNothingIRI)) {
+				children.add(buildEFONode(childClass));
+			}
+		}
+		
+		return new EFONode(uri, labels, children);
 	}
 
     public Map<String, List<RelatedItem>> getRestrictions(OWLClass owlClass) {

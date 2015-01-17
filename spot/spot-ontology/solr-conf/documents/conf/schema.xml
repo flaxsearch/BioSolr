@@ -79,6 +79,9 @@
     <field name="efo_parent_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
+    
+    <!-- Full child hierarchy, represented in JSON -->
+    <field name="child_hierarchy" type="string" indexed="false" stored="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
