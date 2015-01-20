@@ -196,6 +196,10 @@ public class DocumentIndexer {
 					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
 					doc.setChildLabels(extractLabels(childHierarchy));
 					doc.setParentLabels(lookupParentLabels(efoClass));
+					List<String> facetLabels = new ArrayList<String>();
+					facetLabels.addAll(doc.getEfoLabels());
+					facetLabels.addAll(doc.getParentLabels());
+					doc.setFacetLabels(facetLabels);
 					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
 				}
 				

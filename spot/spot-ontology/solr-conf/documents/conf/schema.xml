@@ -75,11 +75,14 @@
     <dynamicField name="*_rel_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
 
     <field name="efo_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_parent_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_parent_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     
+    <field name="facet_labels" type="string" indexed="true" stored="true" multiValued="true" />
+
     <!-- Full child hierarchy, represented in JSON -->
     <field name="child_hierarchy" type="string" indexed="false" stored="true" />
 
@@ -93,6 +96,7 @@
 	<uniqueKey>id</uniqueKey>
 	
 	<copyField source="disease_trait" dest="disease_trait_str" />
+	<copyField source="efo_labels" dest="efo_labels_str" />
 	<copyField source="efo_child_labels" dest="efo_child_labels_str" />
     <copyField source="efo_parent_labels" dest="efo_parent_labels_str" />
 

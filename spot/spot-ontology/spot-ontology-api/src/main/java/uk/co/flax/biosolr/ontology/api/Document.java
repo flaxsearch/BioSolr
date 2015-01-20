@@ -77,6 +77,9 @@ public class Document {
 	
 	@Field("efo_child_labels")
 	private List<String> childLabels;
+	
+	@Field("facet_labels")
+	private List<String> facetLabels;
 
 	@Field("*_rel_iris")
 	private Map<String, List<String>> relatedIris = new HashMap<>();
@@ -350,6 +353,20 @@ public class Document {
 	 */
 	public void setChildHierarchy(String childHierarchy) {
 		this.childHierarchy = childHierarchy;
+	}
+
+	/**
+	 * @return the facetLabels
+	 */
+	public List<String> getFacetLabels() {
+		return facetLabels;
+	}
+
+	/**
+	 * @param facetLabels the facetLabels to set
+	 */
+	public void setFacetLabels(List<String> facetLabels) {
+		this.facetLabels = facetLabels;
 	}
 
 }
