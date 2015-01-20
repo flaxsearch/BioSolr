@@ -33,6 +33,9 @@ ontologyApp
 	// Event handler to catch search form submit
 	$scope.search = function() {
 		var params = { q: $scope.query, additionalFields: $scope.additionalFields };
+		// Clear filters
+		$scope.fq = undefined;
+		$scope.appliedFilters = undefined;
 		self.updateModel(params);
 	}
 	
@@ -94,6 +97,8 @@ ontologyApp
 			ret = 'Child labels';
 		} else if (label == 'efo_labels_str') {
 			ret = 'Labels';
+		} else if (label == 'facet_labels') {
+			ret = 'Top-level labels'
 		}
 		
 		return ret;
