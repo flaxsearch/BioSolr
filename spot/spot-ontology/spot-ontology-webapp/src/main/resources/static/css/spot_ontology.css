@@ -32,3 +32,22 @@ textarea {
 	margin-top: 10px;
 	text-align: right;
 }
+
+.facet-header {
+	font-weight: bold;
+}
+
+.facet-field {
+	font-size: smaller;
+	font-weight: bold;
+}
+
+ul.facet-list {
+	padding: 0px;
+}
+
+.facet-list li {
+	font-size: smaller;
+	list-style: none;
+	margin: 2px;
+}

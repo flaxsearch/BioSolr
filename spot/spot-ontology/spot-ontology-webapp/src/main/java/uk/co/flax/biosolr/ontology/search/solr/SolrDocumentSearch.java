@@ -16,12 +16,16 @@
 package uk.co.flax.biosolr.ontology.search.solr;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.Group;
 import org.apache.solr.client.solrj.response.GroupCommand;
 import org.apache.solr.client.solrj.response.GroupResponse;
@@ -31,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.FacetEntry;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
@@ -77,7 +82,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	}
 
 	@Override
-	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields) throws SearchEngineException {
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields, List<String> filters) throws SearchEngineException {
 		ResultsList<Document> results = null;
 
 		try {
@@ -89,7 +94,11 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			if (additionalFields != null) {
 				queryFields.addAll(additionalFields);
 			}
+			if (filters != null) {
+				query.addFilterQuery(filters.toArray(new String[0]));
+			}
 			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
+			query.addFacetField(config.getFacetFields().toArray(new String[config.getFacetFields().size()]));
 			LOGGER.debug("Query: {}", query);
 
 			QueryResponse response = server.query(query);
@@ -111,14 +120,32 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 				docs = response.getBeans(Document.class);
 				total = response.getResults().getNumFound();
 			}
-			results = new ResultsList<>(docs, start, (start / rows), total);
+			
+			results = new ResultsList<>(docs, start, (start / rows), total, extractFacets(response));
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
 
 		return results;
 	}
-
+	
+	private Map<String, List<FacetEntry>> extractFacets(QueryResponse response) {
+		Map<String, List<FacetEntry>> facets = new HashMap<>();
+		
+		for (String name : config.getFacetFields()) {
+			FacetField fld = response.getFacetField(name);
+			if (fld != null && !fld.getValues().isEmpty()) {
+				List<FacetEntry> facetValues = new ArrayList<>();
+				for (Count count : fld.getValues()) {
+					facetValues.add(new FacetEntry(count.getName(), count.getCount()));
+				}
+				facets.put(name, facetValues);
+			}
+		}
+		
+		return facets;
+	}
+	
 	@Override
 	public ResultsList<Document> searchByEfoUri(int start, int rows, String term, String... uris) throws SearchEngineException {
 		ResultsList<Document> results = null;

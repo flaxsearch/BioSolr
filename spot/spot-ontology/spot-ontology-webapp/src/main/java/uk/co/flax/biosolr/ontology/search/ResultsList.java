@@ -16,6 +16,9 @@
 package uk.co.flax.biosolr.ontology.search;
 
 import java.util.List;
+import java.util.Map;
+
+import uk.co.flax.biosolr.ontology.api.FacetEntry;
 
 /**
  * Generic results list class, wrapping different types of result items.
@@ -35,12 +38,19 @@ public class ResultsList<T> {
 
 	/** The page number of this list */
 	private final int pageNumber;
+	
+	private final Map<String, List<FacetEntry>> facets;
 
 	public ResultsList(List<T> results, int pageSize, int pageNumber, long numResults) {
+		this(results, pageSize, pageNumber, numResults, null);
+	}
+
+	public ResultsList(List<T> results, int pageSize, int pageNumber, long numResults, Map<String, List<FacetEntry>> facets) {
 		this.results = results;
 		this.pageSize = pageSize;
 		this.pageNumber = pageNumber;
 		this.numResults = numResults;
+		this.facets = facets;
 	}
 
 	/**
@@ -69,6 +79,13 @@ public class ResultsList<T> {
 	 */
 	public int getPageNumber() {
 		return pageNumber;
+	}
+
+	/**
+	 * @return the facets
+	 */
+	public Map<String, List<FacetEntry>> getFacets() {
+		return facets;
 	}
 
 }

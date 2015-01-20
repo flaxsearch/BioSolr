@@ -49,7 +49,8 @@ public class SearchResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
-			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields) {
+			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields,
+			@QueryParam("fq") List<String> filters) {
 		SearchResponse<Document> response;
 
 		// Default rows value if not set
@@ -58,8 +59,8 @@ public class SearchResource {
 		}
 
 		try {
-			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields);
-			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
+			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields, filters);
+			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults(), results.getFacets());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown during search: {}", e);
 			response = new SearchResponse<>(e.getMessage());

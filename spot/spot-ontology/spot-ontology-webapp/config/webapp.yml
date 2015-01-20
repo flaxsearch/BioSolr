@@ -75,6 +75,8 @@ solr:
   
   # The maximum number of ontology terms to retrieve
   ontologyTermCount: 3
+  
+  facetFields: [ "facet_labels", "efo_labels_str" ]
 
 # Apache Jena configuration
 jena:

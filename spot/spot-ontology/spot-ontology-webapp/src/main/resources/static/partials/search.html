@@ -18,50 +18,77 @@
 <div ng-show="results">
     <div class="row results_header"><div class="col-md-10">
         Showing records {{ start }}-{{ end }} of {{ total }} results.
+        <span ng-show="filtersApplied()"><br />
+            Filtered by:
+        </span>
     </div></div>
 
-    <div class="row" ng-repeat="result in results">
-        <div class="col-md-1">{{ start+$index }}.</div>
-        <div class="col-md-9">
-            <strong>{{ result.title }}</strong><br />
-            {{result.firstAuthor}} - {{result.publication}}<br />
-            <div ng-show="result.efoLabels" class="row">
-                <div class="col-md-2"><strong>EFO Label(s)</strong></div>
-                <div class="col-md-10">
-                 <ul class="label-display">
-                     <li ng-repeat="label in result.efoLabels">{{ label }}</li>
-                 </ul>
-                </div>
-            </div>
-            <div ng-show="result.childLabels" class="row">
-                <div class="col-md-2"><strong>EFO children</strong></div>
-                <div class="col-md-10">
-                <ul class="label-display">
-                    <li ng-repeat="label in result.childLabels">{{ label }}</li>
+    <div class="row">
+        <div class="col-md-2">
+            <span class="facet-header">Facets</span>
+            <div ng-show="showTopLevelFacets()">
+                <span class="facet-field">{{getFacetLabel('facet_labels')}}</span>
+                <ul class="facet-list">
+                    <li ng-repeat="facet in facets.facet_labels">
+                        <a ng-click="addFilter('facet_labels', facet.label)">{{facet.label}}</a> ({{facet.count}})
+                    </li>
                 </ul>
-                </div>
             </div>
-            <div ng-show="result.parentLabels" class="row">
-                <div class="col-md-2"><strong>EFO parent(s)</strong></div>
-                <div class="col-md-10">
-                <ul class="label-display">
-                    <li ng-repeat="label in result.parentLabels">{{ label }}</li>
+            <div ng-show="showSecondLevelFacets()">
+                <span class="facet-field">{{getFacetLabel('efo_labels_str')}}</span>
+                <ul class="facet-list">
+                    <li ng-repeat="facet in facets.efo_labels_str">
+                        <a ng-click="addFilter('efo_labels_str', facet.label)">{{facet.label}}</a> ({{facet.count}})
+                    </li>
                 </ul>
-                </div>
-            </div>
-            <div ng-show="hasRelated(result)" class="row">
-                <div class="col-md-2"><strong>Related</strong></div>
-                <div class="col-md-10">
-                    <div ng-repeat="(key, labels) in result.relatedLabels" class="row">
-                        <div class="col-md-2">{{ formatRelatedType(key) }}</div>
-                        <div class="col-md-10"><ul class="label-display">
-                            <li ng-repeat="label in labels">{{ label }}</li>
-                        </ul></div>
-                    </div>
-                </div>
             </div>
         </div>
-    </div><!-- row -->
+    
+        <div class="col-md-10">
+		    <div class="row" ng-repeat="result in results">
+		        <div class="col-md-1">{{ start+$index }}.</div>
+		        <div class="col-md-9">
+		            <strong>{{ result.title }}</strong><br />
+		            {{result.firstAuthor}} - {{result.publication}}<br />
+		            <div ng-show="result.efoLabels" class="row">
+		                <div class="col-md-2"><strong>EFO Label(s)</strong></div>
+		                <div class="col-md-10">
+		                 <ul class="label-display">
+		                     <li ng-repeat="label in result.efoLabels">{{ label }}</li>
+		                 </ul>
+		                </div>
+		            </div>
+		            <div ng-show="result.childLabels" class="row">
+		                <div class="col-md-2"><strong>EFO children</strong></div>
+		                <div class="col-md-10">
+		                <ul class="label-display">
+		                    <li ng-repeat="label in result.childLabels">{{ label }}</li>
+		                </ul>
+		                </div>
+		            </div>
+		            <div ng-show="result.parentLabels" class="row">
+		                <div class="col-md-2"><strong>EFO parent(s)</strong></div>
+		                <div class="col-md-10">
+		                <ul class="label-display">
+		                    <li ng-repeat="label in result.parentLabels">{{ label }}</li>
+		                </ul>
+		                </div>
+		            </div>
+		            <div ng-show="hasRelated(result)" class="row">
+		                <div class="col-md-2"><strong>Related</strong></div>
+		                <div class="col-md-10">
+		                    <div ng-repeat="(key, labels) in result.relatedLabels" class="row">
+		                        <div class="col-md-2">{{ formatRelatedType(key) }}</div>
+		                        <div class="col-md-10"><ul class="label-display">
+		                            <li ng-repeat="label in labels">{{ label }}</li>
+		                        </ul></div>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+    	    </div><!-- result row -->
+    	</div><!-- Results column -->
+    </div><!-- outer row -->
 
     <pagination boundary-links="true" total-items="total" ng-model="currentPage" 
         previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" 

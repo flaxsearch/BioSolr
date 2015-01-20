@@ -36,6 +36,20 @@ ontologyApp
 		self.updateModel(params);
 	}
 	
+	$scope.addFilter = function(field, term) {
+		var filter = field + ':"' + term + '"';
+		if ($scope.fq) {
+			$scope.fq.push(filter);
+			$scope.appliedFilters.push({ field: term });
+		} else {
+			$scope.fq = [ filter ];
+			$scope.appliedFilters = [{ field: term}];
+		}
+		
+		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
+		self.updateModel(params);
+	}
+	
 	self.updateModel = function(params) {
 		$http({
 			method: 'GET',
@@ -53,6 +67,7 @@ ontologyApp
 				$scope.start = data.start + 1;
 				$scope.end = data.start + data.rows;
 				$scope.currentPage = (data.start / data.rows) + 1;
+				$scope.facets = data.facets;
 			}
 		});
 	}
@@ -70,6 +85,30 @@ ontologyApp
 		}
 		ret = ret.charAt(0).toUpperCase() + ret.slice(1);
 		return ret;
+	}
+	
+	$scope.getFacetLabel = function(label) {
+		var ret = label;
+		
+		if (label == 'efo_child_labels_str') {
+			ret = 'Child labels';
+		} else if (label == 'efo_labels_str') {
+			ret = 'Labels';
+		}
+		
+		return ret;
+	}
+	
+	$scope.showTopLevelFacets = function() {
+		return $scope.fq == undefined || $scope.fq.length == 0;
+	}
+	
+	$scope.showSecondLevelFacets = function() {
+		return $scope.filtersApplied();
+	}
+	
+	$scope.filtersApplied = function() {
+		return $scope.fq && $scope.fq.length > 0;
 	}
 	
 	// Initialise the page
