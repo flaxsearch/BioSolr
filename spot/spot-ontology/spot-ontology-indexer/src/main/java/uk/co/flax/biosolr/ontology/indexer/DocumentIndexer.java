@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +41,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
+import uk.co.flax.biosolr.ontology.api.Document;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import uk.co.flax.biosolr.ontology.api.Document;
-import uk.co.flax.biosolr.ontology.api.EFONode;
 
 /**
  * @author Matt Pearce
@@ -191,7 +192,7 @@ public class DocumentIndexer {
 				if (efoClass != null) {
 					doc.setEfoLabels(lookupEfoLabels(efoClass));
 					
-					List<EFONode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
+					List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
 					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
 					doc.setChildLabels(extractLabels(childHierarchy));
 					doc.setParentLabels(lookupParentLabels(efoClass));
@@ -211,10 +212,6 @@ public class DocumentIndexer {
 	
 	private List<String> lookupEfoLabels(OWLClass efoClass) {
 		return new ArrayList<String>(ontologyHandler.findLabels(efoClass));
-	}
-	
-	private List<String> lookupChildLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findChildLabels(efoClass, false));
 	}
 	
 	private List<String> lookupParentLabels(OWLClass efoClass) {
@@ -254,25 +251,29 @@ public class DocumentIndexer {
 		}
     }
     
-    private String convertHierarchyToJson(List<EFONode> hierarchy) {
+    private String convertHierarchyToJson(List<OntologyHierarchyNode> hierarchy) {
     	String json = null;
     	
-    	try {
-        	ObjectMapper mapper = new ObjectMapper();
-			json = mapper.writeValueAsString(hierarchy);
-		} catch (JsonProcessingException e) {
-			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
-		}
+    	if (hierarchy.size() > 0) {
+    		try {
+    			ObjectMapper mapper = new ObjectMapper();
+    			json = mapper.writeValueAsString(hierarchy);
+    		} catch (JsonProcessingException e) {
+    			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
+    		}
+    	}
     	
     	return json;
     }
     
-    private List<String> extractLabels(List<EFONode> hierarchy) {
+    private List<String> extractLabels(Collection<OntologyHierarchyNode> hierarchy) {
     	List<String> labels = new ArrayList<>();
     	
-    	for (EFONode node : hierarchy) {
-    		labels.addAll(node.getLabels());
-    		labels.addAll(extractLabels(node.getChildren()));
+    	for (OntologyHierarchyNode node : hierarchy) {
+    		if (node.getSize() > 0) {
+    			labels.add(node.getName());
+        		labels.addAll(extractLabels(node.getChildren()));
+    		}
     	}
     	
     	return labels;

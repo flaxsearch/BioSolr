@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +45,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
@@ -54,7 +54,10 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.ontology.api.EFONode;
+import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
+import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNodeCounter;
+import uk.ac.ebi.fgpt.owl2json.SimpleOntologyHierarchyNode;
+import uk.ac.ebi.fgpt.owl2json.ZoomaNodeCounter;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**
@@ -69,6 +72,8 @@ public class OntologyHandler {
 	private final OWLOntology ontology;
     private final OWLReasoner reasoner;
     private final ShortFormProvider shortFormProvider;
+    private final OntologyHierarchyNodeCounter nodeCounter;
+    
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 	
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
@@ -89,10 +94,10 @@ public class OntologyHandler {
         LOGGER.info("Loading ontology from " + ontologyUri + "...");
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         IRI iri = IRI.create(ontologyUri);
-        ontology = manager.loadOntologyFromOntologyDocument(iri);
-		OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
-		this.reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
-		shortFormProvider = new BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
+        this.ontology = manager.loadOntologyFromOntologyDocument(iri);
+		this.reasoner = new StructuralReasonerFactory().createNonBufferingReasoner(ontology);
+		this.shortFormProvider = new BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
+		this.nodeCounter = new ZoomaNodeCounter();
         
         // Initialise the class map
         initialiseClassMap();
@@ -220,30 +225,51 @@ public class OntologyHandler {
     	return labels;
 	}
 	
-	public List<EFONode> getChildHierarchy(OWLClass parent) {
-		List<EFONode> hierarchy = new ArrayList<>();
+	public List<OntologyHierarchyNode> getChildHierarchy(OWLClass parent) {
+		List<OntologyHierarchyNode> hierarchy = new ArrayList<>();
 		
 		for (Node<OWLClass> child : reasoner.getSubClasses(parent, true)) {
-			hierarchy.add(buildEFONode(child.getRepresentativeElement()));
+			OWLClass childClass = filterOWLClassNode(child);
+			if (childClass != null) {
+				hierarchy.add(buildOntologyNode(childClass));
+			}
 		}
 		
 		return hierarchy;
 	}
 	
-	private EFONode buildEFONode(OWLClass owlClass) {
-		String uri = owlClass.getIRI().toURI().toString();
-		List<String> labels = new ArrayList<>(findLabels(owlClass));
-		List<EFONode> children = new ArrayList<>();
+	private OntologyHierarchyNode buildOntologyNode(OWLClass owlClass) {
+		URI uri = owlClass.getIRI().toURI();
+		String label = "";
+		Iterator<String> labelIter = findLabels(owlClass).iterator();
+		if (labelIter.hasNext()) {
+			label = labelIter.next();
+		}
+		List<OntologyHierarchyNode> children = new ArrayList<>();
+		
 		for (Node<OWLClass> child : reasoner.getSubClasses(owlClass, true)) {
-			OWLClass childClass = child.getRepresentativeElement();
-			if (!childClass.getIRI().equals(owlNothingIRI)) {
-				children.add(buildEFONode(childClass));
+			OWLClass childClass = filterOWLClassNode(child);
+			if (childClass != null) {
+				children.add(buildOntologyNode(childClass));
 			}
 		}
 		
-		return new EFONode(uri, labels, children);
+		OntologyHierarchyNode node = new SimpleOntologyHierarchyNode(uri, label, children);
+		
+		// Set the size last, after all children have been initialised
+		node.setSize(nodeCounter.count(node));
+		
+		return node;
 	}
-
+	
+	private OWLClass filterOWLClassNode(Node<OWLClass> classNode) {
+		OWLClass owlClass = classNode.getRepresentativeElement();
+		if (owlClass.getIRI().equals(owlNothingIRI)) {
+			owlClass = null;
+		}
+		return owlClass;
+	}
+	
     public Map<String, List<RelatedItem>> getRestrictions(OWLClass owlClass) {
     	RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
 		for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
