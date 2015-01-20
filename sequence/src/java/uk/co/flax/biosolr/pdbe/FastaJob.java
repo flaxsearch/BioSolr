@@ -17,16 +17,18 @@ public class FastaJob implements Runnable {
 	
 	private static final Logger LOG = Logger.getLogger(FastaJob.class.getName());
 
-    private static final String EMAIL = "sameer@ebi.ac.uk";
-
     private JDispatcherService_PortType fasta;
-    private InputParameters params = new InputParameters();
 
+    private String email;
+    
+    private InputParameters params;
+    
     private FastaJobResults results;
     
     // exception caught during run(), if any, and the run status
-    private Exception exception;
+    private IOException exception;
     private String status;
+    private boolean interrupted;
     
     // regexp patterns
     private Pattern pattern1 = Pattern.compile("^PDB:(.*?_.*?)\\s+(.+?)\\s+([0-9.e-]+?)$|^PRE_PDB:(\\w{4} Entity)\\s+(.+?)\\s+([0-9.e-]+?)$");
@@ -35,7 +37,7 @@ public class FastaJob implements Runnable {
     private Pattern pattern4 = Pattern.compile("^EMBOS  (\\s*.*?)$");            
     private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
     
-    public Exception getException() {
+    public IOException getException() {
     	return exception;
     }
     
@@ -47,18 +49,31 @@ public class FastaJob implements Runnable {
     	return results;
     }
     
-    public FastaJob(JDispatcherService_PortType fasta, String sequence, double eValueCutoff, float identityPctL, float identityPctH) {
+    public boolean isInterrupted() {
+    	return interrupted;
+    }
+    
+    public boolean resultsOk() {
+    	return exception == null && ! interrupted && status.equals(FastaStatus.DONE);
+    }
+    
+    public FastaJob(JDispatcherService_PortType fasta, String email, InputParameters params) {
     	this.fasta = fasta;
-        params.setProgram("ssearch");
-        params.setDatabase(new String[] { "pdb" });
-        params.setExpupperlim(eValueCutoff);
-		params.setExplowlim(0.0d);
-        params.setScores(1000);
-        params.setAlignments(1000);
-        params.setStype("protein");
-        params.setSequence(sequence);
-        results = new FastaJobResults(sequence, eValueCutoff, identityPctL, identityPctH);
+    	this.email = email;
+    	this.params = params;
+        results = new FastaJobResults();
+        exception = null;
+        status = null;
+        interrupted = false;
 	}
+    
+    public String getEmail() {
+    	return email;
+    }
+    
+    public InputParameters getParams() {
+    	return params;
+    }
 
     private int firstGroup(Matcher m) {
     	for (int n = 1; n <= m.groupCount(); ++n) {
@@ -71,7 +86,7 @@ public class FastaJob implements Runnable {
     
     public void run() {
     	try {
-	        String jobId = fasta.run(EMAIL, "", params);
+	        String jobId = fasta.run(email, "", params);
 	
 	        do {
 	            Thread.sleep(200);
@@ -88,7 +103,9 @@ public class FastaJob implements Runnable {
 	        } else {
 	            LOG.log(Level.SEVERE, "Error with job: " + jobId + " (" + status + ")");
 	        }
-    	} catch (InterruptedException | IOException e) {
+    	} catch (InterruptedException e) {
+			interrupted = true;
+		} catch (IOException e) {
     		exception = e;
     	}
     }

@@ -8,30 +8,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class FastaJobResults {
-
-    private String querySequence;
-    private double eValue;
-    private float identityPctL;
-    private float identityPctH;
-    
-    public FastaJobResults(String querySequence, double eValue, float identityPctL, float identityPctH) {
-    	this.querySequence = querySequence;
-    	this.eValue = eValue;
-    	this.identityPctL = identityPctL;
-    	this.identityPctH = identityPctH;
-    }
     
     private Map<String, Alignment> alignments = new HashMap<>();
     private Map<String, Alignment> alignmentsToShow = new HashMap<>();
     private Map<String, List<Alignment>> pdbIdAlignments = new HashMap<>();
-    private List<String> resPdbIdCodes = new ArrayList<>();
+    private List<String> pdbIdChains = new ArrayList<>();
     private Map<String, Map<String, List<String>>> pdbIdSequenceGroups = new HashMap<>();
     private Map<String, Set<String>> pdbIdChainSelectionGroups = new HashMap<>();
-    private Set<String> pdbIdCodes = new HashSet<>();
     
     /*package*/ void addAlignment(Alignment alignment) {
-        pdbIdCodes.add(alignment.getPdbId());
-        resPdbIdCodes.add(alignment.getPdbIdChain());
+        pdbIdChains.add(alignment.getPdbIdChain());
         alignments.put(alignment.getPdbIdChain(), alignment);
 
         List<Alignment> alignList = pdbIdAlignments.get(alignment.getPdbId());
@@ -91,39 +77,23 @@ public class FastaJobResults {
     }
 
     public List<String> getResultOrder() {
-    	return resPdbIdCodes;
+    	return pdbIdChains;
     }
     
     public String getPdbIdCodes() {
-    	return String.join(",", pdbIdCodes);
+    	return String.join(",", pdbIdAlignments.keySet());
     }
 
     public Map<String, List<Alignment>> getAlignPdbIdCodes() {
     	return pdbIdAlignments;
     }
     
-    public String getQuerySequence() {
-    	return querySequence;
-    }
-    
-    public double getEValue() {
-    	return eValue;
-    }
-    
-    public float getIdentityPctL() {
-    	return identityPctL;
-    }
-    
-    public float getIdentityPctH() {
-    	return identityPctH;
-    }
-    
     public int getNumChains() {
-    	return resPdbIdCodes.size();
+    	return pdbIdChains.size();
     }
     
     public int getNumEntries() {
-    	return pdbIdCodes.size();
+    	return pdbIdAlignments.size();
     }
     
     public Map<String, Set<String>> getAlignChains() {

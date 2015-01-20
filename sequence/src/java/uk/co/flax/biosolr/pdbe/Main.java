@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import javax.xml.rpc.ServiceException;
 
+import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
@@ -12,6 +13,8 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator
 public class Main {
 	
 	private static final Logger LOG  = Logger.getLogger(Main.class.getName());
+	
+	private static final String EMAIL = "sameer@ebi.ac.uk";
 	
 	public static void main(String[] args) {
 		if (args.length < 4) {
@@ -24,10 +27,18 @@ public class Main {
 
 			String sequence = args[0];
 			double eVal = new Double(args[1]);
-			float identityPctL = new Float(args[2]);
-			float identityPctH = new Float(args[3]);
 			
-	        FastaJob job = new FastaJob(fasta, sequence, eVal, identityPctL,  identityPctH);
+			InputParameters params = new InputParameters();
+			params.setProgram("ssearch");
+			params.setDatabase(new String[] { "pdb" });
+			params.setStype("protein");
+	        params.setSequence(sequence);
+	        params.setExplowlim(0.0d);
+	        params.setExpupperlim(eVal);
+	        params.setScores(1000);
+	        params.setAlignments(1000);
+			
+	        FastaJob job = new FastaJob(fasta, EMAIL, params);
 			job.run();
 			FastaJobResults results = job.getResults();
 			LOG.log(Level.INFO, "Number of chains: " + results.getNumChains());
