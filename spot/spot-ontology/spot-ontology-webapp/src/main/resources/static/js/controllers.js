@@ -53,6 +53,17 @@ ontologyApp
 		self.updateModel(params);
 	}
 	
+	$scope.removeFilter = function(filter) {
+		for (var i = 0; i < $scope.fq.length; i ++) {
+			if ($scope.fq[i] == filter) {
+				$scope.fq.splice(i, 1);
+			}
+		}
+		
+		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
+		self.updateModel(params);
+	}
+	
 	self.updateModel = function(params) {
 		$http({
 			method: 'GET',
@@ -104,8 +115,27 @@ ontologyApp
 		return ret;
 	}
 	
+	$scope.getAppliedFilterLabel = function(filter) {
+		return $scope.getFacetLabel(filter.split(':')[0]);
+	}
+	
+	$scope.getAppliedFilterValue = function(filter) {
+		return filter.split(':', 2)[1];
+	}
+	
 	$scope.showTopLevelFacets = function() {
-		return $scope.fq == undefined || $scope.fq.length == 0;
+		var ret = true;
+		
+		if ($scope.fq && $scope.fq.length > 0) {
+			for (var i = 0; i < $scope.fq.length; i ++) {
+				if ($scope.fq[i].split(':')[0] == 'facet_labels') {
+					ret = false;
+					break;
+				}
+			}
+		}
+		
+		return ret;
 	}
 	
 	$scope.showSecondLevelFacets = function() {

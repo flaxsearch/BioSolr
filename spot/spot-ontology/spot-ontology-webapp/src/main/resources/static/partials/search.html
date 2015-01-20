@@ -18,8 +18,11 @@
 <div ng-show="results">
     <div class="row results_header"><div class="col-md-10">
         Showing records {{ start }}-{{ end }} of {{ total }} results.
-        <span ng-show="filtersApplied()"><br />
+        <span ng-show="filtersApplied()" class="applied-filters"><br />
             Filtered by:
+            <ul>
+                <li ng-repeat="filter in fq">{{getAppliedFilterLabel(filter)}}: {{getAppliedFilterValue(filter)}} <a ng-click="removeFilter(filter)">[x]</a></li>
+            </ul>
         </span>
     </div></div>
 
