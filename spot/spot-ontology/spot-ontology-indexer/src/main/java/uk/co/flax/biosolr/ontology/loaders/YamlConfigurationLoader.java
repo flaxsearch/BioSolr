@@ -15,7 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.loaders;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -25,6 +24,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 
 /**
+ * Configuration loader to read configuration details from a YAML file.
  * @author Matt Pearce
  */
 public class YamlConfigurationLoader implements ConfigurationLoader {
@@ -37,10 +37,14 @@ public class YamlConfigurationLoader implements ConfigurationLoader {
 
 	@Override
 	public IndexerConfiguration fetchConfig() throws IOException {
-		Constructor c = new Constructor(IndexerConfiguration.class);
-		Yaml yaml = new Yaml(c);
-		FileReader fr = new FileReader(configFile);
-		IndexerConfiguration config = (IndexerConfiguration)yaml.load(fr);
+		FileReader reader = new FileReader(configFile);
+		Yaml yaml = new Yaml(new Constructor(IndexerConfiguration.class));
+		
+		// Load the config from the YAML file
+		IndexerConfiguration config = (IndexerConfiguration)yaml.load(reader);
+		
+		// Close the file reader
+		reader.close();
 		
 		return config;
 	}

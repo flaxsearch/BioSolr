@@ -15,9 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -31,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -43,6 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
+import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,67 +55,27 @@ public class DocumentIndexer {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentIndexer.class);
 	
-	private static final String DB_DRIVER_KEY = "database.driver";
-	private static final String DB_URL_KEY = "database.url";
-	private static final String DB_USER_KEY = "database.user";
-	private static final String DB_PASSWORD_KEY = "database.password";
-	private static final String SOLR_URL_KEY = "documents.solrUrl";
-	private static final String EFO_URI_KEY = "efoURI";
-	
 	private static final int BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
 	
-	private String dbDriver;
-	private String dbUrl;
-	private String dbUser;
-	private String dbPassword;
-	private String solrUrl;
-	private String efoUri;
+	private final IndexerConfiguration config;
 	
 	private final SolrServer solrServer;
 	private final OntologyHandler ontologyHandler;
 	
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
-		initialiseFromProperties(configFilepath);
-		solrServer = new HttpSolrServer(solrUrl);
-		ontologyHandler = new OntologyHandler(efoUri);
+		this.config = readConfig(configFilepath);
+		solrServer = new HttpSolrServer(config.getDocumentsSolrUrl());
+		ontologyHandler = new OntologyHandler(config.getOntologies().get("efo").getAccessURI());
 	}
 
-	private void initialiseFromProperties(String propFilePath) throws IOException {
-		File propFile = new File(propFilePath);
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(propFile));
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (StringUtils.isBlank(line) || line.startsWith("#")) {
-					continue;
-				}
-
-				String[] parts = line.split("\\s*=\\s*");
-				if (parts[0].equals(DB_DRIVER_KEY)) {
-					this.dbDriver = parts[1];
-				} else if (parts[0].equals(DB_URL_KEY)) {
-					this.dbUrl = parts[1];
-				} else if (parts[0].equals(DB_USER_KEY)) {
-					this.dbUser = parts[1];
-				} else if (parts[0].equals(DB_PASSWORD_KEY)) {
-					this.dbPassword = parts[1];
-				} else if (parts[0].equals(SOLR_URL_KEY)) {
-					this.solrUrl = parts[1];
-				} else if (parts[0].equals(EFO_URI_KEY)) {
-					this.efoUri = parts[1];
-				}
-			}
-		} finally {
-			if (br != null) {
-				br.close();
-			}
-		}
+	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
+		ConfigurationLoader configLoader = new YamlConfigurationLoader(yamlFile);
+		return configLoader.fetchConfig();
 	}
 	
 	public void run() throws SQLException, IOException, SolrServerException {
-		Connection dbConnection = createConnection();
+		Connection dbConnection = createConnection(config.getDatabase());
 		if (dbConnection == null) {
 			throw new OntologyIndexingException("Connection could not be instantiated.");
 		}
@@ -136,12 +96,12 @@ public class DocumentIndexer {
 		solrServer.commit();
 	}
 	
-	private Connection createConnection() {
+	private Connection createConnection(DatabaseConfiguration dbConfig) {
 		Connection conn = null;
 		
 		try {
-			Class.forName(dbDriver);
-			conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+			Class.forName(dbConfig.getDriver());
+			conn = DriverManager.getConnection(dbConfig.getUrl(), dbConfig.getUsername(), dbConfig.getPassword());
 		} catch (ClassNotFoundException e) {
 			LOGGER.error("JDBC Driver class not found: {}", e.getMessage());
 		} catch (SQLException e) {
