@@ -1,2 +1,3 @@
 /target
 config/local.properties
+config/*_local.yml

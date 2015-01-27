@@ -15,9 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -40,6 +37,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
+import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.tdb.TDBFactory;
@@ -58,63 +59,22 @@ public class OWLIndexer {
 	private static final int SOLR_BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
 	
-	private static final String EFO_URI_KEY = "efoURI";
-	private static final String EFO_SYNONYM_URI_KEY = "efoSynonymAnnotationURI";
-	private static final String EFO_DEFINITION_URI_KEY = "efoDefinitionAnnotationURI";
-	private static final String EFO_OBSOLETE_URI_KEY = "efoObsoleteClassURI";
-	
-	private static final String SOLR_URL_KEY = "ontology.solrUrl";
-	private static final String TDB_PATH_KEY = "tdbPath";
-	
 	private static final String RELATION_FIELD_SUFFIX = "_rel";
 	
-    private String efoURI = "http://www.ebi.ac.uk/efo";
-    private String efoSynonymAnnotationURI = "http://www.ebi.ac.uk/efo/alternative_term";
-    private String efoDefinitionAnnotationURI = "http://www.ebi.ac.uk/efo/definition";
-    private String efoObsoleteClassURI = "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass";
-    private String solrUrl = "http://localhost:8983/solr/ontology";
-    private String tdbPath = null;
+    private final IndexerConfiguration config;
     
     private final SolrServer solrServer;
 	private final OntologyHandler ontologyHandler;
 
-	public OWLIndexer(String props) throws IOException, OWLOntologyCreationException {
-		initialiseFromProperties(props);
-		this.solrServer = new HttpSolrServer(solrUrl);
-		this.ontologyHandler = new OntologyHandler(efoURI);
+	public OWLIndexer(String yamlFile) throws IOException, OWLOntologyCreationException {
+		this.config = readConfig(yamlFile);
+		this.solrServer = new HttpSolrServer(config.getOntologySolrUrl());
+		this.ontologyHandler = new OntologyHandler(config.getOntologies().get("efo").getAccessURI());
 	}
 	
-	private void initialiseFromProperties(String propFilePath) throws IOException {
-		File propFile = new File(propFilePath);
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(propFile));
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (StringUtils.isBlank(line) || line.startsWith("#")) {
-					continue;
-				}
-
-				String[] parts = line.split("\\s*=\\s*");
-				if (parts[0].equals(EFO_URI_KEY)) {
-					this.efoURI = parts[1];
-				} else if (parts[0].equals(EFO_SYNONYM_URI_KEY)) {
-					this.efoSynonymAnnotationURI = parts[1];
-				} else if (parts[0].equals(EFO_DEFINITION_URI_KEY)) {
-					this.efoDefinitionAnnotationURI = parts[1];
-				} else if (parts[0].equals(EFO_OBSOLETE_URI_KEY)) {
-					this.efoObsoleteClassURI = parts[1];
-				} else if (parts[0].equals(SOLR_URL_KEY)) {
-					this.solrUrl = parts[1];
-				} else if (parts[0].equals(TDB_PATH_KEY)) {
-					this.tdbPath = parts[1];
-				}
-			}
-		} finally {
-			if (br != null) {
-				br.close();
-			}
-		}
+	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
+		ConfigurationLoader configLoader = new YamlConfigurationLoader(yamlFile);
+		return configLoader.fetchConfig();
 	}
 	
 	public void run() throws OWLOntologyCreationException, IOException, SolrServerException {
@@ -126,15 +86,17 @@ public class OWLIndexer {
         indexAnnotations(annos);
         
         // Build the TDB dataset, if path is set
-        buildTdbDataset();
+        buildTdbDataset(config.getOntologies().get("efo"));
  	}
 	
 	
 	private Set<EFOAnnotation> getAnnotations() {
         OWLOntology efo = ontologyHandler.getOntology();
 
+        OntologyConfiguration efoConfig = config.getOntologies().get("efo");
+        
         // Get the obsolete class
-        URI obsoleteClassUri = getObsoleteClassUri(efo);
+        URI obsoleteClassUri = getObsoleteClassUri(efoConfig, efo);
         
         // loop over classes
         Set<EFOAnnotation> annos = new HashSet<EFOAnnotation>();
@@ -148,8 +110,8 @@ public class OWLIndexer {
                 anno.setUri(owlClass.getIRI().toString());
                 anno.setShortForm(ontologyHandler.getShortFormProvider().getShortForm(owlClass));
                 anno.setLabel(new ArrayList<>(ontologyHandler.findLabels(owlClass)));
-                anno.setSynonym(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoSynonymAnnotationURI)));
-                anno.setDescription(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoDefinitionAnnotationURI)));
+                anno.setSynonym(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoConfig.getSynonymAnnotationURI())));
+                anno.setDescription(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoConfig.getDefinitionAnnotationURI())));
                 anno.setSubclassUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass)));
                 anno.setSuperclassUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass)));
                 
@@ -169,12 +131,12 @@ public class OWLIndexer {
         return annos;
 	}
 	
-	private URI getObsoleteClassUri(OWLOntology efo) {
+	private URI getObsoleteClassUri(OntologyConfiguration ontConfig, OWLOntology efo) {
 		OWLClass obsoleteClass = null;
 		
         // get obsolete class
         for (OWLClass nextClass : efo.getClassesInSignature()) {
-            if (nextClass.getIRI().toURI().toString().equals(efoObsoleteClassURI)) {
+            if (nextClass.getIRI().toURI().toString().equals(ontConfig.getObsoleteClassURI())) {
                 obsoleteClass = nextClass;
                 break;
             }
@@ -239,10 +201,10 @@ public class OWLIndexer {
 		solrServer.commit();
     }
     
-    private void buildTdbDataset() {
-    	if (StringUtils.isNotBlank(tdbPath)) {
-    		DatasetGraph dataset = TDBFactory.createDatasetGraph(tdbPath);
-    		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), efoURI, true);
+    private void buildTdbDataset(OntologyConfiguration ontConfig) {
+    	if (StringUtils.isNotBlank(config.getTdbPath())) {
+    		DatasetGraph dataset = TDBFactory.createDatasetGraph(config.getTdbPath());
+    		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), ontConfig.getAccessURI(), true);
     		dataset.close();
 		}
     }

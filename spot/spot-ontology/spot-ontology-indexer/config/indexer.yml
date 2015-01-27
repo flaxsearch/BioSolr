@@ -1,0 +1,32 @@
+
+# Ontology config details
+# URL of the Ontology SOLR endpoint
+ontologySolrUrl: http://localhost:8983/solr/ontology
+# URL of the document SOLR endpoint
+documentsSolrUrl: http://localhost:8983/solr/documents
+
+# Ontologies are referenced by their resource name
+ontologies:
+  efo:
+    # Base access URI - where the ontology should load from
+    accessURI: http://www.ebi.ac.uk/efo/efo.owl
+    
+    # URI for synonym annotations
+    synonymAnnotationURI: "http://www.ebi.ac.uk/efo/alternative_term"
+    # URI for definition annotations
+    definitionAnnotationURI: "http://www.ebi.ac.uk/efo/definition"
+    # URI for obsolete classes
+    obsoleteClassURI: "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
+    
+
+# Path to the TDB directory
+tdbPath: C:/Flax/ebi_data/efo_tdb
+
+# Database configuration
+database:
+  # Driver details for the database
+  driver: oracle.jdbc.OracleDriver
+  # Database URL, username and password - change as required
+  url: "jdbc:oracle:thin:@host.ebi.ac.uk:1531:spotpro"
+  username: user
+  password: password
