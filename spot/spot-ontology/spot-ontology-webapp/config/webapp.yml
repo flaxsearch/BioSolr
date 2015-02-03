@@ -64,6 +64,9 @@ solr:
   # The default ontology search request handler
   ontologyRequestHandler: "/ontologySearch"
   
+  # The request handle to fetch a particular node from the ontology
+  ontologyNodeRequestHandler: "/nodeSearch"
+  
   # The URL for the Document Solr core
   documentUrl: "http://localhost:8983/solr/documents"
   
@@ -76,7 +79,7 @@ solr:
   # The maximum number of ontology terms to retrieve
   ontologyTermCount: 3
   
-  facetFields: [ "facet_labels", "efo_labels_str" ]
+  facetFields: [ "facet_labels", "efo_labels_str", "efo_uri" ]
 
 # Apache Jena configuration
 jena:

@@ -180,7 +180,11 @@ public class OntologyHandler {
 	}
 	
 	public Collection<String> getSubClassUris(OWLClass owlClass) {
-    	return getUrisFromNodeSet(reasoner.getSubClasses(owlClass, true));
+    	return getSubClassUris(owlClass, true);
+    }
+
+	public Collection<String> getSubClassUris(OWLClass owlClass, boolean direct) {
+    	return getUrisFromNodeSet(reasoner.getSubClasses(owlClass, direct));
     }
 
     public Collection<String> getSuperClassUris(OWLClass owlClass) {
@@ -193,8 +197,10 @@ public class OntologyHandler {
     	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
     			if (!expr.isAnonymous()) {
-    				String uri = expr.asOWLClass().getIRI().toURI().toString();
-    				uris.add(uri);
+    				IRI iri = expr.asOWLClass().getIRI();
+    				if (!iri.equals(owlNothingIRI)) {
+	    				uris.add(iri.toURI().toString());
+    				}
     			}
     		}
     	}

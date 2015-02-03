@@ -33,6 +33,8 @@ public class SolrConfiguration {
 	
 	private String ontologyRequestHandler;
 	
+	private String ontologyNodeRequestHandler;
+	
 	@NotNull @Valid
 	private String documentUrl;
 	
@@ -82,6 +84,13 @@ public class SolrConfiguration {
 	 */
 	public List<String> getFacetFields() {
 		return facetFields;
+	}
+
+	/**
+	 * @return the ontologyNodeRequestHandler
+	 */
+	public String getOntologyNodeRequestHandler() {
+		return ontologyNodeRequestHandler;
 	}
 
 }

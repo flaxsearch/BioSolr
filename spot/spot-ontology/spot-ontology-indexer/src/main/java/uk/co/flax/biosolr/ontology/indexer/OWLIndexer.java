@@ -36,12 +36,15 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.tdb.TDBLoader;
@@ -106,7 +109,7 @@ public class OWLIndexer {
                 // get class names, and enter them in the maps
 
                 EFOAnnotation anno = new EFOAnnotation();
-
+                
                 anno.setUri(owlClass.getIRI().toString());
                 anno.setShortForm(ontologyHandler.getShortFormProvider().getShortForm(owlClass));
                 anno.setLabel(new ArrayList<>(ontologyHandler.findLabels(owlClass)));
@@ -115,6 +118,10 @@ public class OWLIndexer {
                 anno.setSubclassUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass)));
                 anno.setSuperclassUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass)));
                 
+                // Add the child hierarchy
+                List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(owlClass);
+                anno.setChildHierarchy(convertHierarchyToJson(childHierarchy));
+
                 // Look up restrictions
                 Map<String, List<String>> relatedItems = getRestrictions(owlClass);
                 anno.setRelations(relatedItems);
@@ -209,10 +216,25 @@ public class OWLIndexer {
 		}
     }
     
+    private String convertHierarchyToJson(List<OntologyHierarchyNode> hierarchy) {
+    	String json = null;
+    	
+    	if (hierarchy.size() > 0) {
+    		try {
+    			ObjectMapper mapper = new ObjectMapper();
+    			json = mapper.writeValueAsString(hierarchy);
+    		} catch (JsonProcessingException e) {
+    			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
+    		}
+    	}
+    	
+    	return json;
+    }
+    
 	public static void main(String[] args) {
 		if (args.length != 1) {
 			System.out.println("Usage:");
-			System.out.println("  java OWLIndexer config.properties");
+			System.out.println("  java OWLIndexer config.yml");
 			System.exit(1);
 		}
 

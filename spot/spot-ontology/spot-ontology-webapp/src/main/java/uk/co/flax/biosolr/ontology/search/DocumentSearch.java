@@ -23,6 +23,8 @@ import uk.co.flax.biosolr.ontology.api.Document;
  * @author Matt Pearce
  */
 public interface DocumentSearch extends SearchEngine {
+	
+	public static final String URI_FIELD = "efo_uri";
 
 	/**
 	 * Search the documents for a particular term.

@@ -941,6 +941,21 @@
        <str>spellcheck</str>
      </arr>
   </requestHandler>
+  
+  <requestHandler name="/nodeSearch" class="solr.SearchHandler">
+    <lst name="defaults">
+       <str name="echoParams">explicit</str>
+
+       <!-- Query settings -->
+       <str name="defType">edismax</str>
+       <str name="qf">
+          uri
+       </str>
+       <str name="q.alt">*:*</str>
+       <str name="rows">1</str>
+       <str name="fl">*</str>
+    </lst>
+  </requestHandler>
 
  
   <!-- A Robust Example 
