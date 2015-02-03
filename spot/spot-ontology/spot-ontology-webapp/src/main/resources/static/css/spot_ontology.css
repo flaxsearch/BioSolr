@@ -43,13 +43,13 @@ textarea {
 }
 
 ul.facet-list {
-	padding: 0px;
+	padding: 2px;
 }
 
 .facet-list li {
-	font-size: smaller;
+	font-size: 10px;
 	list-style: none;
-	margin: 2px;
+	margin: 4px;
 }
 
 .applied-filters ul {

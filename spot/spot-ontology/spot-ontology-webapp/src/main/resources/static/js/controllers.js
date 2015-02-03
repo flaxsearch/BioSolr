@@ -120,7 +120,7 @@ ontologyApp
 	}
 	
 	$scope.getAppliedFilterValue = function(filter) {
-		return filter.split(':', 2)[1];
+		return filter.substr(filter.indexOf(':') + 1);
 	}
 	
 	$scope.showTopLevelFacets = function() {
