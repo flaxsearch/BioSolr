@@ -49,7 +49,7 @@ ul.facet-list {
 .facet-list li {
 	font-size: 10px;
 	list-style: none;
-	margin: 4px;
+	margin-left: 4px;
 }
 
 .applied-filters ul {
