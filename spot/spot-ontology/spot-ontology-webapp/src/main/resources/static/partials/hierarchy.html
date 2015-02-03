@@ -1,7 +1,7 @@
 <li>
-	<a ng-click="click({ field: 'efo_uri', value: entry.uri})">{{entry.label}}</a> ({{entry.totalCount}})
+	<a ng-click="click({ field: 'efo_uri', value: entry.uri})">{{entry.label}}</a> ({{entry.count}} / {{entry.totalCount}})
 	
 	<ul ng-repeat="subEntry in entry.hierarchy">
-		<hierarchy entry="subEntry" click="addFilter(field, value)" />
+		<hierarchy entry="subEntry" data-click="topFunc(field, value)" top-func="topFunc" />
 	</ul>
 </li>

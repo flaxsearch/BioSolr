@@ -155,7 +155,8 @@ ontologyApp
         restrict: "E",
         scope: {
         	entry: '=',
-        	click: '&click'
+        	click: '&click',
+        	topFunc: '='
         },
         templateUrl: 'partials/hierarchy.html',
         compile: function(element) {

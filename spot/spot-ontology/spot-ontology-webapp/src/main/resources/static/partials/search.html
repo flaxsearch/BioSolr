@@ -51,7 +51,7 @@
             <div>
                 <span class="facet-field">Hierarchy</span>
                 <ul class="facet-list" ng-repeat="entry in facets.uri_accumulator">
-                    <hierarchy entry="entry" click="addFilter(field, value)" />
+                    <hierarchy entry="entry" click="addFilter(field, value)" top-func="addFilter" />
                 </ul>
             </div>
         </div>
