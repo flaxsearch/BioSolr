@@ -48,5 +48,9 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	public String getUri() {
 		return uri;
 	}
+	
+	public String getId() {
+		return uri.substring(uri.lastIndexOf('/') + 1);
+	}
 
 }

@@ -29,6 +29,7 @@
     <div class="row">
         <div class="col-md-2">
             <span class="facet-header">Facets</span>
+            <!-- 
             <div ng-show="showTopLevelFacets()">
                 <span class="facet-field">{{getFacetLabel('facet_labels')}}</span>
                 <ul class="facet-list">
@@ -43,6 +44,14 @@
                     <li ng-repeat="facet in facets.efo_labels_str">
                         <a ng-click="addFilter('efo_labels_str', facet.label)">{{facet.label}}</a> ({{facet.count}})
                     </li>
+                </ul>
+            </div>
+            -->
+            
+            <div>
+                <span class="facet-field">Hierarchy</span>
+                <ul class="facet-list" ng-repeat="entry in facets.uri_accumulator">
+                    <hierarchy entry="entry" click="addFilter(field, value)" />
                 </ul>
             </div>
         </div>
