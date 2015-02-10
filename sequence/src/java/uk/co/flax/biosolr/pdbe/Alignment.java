@@ -12,8 +12,8 @@ public class Alignment {
     private String retSeq = "";
     private String queryOverlapStart = "";
     private String queryOverlapEnd = "";
-    private String dBOverlapStart = "";
-    private String dBOverlapEnd = "";
+    private String dbOverlapStart = "";
+    private String dbOverlapEnd = "";
     private Double percentIdentity = null;
     
     public Alignment(String pdbId, String chain, double eValue) {
@@ -38,12 +38,12 @@ public class Alignment {
         queryOverlapEnd = s;
     }
 
-    public void setDBOverlapStart(String s) {
-        dBOverlapStart = s;
+    public void setDbOverlapStart(String s) {
+        dbOverlapStart = s;
     }
 
-    public void setDBOverlapEnd(String s) {
-        dBOverlapEnd = s;
+    public void setDbOverlapEnd(String s) {
+        dbOverlapEnd = s;
     }
 
     public void setPercentIdentity(double d) {
@@ -70,6 +70,17 @@ public class Alignment {
     	return pdbId + "_" + chain;
     }
 
+    public String getEntryEntity() {
+    	// pdb SOLR entry_entity: lower case, and numbers for chain instead of letters
+    	if (chain.length() == 1) {
+        	int chainId = (int)chain.charAt(0) - (int)'A' + 1;
+        	return pdbId.toLowerCase() + "_" + chainId;
+    	} else {
+    		// chain is "Entity" (from PRE_PDB entries)
+    		return pdbId.toLowerCase() + "_" + chain.toLowerCase();
+    	}
+    }
+    
     public String getQuerySequenceString() {
         return querySeq;
     }
@@ -86,12 +97,12 @@ public class Alignment {
         return queryOverlapEnd;
     }
 
-    public String getDBOverlapStart() {
-        return dBOverlapStart;
+    public String getDbOverlapStart() {
+        return dbOverlapStart;
     }
 
-    public String getDBOverlapEnd() {
-        return dBOverlapEnd;
+    public String getDbOverlapEnd() {
+        return dbOverlapEnd;
     }
     
     public String toString() {

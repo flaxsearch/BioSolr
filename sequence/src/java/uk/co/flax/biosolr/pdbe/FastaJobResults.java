@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FastaJobResults {
+import uk.co.flax.biosolr.pdbe.solr.ExternalResults;
+
+public class FastaJobResults implements ExternalResults {
     
     private Map<String, Alignment> alignments = new HashMap<>();
     private Map<String, Alignment> alignmentsToShow = new HashMap<>();
@@ -42,7 +44,7 @@ public class FastaJobResults {
         chains.add(alignment.getChain());
     }
     
-    /*package*/ Alignment getAlignment(String pdbIdChain) {
+    public Alignment getAlignment(String pdbIdChain) {
     	return alignments.get(pdbIdChain);
     }
     
@@ -61,7 +63,7 @@ public class FastaJobResults {
                         Alignment a2 = alignments.get(pdbId + "_" + uChain);
                         /*if (a2.getNumAnnotCategories() < a1.getNumAnnotCategories()) {
                             uChain = chain;
-                        }*/ //FIXME: doesn't work because there are no annot categories in Alignment
+                        }*/ //FIXME: doesn't work because there are no annotation categories in Alignment
                     }
                 }
                 assert uChain != null;
@@ -82,6 +84,26 @@ public class FastaJobResults {
     
     public String getPdbIdCodes() {
     	return String.join(",", pdbIdAlignments.keySet());
+    }
+    
+    public String getEntryEntityCodes() {
+    	String[] entries = new String[alignmentsToShow.size()];
+    	int i = 0;
+    	for (Alignment a : alignmentsToShow.values()) {
+    		entries[i++] = a.getEntryEntity();
+    	}
+    	return String.join(",", entries);
+    }
+    
+    public Alignment getResult(String entryEntity) {
+    	String[] bits = entryEntity.split("_");
+    	if (bits.length != 2) {
+    		throw new RuntimeException("Bad entry_entity format: " + entryEntity);
+    	}
+    	String pdbId = bits[0].toUpperCase();
+    	int chain = Integer.parseInt(bits[1]) + 'A' - 1;
+    	String pdbIdChain = pdbId + "_" + Character.valueOf((char)chain);
+    	return alignments.get(pdbIdChain);
     }
 
     public Map<String, List<Alignment>> getAlignPdbIdCodes() {

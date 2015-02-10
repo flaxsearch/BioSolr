@@ -1,7 +1,6 @@
 package uk.co.flax.biosolr.pdbe;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.rmi.RemoteException;
 
 import javax.xml.rpc.ServiceException;
 
@@ -12,13 +11,11 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator
 
 public class Main {
 	
-	private static final Logger LOG  = Logger.getLogger(Main.class.getName());
-	
 	private static final String EMAIL = "sameer@ebi.ac.uk";
 	
 	public static void main(String[] args) {
 		if (args.length < 4) {
-			LOG.log(Level.SEVERE, "Too few command line arguments");
+			System.err.println("Too few command line arguments");
 			return;
 		}
 		try {
@@ -40,17 +37,22 @@ public class Main {
 			
 	        FastaJob job = new FastaJob(fasta, EMAIL, params);
 			job.run();
-			FastaJobResults results = job.getResults();
-			LOG.log(Level.INFO, "Number of chains: " + results.getNumChains());
-			LOG.log(Level.INFO, "Number of entries: " + results.getNumEntries());
 			
 			if (job.getException() != null) {
-				LOG.log(Level.SEVERE, "Error during run()", job.getException());
+				System.err.println("Error during run()");
+				job.getException().printStackTrace(System.err);;
 			}
+			
+			System.out.println(new String(job.getRawResults()));
 		} catch (NumberFormatException e) {
-			LOG.log(Level.SEVERE, "Cannot parse command line arguments", e);
+			System.err.println("Cannot parse command line arguments");
+			e.printStackTrace(System.err);
 		} catch (ServiceException e) {
-			LOG.log(Level.SEVERE, "Cannot create FASTA service", e);
+			System.err.println("Cannot create FASTA service");
+			e.printStackTrace(System.err);
+		} catch (RemoteException e) {
+			System.err.println("Cannot retrieve FASTA results");
+			e.printStackTrace(System.err);
 		}
 	}
 	

@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -24,6 +25,9 @@ public class FastaJob implements Runnable {
     private InputParameters params;
     
     private FastaJobResults results;
+    
+    // job id created in run()
+    private String jobId;
     
     // exception caught during run(), if any, and the run status
     private IOException exception;
@@ -45,8 +49,20 @@ public class FastaJob implements Runnable {
     	return status;
     }
     
-    public FastaJobResults getResults() {
+    public FastaJobResults getResults() throws IOException {
+    	if (results == null) {
+        	String id = fasta.getResultTypes(jobId)[0].getIdentifier();
+            byte[] result = fasta.getResult(jobId, id, null);
+            InputStream in = new ByteArrayInputStream(result);
+            results = parseResults(new BufferedReader(new InputStreamReader(in)));
+            results.chooseShownAlignments();
+    	}
     	return results;
+    }
+    
+    public byte[] getRawResults() throws RemoteException {
+    	String id = fasta.getResultTypes(jobId)[0].getIdentifier();
+        return fasta.getResult(jobId, id, null);
     }
     
     public boolean isInterrupted() {
@@ -61,7 +77,8 @@ public class FastaJob implements Runnable {
     	this.fasta = fasta;
     	this.email = email;
     	this.params = params;
-        results = new FastaJobResults();
+    	jobId = null;
+    	results = null;
         exception = null;
         status = null;
         interrupted = false;
@@ -86,7 +103,7 @@ public class FastaJob implements Runnable {
     
     public void run() {
     	try {
-	        String jobId = fasta.run(email, "", params);
+	        jobId = fasta.run(email, "", params);
 	
 	        do {
 	            Thread.sleep(200);
@@ -94,13 +111,7 @@ public class FastaJob implements Runnable {
 	            LOG.log(Level.FINE, status);
 	        } while (status.equals(FastaStatus.RUNNING));
 	        
-	        if (status.equals(FastaStatus.DONE)) {
-	        	String id = fasta.getResultTypes(jobId)[0].getIdentifier();
-	            byte[] result = fasta.getResult(jobId, id, null);
-	            InputStream in = new ByteArrayInputStream(result);
-	        	parseResults(new BufferedReader(new InputStreamReader(in)));
-	            results.chooseShownAlignments();
-	        } else {
+	        if (! status.equals(FastaStatus.DONE)) {
 	            LOG.log(Level.SEVERE, "Error with job: " + jobId + " (" + status + ")");
 	        }
     	} catch (InterruptedException e) {
@@ -124,8 +135,10 @@ public class FastaJob implements Runnable {
         return new Alignment(pdbId, chain, eValue);
     }
     
-    private void parseResults(BufferedReader reader) throws IOException {
-    	String line = "";
+    private FastaJobResults parseResults(BufferedReader reader) throws IOException {
+        results = new FastaJobResults();
+
+        String line = "";
         while (line != null) {
             Matcher matcher1 = pattern1.matcher(line);
             Matcher matcher2 = pattern2.matcher(line);
@@ -159,8 +172,8 @@ public class FastaJob implements Runnable {
                         String[] oOut = o[1].split("-");
                         a.setQueryOverlapStart(oIn[0]);
                         a.setQueryOverlapEnd(oIn[1]);
-                        a.setDBOverlapStart(oOut[0]);
-                        a.setDBOverlapEnd(oOut[1]);
+                        a.setDbOverlapStart(oOut[0]);
+                        a.setDbOverlapEnd(oOut[1]);
                     } else if (m2.find()) {
                         break;
                     } else if (m4.find()) {
@@ -176,6 +189,8 @@ public class FastaJob implements Runnable {
             	line = reader.readLine();
             }
         }
+        
+        return results;
     }
     
 }
