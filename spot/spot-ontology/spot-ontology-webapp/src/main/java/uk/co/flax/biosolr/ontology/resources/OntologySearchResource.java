@@ -52,7 +52,7 @@ public class OntologySearchResource {
 		SearchResponse<EFOAnnotation> response;
 		
 		try {
-			ResultsList<EFOAnnotation> results = search.searchOntology(query, start, rows);
+			ResultsList<EFOAnnotation> results = search.searchOntology(query, null, start, rows);
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown searching ontologies: {}", e.getMessage());

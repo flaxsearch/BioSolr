@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.ontology.search.solr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,7 @@ import uk.co.flax.biosolr.ontology.api.AccumulatedFacetEntry;
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 import uk.co.flax.biosolr.ontology.api.FacetEntry;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
+import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
@@ -47,11 +49,12 @@ public class FacetAccumulator {
 	
 	public List<FacetEntry> accumulateEntries(List<FacetEntry> entries) {
 		Map<String, AccumulatedFacetEntry> entryCache = new HashMap<>();
+		Map<String, EFOAnnotation> annotationMap = searchFacetEntries(entries);
 		Map<String, FacetEntry> entryMap = convertEntriesToMap(entries);
 		
 		for (FacetEntry entry : entries) {
 			String uri = entry.getLabel();
-			entryCache.put(uri, buildAccumulatedEntry(uri, entryCache, entryMap));
+			entryCache.put(uri, buildAccumulatedEntry(uri, entryCache, annotationMap, entryMap));
 		}
 		
 		List<FacetEntry> retList = sortEntries(entryCache);
@@ -59,33 +62,29 @@ public class FacetAccumulator {
 		return retList;
 	}
 	
-	private AccumulatedFacetEntry buildAccumulatedEntry(String uri, Map<String, AccumulatedFacetEntry> accumulatorCache, Map<String, FacetEntry> entryMap) {
+	private AccumulatedFacetEntry buildAccumulatedEntry(String uri, Map<String, AccumulatedFacetEntry> accumulatorCache, Map<String, EFOAnnotation> annotationMap, Map<String, FacetEntry> entryMap) {
 		AccumulatedFacetEntry afe = null;
 		
 		if (accumulatorCache.containsKey(uri)) {
 			afe = accumulatorCache.get(uri);
 		} else {
-			try {
-				// Fetch the annotation details
-				EFOAnnotation anno = ontologySearch.findOntologyEntryByUri(uri);
-				List<AccumulatedFacetEntry> childHierarchy = new ArrayList<>();
-				long childTotal = 0;
-				if (anno.getSubclassUris() != null) {
-					for (String subUri : anno.getSubclassUris()) {
-						if (entryMap.containsKey(subUri)) {
-							AccumulatedFacetEntry subAfe = buildAccumulatedEntry(subUri, accumulatorCache, entryMap);
-							if (subAfe != null) {
-								childTotal += subAfe.getCount();
-								childHierarchy.add(subAfe);
-							}
+			// Fetch the annotation details
+			EFOAnnotation anno = annotationMap.get(uri);
+			List<AccumulatedFacetEntry> childHierarchy = new ArrayList<>();
+			long childTotal = 0;
+			if (anno.getSubclassUris() != null) {
+				for (String subUri : anno.getSubclassUris()) {
+					if (annotationMap.containsKey(subUri)) {
+						AccumulatedFacetEntry subAfe = buildAccumulatedEntry(subUri, accumulatorCache, annotationMap, entryMap);
+						if (subAfe != null) {
+							childTotal += subAfe.getCount();
+							childHierarchy.add(subAfe);
 						}
 					}
 				}
-				FacetEntry fe = entryMap.get(uri);
-				afe = new AccumulatedFacetEntry(uri, anno.getLabel().get(0), fe.getCount(), childTotal, childHierarchy);
-			} catch (SearchEngineException e) {
-				LOGGER.error("Problem getting annotation for URI {}: {}", uri, e.getMessage());
 			}
+			FacetEntry fe = entryMap.get(uri);
+			afe = new AccumulatedFacetEntry(uri, anno.getLabel().get(0), fe.getCount(), childTotal, childHierarchy);
 		}
 		
 		return afe;
@@ -99,6 +98,41 @@ public class FacetAccumulator {
 		}
 		
 		return entryMap;
+	}
+	
+	private Map<String, EFOAnnotation> searchFacetEntries(List<FacetEntry> entries) {
+		Map<String, EFOAnnotation> annotationMap = new HashMap<>();
+		
+		String query = "*:*";
+		String filters = buildFilterString(entries);
+		
+		try {
+			ResultsList<EFOAnnotation> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, entries.size());
+			for (EFOAnnotation anno : results.getResults()) {
+				annotationMap.put(anno.getUri(), anno);
+			}
+		} catch (SearchEngineException e) {
+			LOGGER.error("Problem getting ontology entries for filter {}: {}", filters, e.getMessage());
+		}
+		
+		return annotationMap;
+	}
+	
+	private String buildFilterString(List<FacetEntry> entries) {
+		StringBuilder sb = new StringBuilder(SolrOntologySearch.URI_FIELD).append(":(");
+		
+		int idx = 0;
+		for (FacetEntry entry : entries) {
+			if (idx > 0) {
+				sb.append(" OR ");
+			}
+			
+			sb.append("\"").append(entry.getLabel()).append("\"");
+			idx ++;
+		}
+		sb.append(")");
+		
+		return sb.toString();
 	}
 	
 	private List<FacetEntry> sortEntries(Map<String, AccumulatedFacetEntry> entries) {

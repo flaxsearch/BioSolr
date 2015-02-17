@@ -17,7 +17,7 @@ logging:
 
   loggers:
     # Set info logging for Flax code
-    "uk.co.flax": DEBUG
+    "uk.co.flax": TRACE
     
   appenders:
 
