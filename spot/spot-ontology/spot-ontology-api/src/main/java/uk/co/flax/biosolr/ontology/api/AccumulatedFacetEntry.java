@@ -1,12 +1,12 @@
 package uk.co.flax.biosolr.ontology.api;
 
-import java.util.List;
+import java.util.SortedSet;
 
 public class AccumulatedFacetEntry extends FacetEntry implements Comparable<AccumulatedFacetEntry> {
 	
 	private final String uri;
 	private final long childCount;
-	private final List<AccumulatedFacetEntry> hierarchy;
+	private final SortedSet<AccumulatedFacetEntry> hierarchy;
 
 	/**
 	 * @param label
@@ -14,14 +14,7 @@ public class AccumulatedFacetEntry extends FacetEntry implements Comparable<Accu
 	 * @param childCount
 	 * @param hierarchy
 	 */
-//	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, SortedSet<AccumulatedFacetEntry> hierarchy) {
-//		super(label, count);
-//		this.uri = uri;
-//		this.childCount = childCount;
-//		this.hierarchy = hierarchy;
-//	}
-
-	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, List<AccumulatedFacetEntry> hierarchy) {
+	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, SortedSet<AccumulatedFacetEntry> hierarchy) {
 		super(label, count);
 		this.uri = uri;
 		this.childCount = childCount;
@@ -38,7 +31,7 @@ public class AccumulatedFacetEntry extends FacetEntry implements Comparable<Accu
 	/**
 	 * @return the hierarchy
 	 */
-	public List<AccumulatedFacetEntry> getHierarchy() {
+	public SortedSet<AccumulatedFacetEntry> getHierarchy() {
 		return hierarchy;
 	}
 	
@@ -62,12 +55,20 @@ public class AccumulatedFacetEntry extends FacetEntry implements Comparable<Accu
 
 	@Override
 	public int compareTo(AccumulatedFacetEntry o) {
-		new Integer(1);
+		int ret = 0;
+
 		if (o == null) {
-			return 1;
+			ret = 1;
 		} else {
-			return (int)(getTotalCount() - o.getTotalCount());
+			ret = (int) (getTotalCount() - o.getTotalCount());
+			if (ret == 0) {
+				// If the counts are the same, compare the ID as well, to double-check
+				// whether they're actually the same entry
+				ret = getId().compareTo(o.getId());
+			}
 		}
+
+		return ret;
 	}
 
 }

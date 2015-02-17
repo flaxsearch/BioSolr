@@ -86,7 +86,7 @@ public class FacetAccumulator {
 	
 	private AccumulatedFacetEntry buildAccumulatedEntryTree(int level, EFOAnnotation node,
 			Map<String, FacetEntry> entryMap, Map<String, EFOAnnotation> annotationMap, Set<String> checked) {
-		List<AccumulatedFacetEntry> childHierarchy = new ArrayList<>();
+		SortedSet<AccumulatedFacetEntry> childHierarchy = new TreeSet<>(Collections.reverseOrder());
 		long childTotal = 0;
 		if (node.getChildUris() != null) {
 			for (String childUri : node.getChildUris()) {
