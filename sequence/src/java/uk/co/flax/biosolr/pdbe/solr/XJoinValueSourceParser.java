@@ -33,7 +33,7 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 	
 	@Override
 	public ValueSource parse(FunctionQParser fqp) throws SyntaxError {
-		XJoinResults results = (XJoinResults)fqp.getReq().getContext().get(XJoinResultsSearchComponent.RESULTS_TAG);
+		XJoinResults results = (XJoinResults)fqp.getReq().getContext().get(XJoinSearchComponent.RESULTS_TAG);
 		if (results == null) {
 			throw new RuntimeException("No external results in request context");
 		}
