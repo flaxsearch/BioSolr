@@ -64,7 +64,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	    	return;
 	    }
 	    
-	    String prefix = getName() + "." + params.get(getName() + "." + EXTERNAL_PREFIX + ".");
+	    String prefix = getName() + "." + EXTERNAL_PREFIX + ".";
 	    ModifiableSolrParams externalParams = new ModifiableSolrParams();
 	    for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
 	    	String name = it.next();

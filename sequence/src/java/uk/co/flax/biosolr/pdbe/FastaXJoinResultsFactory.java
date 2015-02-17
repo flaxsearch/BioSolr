@@ -50,13 +50,14 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	
 	private JDispatcherService_PortType fasta;
 	private String email;
-    private InputParameters params;
-    private String debugFile;
+	private String program;
+	private String database;
+	private String sType;
 
 	@Override
 	@SuppressWarnings("rawtypes")
 	public void init(NamedList args) {
-		debugFile = (String)args.get(INIT_DEBUG_FILE);
+		String debugFile = (String)args.get(INIT_DEBUG_FILE);
 		if (debugFile != null) {
 			try {
 				byte[] result = Files.readAllBytes(Paths.get(debugFile));
@@ -78,10 +79,9 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 		}
 		
         email = (String)args.get(INIT_EMAIL);
-        params = new InputParameters();
-        params.setProgram((String)args.get(INIT_PROGRAM));
-        params.setDatabase(new String[] { (String)args.get(INIT_DATABASE) });
-        params.setStype((String)args.get(INIT_STYPE));
+        program = (String)args.get(INIT_PROGRAM);
+        database = (String)args.get(INIT_DATABASE);
+        sType = (String)args.get(INIT_STYPE);
 	}
 	
 	private String getParam(SolrParams params, String name) {
@@ -97,15 +97,17 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	 */
 	@Override
 	public XJoinResults getResults(SolrParams params) throws IOException {
-	    if (debugFile == null) {
-	        this.params.setSequence(getParam(params, FASTA_SEQUENCE));
-	        this.params.setExplowlim(new Double(getParam(params, FASTA_EXPLOWLIM)));
-	        this.params.setExpupperlim(new Double(getParam(params, FASTA_EXPUPPERLIM)));
-	        this.params.setScores(new Integer(getParam(params, FASTA_SCORES)));
-	        this.params.setAlignments(new Integer(getParam(params, FASTA_ALIGNMENTS)));
-	    }
+		InputParameters input = new InputParameters();
+    	input.setProgram(program);
+    	input.setDatabase(new String[] { database });
+    	input.setStype(sType);
+        input.setSequence(getParam(params, FASTA_SEQUENCE));
+        input.setExplowlim(new Double(getParam(params, FASTA_EXPLOWLIM)));
+        input.setExpupperlim(new Double(getParam(params, FASTA_EXPUPPERLIM)));
+        input.setScores(new Integer(getParam(params, FASTA_SCORES)));
+        input.setAlignments(new Integer(getParam(params, FASTA_ALIGNMENTS)));
 	    
-        FastaJob job = new FastaJob(fasta, email, this.params);
+        FastaJob job = new FastaJob(fasta, email, input);
 		job.run();
 		
 		if (! job.resultsOk()) {
