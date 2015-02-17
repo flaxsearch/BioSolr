@@ -44,7 +44,7 @@ public class ExternalResultsSearchComponent extends SearchComponent {
 	}
 
 	/**
-	 * Match up search results and add corresponding alignment data for each result.
+	 * Match up search results and add corresponding data for each result.
 	 */
 	@Override
 	@SuppressWarnings("rawtypes")

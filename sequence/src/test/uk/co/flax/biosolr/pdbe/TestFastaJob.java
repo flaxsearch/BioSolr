@@ -230,7 +230,7 @@ public class TestFastaJob {
 					 "3q4b_1,5apr_5,3er3_5,2p4j_2,1fq5_1,4j0z_1,4fs4_2,1ppk_5,1lyw_2,2p4j_3," +
 					 "1apu_5,4j1c_1,1lyw_1,2v13_1,3bra_1,1e82_5,3app_1,1avf_10,4j1k_1,3liz_1," +
 					 "4gid_4,4gid_2,1epn_5,2v0z_3,3pcz_1,3pmy_1,3zmg_1,3t7q_1,3fnt_1,1fmx_1," +
-					 "1mpp_1,1fmx_2", results.getEntryEntityCodes());
+					 "1mpp_1,1fmx_2", results.getJoinList());
 		
 		assertEquals(results.getResult("3fv3_8").getPdbIdChain(), "3FV3_H");
 	}

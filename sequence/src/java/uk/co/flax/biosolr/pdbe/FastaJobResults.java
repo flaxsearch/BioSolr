@@ -86,7 +86,7 @@ public class FastaJobResults implements ExternalResults {
     	return String.join(",", pdbIdAlignments.keySet());
     }
     
-    public String getEntryEntityCodes() {
+    public String getJoinList() {
     	String[] entries = new String[alignmentsToShow.size()];
     	int i = 0;
     	for (Alignment a : alignmentsToShow.values()) {
