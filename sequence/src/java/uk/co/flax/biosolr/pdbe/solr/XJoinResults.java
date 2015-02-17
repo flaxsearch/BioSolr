@@ -1,9 +1,18 @@
 package uk.co.flax.biosolr.pdbe.solr;
 
+/**
+ * Interface for external process results.
+ */
 public interface XJoinResults {
 
-	Object getResult(String string);
+	/**
+	 * Get the external process result with given join id.
+	 */
+	Object getResult(String joinId);
 	
-	String getJoinList();
+	/**
+	 * Get all external process join ids.
+	 */
+	String[] getJoinIds();
 
 }

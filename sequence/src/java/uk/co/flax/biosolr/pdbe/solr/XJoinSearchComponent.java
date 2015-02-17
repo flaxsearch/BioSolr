@@ -17,7 +17,20 @@ import org.apache.solr.search.DocIterator;
 import uk.co.flax.biosolr.pdbe.FastaJobResults;
 
 /**
+ * SOLR Search Component for performing an "x-join". It must be added to a request handler
+ * in both the first and last component lists.
  * 
+ * In prepare(), it obtains external process results (based on parameters in the SOLR query
+ * URL), and (optionally) places a list of join ids in a query parameter. The join id list
+ * should be used as the value to a terms query parser to create the main query or a query
+ * filter.
+ * 
+ * In process(), it appends (selectable) attributes of the external process results to the
+ * query results.
+ * 
+ * Note that results can be sorted or boosted by a property of external results by using
+ * the associated XjoinValueSourceParser (creating a custom function which may be referenced
+ * in, for example, a sort spec or a boost query).
  */
 public class XJoinSearchComponent extends SearchComponent {
 
@@ -27,12 +40,19 @@ public class XJoinSearchComponent extends SearchComponent {
 	public static final String EXTERNAL_PREFIX = "external";
 	public static final String RESULTS_FIELD_LIST = "results";
 	public static final String DOC_FIELD_LIST = CommonParams.FL;
-	/*package*/ static final String RESULTS_TAG = FastaJobResults.class.getName();
-
-	private XJoinResultsFactory factory;
 	
+	public static final String RESULTS_TAG = FastaJobResults.class.getName();
+
+	// factory for creating XJoinResult objects per search
+	private XJoinResultsFactory factory;
+
+	// document field on which to join with external results
 	private String joinField;
 	
+	/**
+	 * Initialise the component by instantiating our factory class, and initialising
+	 * the join field.
+	 */
 	@Override
 	@SuppressWarnings("rawtypes")
 	public void init(NamedList args) {
@@ -50,7 +70,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	}
 	
 	/**
-	 * 
+	 * Generate external process results (if they have not already been generated).
 	 */
 	@Override
 	public void prepare(ResponseBuilder rb) throws IOException {
@@ -64,6 +84,8 @@ public class XJoinSearchComponent extends SearchComponent {
 	    	return;
 	    }
 	    
+	    // generate external process results, by passing 'external' prefixed parameters
+	    // from the query string to our factory
 	    String prefix = getName() + "." + EXTERNAL_PREFIX + ".";
 	    ModifiableSolrParams externalParams = new ModifiableSolrParams();
 	    for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
@@ -79,13 +101,15 @@ public class XJoinSearchComponent extends SearchComponent {
 		if (listParameter != null) {
 			// put a list of join ids as a request parameter that may be referenced in the URL
 			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
-			myParams.set(listParameter, results.getJoinList());
+			String[] joinIds = results.getJoinIds();
+			myParams.set(listParameter, String.join(",", joinIds));
 			rb.req.setParams(myParams);
 		}
 	}
 
 	/**
-	 * Match up search results and add corresponding data for each result.
+	 * Match up search results and add corresponding data for each result (if we have query
+	 * results available).
 	 */
 	@Override
 	@SuppressWarnings("rawtypes")

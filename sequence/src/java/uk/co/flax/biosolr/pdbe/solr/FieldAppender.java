@@ -8,12 +8,16 @@ import java.util.Set;
 import org.apache.solr.common.util.NamedList;
 
 /**
- * Extract FASTA results into SOLR results.
+ * Class for adding properties from an object to a NamedList.
  */
 public class FieldAppender {
 
+	// selected properties (or null for all)
 	private Set<String> fieldNames;
 	
+	/**
+	 * Create a FieldAppender for adding the specified properties.
+	 */
 	public FieldAppender(String fl) {
 		fieldNames = new HashSet<>();
 	    for (String field : fl.split("[, ]")) {
@@ -26,12 +30,16 @@ public class FieldAppender {
 	    }
 	}
 	
+	/**
+	 * Add a NamedList (with given name) with properties from the given object.
+	 * Returns the new NamedList.
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public NamedList addNamedList(NamedList target, String name, Object object) {
 	    NamedList<Object> list = new NamedList<>();
 	    target.add(name, list);
         for (Method method : object.getClass().getMethods()) {
-        	String fieldName = getFieldName(method);
+        	String fieldName = NameConverter.getFieldName(method.getName());
         	if (fieldName == null) {
         		continue;
         	}
@@ -44,30 +52,6 @@ public class FieldAppender {
             }
         }
         return list;
-	}
-	
-	private static String getFieldName(Method method) {
-		int i = 0;
-        if (method.getName().startsWith("get")) {
-        	i = 3;
-        } else if (method.getName().startsWith("is")) {
-        	i = 2;
-        } else {
-        	return null;
-        }
-        StringBuilder fieldName = new StringBuilder();
-        for (; i < method.getName().length(); ++i) {
-        	char c = method.getName().charAt(i);
-        	if (Character.isUpperCase(c)) {
-        		if (fieldName.length() > 0) {
-        			fieldName.append("_");
-        		}
-        		fieldName.append(Character.toLowerCase(c));
-        	} else {
-        		fieldName.append(c);
-        	}
-        }
-        return fieldName.toString();		
 	}
 
 }

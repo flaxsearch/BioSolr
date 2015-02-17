@@ -86,13 +86,13 @@ public class FastaJobResults implements XJoinResults {
     	return String.join(",", pdbIdAlignments.keySet());
     }
     
-    public String getJoinList() {
+    public String[] getJoinIds() {
     	String[] entries = new String[alignmentsToShow.size()];
     	int i = 0;
     	for (Alignment a : alignmentsToShow.values()) {
     		entries[i++] = a.getEntryEntity();
     	}
-    	return String.join(",", entries);
+    	return entries;
     }
     
     public Alignment getResult(String entryEntity) {
