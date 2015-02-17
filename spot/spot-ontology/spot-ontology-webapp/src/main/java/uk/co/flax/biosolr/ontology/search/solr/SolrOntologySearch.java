@@ -42,7 +42,7 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
-
+	
 	public SolrOntologySearch(SolrConfiguration config) {
 		this.config = config;
 		this.server = new HttpSolrServer(config.getOntologyUrl());
@@ -74,6 +74,26 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 		}
 		
 		return results;
+	}
+	
+	@Override
+	public EFOAnnotation findOntologyEntryByUri(String uri) throws SearchEngineException {
+		EFOAnnotation retVal = null;
+		
+		try {
+			SolrQuery query = new SolrQuery(uri);
+			query.setRequestHandler(config.getOntologyNodeRequestHandler());
+			
+			QueryResponse response = server.query(query);
+			List<EFOAnnotation> annotations = response.getBeans(EFOAnnotation.class);
+			if (annotations.size() > 0) {
+				retVal = annotations.get(0);
+			}
+		} catch (SolrServerException e) {
+			throw new SearchEngineException(e);
+		}
+		
+		return retVal;
 	}
 
 }

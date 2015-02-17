@@ -7,7 +7,7 @@ body {
 }
 
 .results_header {
-	background-color: #FFEBE0;
+	background-color: #dee7e7;
 	margin: 10px 0;
 }
 
@@ -17,7 +17,7 @@ ul.label-display {
 }
 
 .label-display li {
-	background-color: #FFEBE0;
+	background-color: #dee7e7;
 	display: inline-block;
 	margin-right: 4px;
 	padding: 2px;
@@ -31,4 +31,35 @@ textarea {
 .buttonRight {
 	margin-top: 10px;
 	text-align: right;
+}
+
+.facet-header {
+	font-weight: bold;
+}
+
+.facet-field {
+	font-size: smaller;
+	font-weight: bold;
+}
+
+ul.facet-list {
+	padding: 2px;
+}
+
+.facet-list li {
+	font-size: 10px;
+	list-style: none;
+	margin-left: 4px;
+}
+
+.applied-filters ul {
+	display: inline;
+}
+
+.applied-filters li {
+	display: inline-block;
+    margin: 0 4px;
+    padding: 0 4px;
+    border: 2px solid #b8cacb;
+    border-radius: 4px;
 }

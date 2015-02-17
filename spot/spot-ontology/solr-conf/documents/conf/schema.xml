@@ -75,8 +75,16 @@
     <dynamicField name="*_rel_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
 
     <field name="efo_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_parent_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_parent_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_child_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
+    
+    <field name="facet_labels" type="string" indexed="true" stored="true" multiValued="true" />
+
+    <!-- Full child hierarchy, represented in JSON -->
+    <field name="child_hierarchy" type="string" indexed="false" stored="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
@@ -88,6 +96,9 @@
 	<uniqueKey>id</uniqueKey>
 	
 	<copyField source="disease_trait" dest="disease_trait_str" />
+	<copyField source="efo_labels" dest="efo_labels_str" />
+	<copyField source="efo_child_labels" dest="efo_child_labels_str" />
+    <copyField source="efo_parent_labels" dest="efo_parent_labels_str" />
 
 
 	<!-- field type definitions. The "name" attribute is just a label to be used by field definitions. The "class" attribute and any other attributes 

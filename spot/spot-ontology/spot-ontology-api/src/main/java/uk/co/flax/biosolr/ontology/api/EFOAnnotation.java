@@ -56,6 +56,9 @@ public class EFOAnnotation {
 	@Field("subclass_uris")
 	private List<String> subclassUris;
 	
+	@Field("child_hierarchy")
+	private String childHierarchy;
+	
 	@Field("*_rel")
 	private Map<String, List<String>> relations = new HashMap<>();
 	
@@ -197,6 +200,20 @@ public class EFOAnnotation {
 	 */
 	public void setRelations(Map<String, List<String>> relations) {
 		this.relations = relations;
+	}
+
+	/**
+	 * @return the childHierarchy
+	 */
+	public String getChildHierarchy() {
+		return childHierarchy;
+	}
+
+	/**
+	 * @param childHierarchy the childHierarchy to set
+	 */
+	public void setChildHierarchy(String childHierarchy) {
+		this.childHierarchy = childHierarchy;
 	}
 
 }

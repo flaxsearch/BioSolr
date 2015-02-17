@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.ontology.api;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Matt Pearce
@@ -30,14 +31,21 @@ public class SearchResponse<T> {
 	
 	private final long totalResults;
 	
+	private final Map<String, List<FacetEntry>> facets;
+	
 	private final String error;
 	
-	public SearchResponse(List<T> results, int start, int rows, long total, String err) {
+	public SearchResponse(List<T> results, int start, int rows, long total, Map<String, List<FacetEntry>> facets, String err) {
 		this.results = results;
 		this.start = start;
 		this.rows = rows;
 		this.totalResults = total;
+		this.facets = facets;
 		this.error = err;
+	}
+	
+	public SearchResponse(List<T> results, int start, int rows, long total, Map<String, List<FacetEntry>> facets) {
+		this(results, start, rows, total, facets, null);
 	}
 	
 	public SearchResponse(List<T> results, int start, int rows, long total) {
@@ -45,7 +53,7 @@ public class SearchResponse<T> {
 	}
 	
 	public SearchResponse(String err) {
-		this(null, 0, 0, -1, err);
+		this(null, 0, 0, -1, null, err);
 	}
 
 	/**
@@ -81,6 +89,13 @@ public class SearchResponse<T> {
 	 */
 	public String getError() {
 		return error;
+	}
+
+	/**
+	 * @return the facets
+	 */
+	public Map<String, List<FacetEntry>> getFacets() {
+		return facets;
 	}
 	
 }

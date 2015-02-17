@@ -15,6 +15,9 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -30,6 +33,8 @@ public class SolrConfiguration {
 	
 	private String ontologyRequestHandler;
 	
+	private String ontologyNodeRequestHandler;
+	
 	@NotNull @Valid
 	private String documentUrl;
 	
@@ -38,6 +43,8 @@ public class SolrConfiguration {
 	private String documentUriRequestHandler;
 	
 	private int ontologyTermCount;
+	
+	private List<String> facetFields = new ArrayList<>();
 	
 	public String getOntologyUrl() {
 		return ontologyUrl;
@@ -70,6 +77,20 @@ public class SolrConfiguration {
 	 */
 	public int getOntologyTermCount() {
 		return ontologyTermCount;
+	}
+
+	/**
+	 * @return the facetFields
+	 */
+	public List<String> getFacetFields() {
+		return facetFields;
+	}
+
+	/**
+	 * @return the ontologyNodeRequestHandler
+	 */
+	public String getOntologyNodeRequestHandler() {
+		return ontologyNodeRequestHandler;
 	}
 
 }
