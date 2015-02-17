@@ -27,10 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.FacetEntry;
 import uk.co.flax.biosolr.ontology.api.SearchResponse;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
+import uk.co.flax.biosolr.ontology.search.solr.FacetAccumulator;
 
 /**
  * @author Matt Pearce
@@ -41,15 +43,18 @@ public class SearchResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
 
 	private final DocumentSearch documents;
+	private final FacetAccumulator facetAccumulator;
 
-	public SearchResource(DocumentSearch doc) {
+	public SearchResource(DocumentSearch doc, FacetAccumulator facetAccumulator) {
 		this.documents = doc;
+		this.facetAccumulator = facetAccumulator;
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
-			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields) {
+			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields,
+			@QueryParam("fq") List<String> filters) {
 		SearchResponse<Document> response;
 
 		// Default rows value if not set
@@ -58,8 +63,12 @@ public class SearchResource {
 		}
 
 		try {
-			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields);
-			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
+			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields, filters);
+			if (results.getFacets().containsKey(DocumentSearch.URI_FIELD)) {
+				List<FacetEntry> accum = facetAccumulator.accumulateEntries(results.getFacets().get(DocumentSearch.URI_FIELD));
+				results.getFacets().put("uri_accumulator", accum);
+			}
+			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults(), results.getFacets());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown during search: {}", e);
 			response = new SearchResponse<>(e.getMessage());

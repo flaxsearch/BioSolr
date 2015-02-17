@@ -34,4 +34,6 @@ public interface OntologySearch extends SearchEngine {
 	 */
 	public ResultsList<EFOAnnotation> searchOntology(String term, int start, int rows) throws SearchEngineException;
 	
+	public EFOAnnotation findOntologyEntryByUri(String uri) throws SearchEngineException;
+	
 }

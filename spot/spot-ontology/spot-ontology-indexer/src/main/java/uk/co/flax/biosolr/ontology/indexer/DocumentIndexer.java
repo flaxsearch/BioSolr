@@ -15,9 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,12 +22,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -40,7 +37,15 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
+import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Matt Pearce
@@ -50,67 +55,27 @@ public class DocumentIndexer {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentIndexer.class);
 	
-	private static final String DB_DRIVER_KEY = "database.driver";
-	private static final String DB_URL_KEY = "database.url";
-	private static final String DB_USER_KEY = "database.user";
-	private static final String DB_PASSWORD_KEY = "database.password";
-	private static final String SOLR_URL_KEY = "documents.solrUrl";
-	private static final String EFO_URI_KEY = "efoURI";
-	
 	private static final int BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
 	
-	private String dbDriver;
-	private String dbUrl;
-	private String dbUser;
-	private String dbPassword;
-	private String solrUrl;
-	private String efoUri;
+	private final IndexerConfiguration config;
 	
 	private final SolrServer solrServer;
 	private final OntologyHandler ontologyHandler;
 	
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
-		initialiseFromProperties(configFilepath);
-		solrServer = new HttpSolrServer(solrUrl);
-		ontologyHandler = new OntologyHandler(efoUri);
+		this.config = readConfig(configFilepath);
+		solrServer = new HttpSolrServer(config.getDocumentsSolrUrl());
+		ontologyHandler = new OntologyHandler(config.getOntologies().get("efo").getAccessURI());
 	}
 
-	private void initialiseFromProperties(String propFilePath) throws IOException {
-		File propFile = new File(propFilePath);
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(propFile));
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (StringUtils.isBlank(line) || line.startsWith("#")) {
-					continue;
-				}
-
-				String[] parts = line.split("\\s*=\\s*");
-				if (parts[0].equals(DB_DRIVER_KEY)) {
-					this.dbDriver = parts[1];
-				} else if (parts[0].equals(DB_URL_KEY)) {
-					this.dbUrl = parts[1];
-				} else if (parts[0].equals(DB_USER_KEY)) {
-					this.dbUser = parts[1];
-				} else if (parts[0].equals(DB_PASSWORD_KEY)) {
-					this.dbPassword = parts[1];
-				} else if (parts[0].equals(SOLR_URL_KEY)) {
-					this.solrUrl = parts[1];
-				} else if (parts[0].equals(EFO_URI_KEY)) {
-					this.efoUri = parts[1];
-				}
-			}
-		} finally {
-			if (br != null) {
-				br.close();
-			}
-		}
+	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
+		ConfigurationLoader configLoader = new YamlConfigurationLoader(yamlFile);
+		return configLoader.fetchConfig();
 	}
 	
 	public void run() throws SQLException, IOException, SolrServerException {
-		Connection dbConnection = createConnection();
+		Connection dbConnection = createConnection(config.getDatabase());
 		if (dbConnection == null) {
 			throw new OntologyIndexingException("Connection could not be instantiated.");
 		}
@@ -131,12 +96,12 @@ public class DocumentIndexer {
 		solrServer.commit();
 	}
 	
-	private Connection createConnection() {
+	private Connection createConnection(DatabaseConfiguration dbConfig) {
 		Connection conn = null;
 		
 		try {
-			Class.forName(dbDriver);
-			conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+			Class.forName(dbConfig.getDriver());
+			conn = DriverManager.getConnection(dbConfig.getUrl(), dbConfig.getUsername(), dbConfig.getPassword());
 		} catch (ClassNotFoundException e) {
 			LOGGER.error("JDBC Driver class not found: {}", e.getMessage());
 		} catch (SQLException e) {
@@ -186,8 +151,15 @@ public class DocumentIndexer {
 				OWLClass efoClass = findEfoClass(efoUri);
 				if (efoClass != null) {
 					doc.setEfoLabels(lookupEfoLabels(efoClass));
-					doc.setChildLabels(lookupChildLabels(efoClass));
+					
+					List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
+					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
+					doc.setChildLabels(extractLabels(childHierarchy));
 					doc.setParentLabels(lookupParentLabels(efoClass));
+					List<String> facetLabels = new ArrayList<String>();
+					facetLabels.addAll(doc.getEfoLabels());
+					facetLabels.addAll(doc.getParentLabels());
+					doc.setFacetLabels(facetLabels);
 					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
 				}
 				
@@ -206,12 +178,8 @@ public class DocumentIndexer {
 		return new ArrayList<String>(ontologyHandler.findLabels(efoClass));
 	}
 	
-	private List<String> lookupChildLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findChildLabels(efoClass));
-	}
-	
 	private List<String> lookupParentLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass));
+		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass, false));
 	}
 	
 	private Map<String, List<RelatedItem>> lookupRelatedItems(OWLClass efoClass) {
@@ -245,6 +213,34 @@ public class DocumentIndexer {
 		if (response.getStatus() != 0) {
 			throw new OntologyIndexingException("Solr error adding records: " + response);
 		}
+    }
+    
+    private String convertHierarchyToJson(List<OntologyHierarchyNode> hierarchy) {
+    	String json = null;
+    	
+    	if (hierarchy.size() > 0) {
+    		try {
+    			ObjectMapper mapper = new ObjectMapper();
+    			json = mapper.writeValueAsString(hierarchy);
+    		} catch (JsonProcessingException e) {
+    			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
+    		}
+    	}
+    	
+    	return json;
+    }
+    
+    private List<String> extractLabels(Collection<OntologyHierarchyNode> hierarchy) {
+    	List<String> labels = new ArrayList<>();
+    	
+    	for (OntologyHierarchyNode node : hierarchy) {
+    		if (node.getSize() > 0) {
+    			labels.add(node.getName());
+        		labels.addAll(extractLabels(node.getChildren()));
+    		}
+    	}
+    	
+    	return labels;
     }
     
 	public static void main(String[] args) {

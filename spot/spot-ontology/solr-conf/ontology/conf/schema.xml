@@ -64,6 +64,9 @@
 	<field name="subclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="superclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
 
+    <!-- Full child hierarchy, represented in JSON -->
+    <field name="child_hierarchy" type="string" indexed="false" stored="true" />
+
     <!-- Dynamic field(s) holding relation types -->
     <dynamicField name="*_rel" type="string" indexed="true" stored="true" multiValued="true" />
 

@@ -958,6 +958,10 @@
        <str name="group.field">study_id</str>
        <str name="group.ngroups">true</str>
        <str name="group.format">simple</str>
+       <str name="group.facet">true</str>
+       
+       <!-- Faceting -->
+       <str name="facet.mincount">1</str>
      </lst>
   </requestHandler>
 

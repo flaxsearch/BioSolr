@@ -23,6 +23,8 @@ import uk.co.flax.biosolr.ontology.api.Document;
  * @author Matt Pearce
  */
 public interface DocumentSearch extends SearchEngine {
+	
+	public static final String URI_FIELD = "efo_uri";
 
 	/**
 	 * Search the documents for a particular term.
@@ -33,7 +35,7 @@ public interface DocumentSearch extends SearchEngine {
 	 * @return a results list wrapping the documents found.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields) throws SearchEngineException;
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields, List<String> filters) throws SearchEngineException;
 
 	/**
 	 * Search the documents using one or more ontology URIs.

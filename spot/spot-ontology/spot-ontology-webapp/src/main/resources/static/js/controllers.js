@@ -33,6 +33,34 @@ ontologyApp
 	// Event handler to catch search form submit
 	$scope.search = function() {
 		var params = { q: $scope.query, additionalFields: $scope.additionalFields };
+		// Clear filters
+		$scope.fq = undefined;
+		$scope.appliedFilters = undefined;
+		self.updateModel(params);
+	}
+	
+	$scope.addFilter = function(field, term) {
+		var filter = field + ':"' + term + '"';
+		if ($scope.fq) {
+			$scope.fq.push(filter);
+			$scope.appliedFilters.push({ field: term });
+		} else {
+			$scope.fq = [ filter ];
+			$scope.appliedFilters = [{ field: term}];
+		}
+		
+		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
+		self.updateModel(params);
+	}
+	
+	$scope.removeFilter = function(filter) {
+		for (var i = 0; i < $scope.fq.length; i ++) {
+			if ($scope.fq[i] == filter) {
+				$scope.fq.splice(i, 1);
+			}
+		}
+		
+		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
 		self.updateModel(params);
 	}
 	
@@ -53,6 +81,7 @@ ontologyApp
 				$scope.start = data.start + 1;
 				$scope.end = data.start + data.rows;
 				$scope.currentPage = (data.start / data.rows) + 1;
+				$scope.facets = data.facets;
 			}
 		});
 	}
@@ -72,10 +101,71 @@ ontologyApp
 		return ret;
 	}
 	
+	$scope.getFacetLabel = function(label) {
+		var ret = label;
+		
+		if (label == 'efo_child_labels_str') {
+			ret = 'Child labels';
+		} else if (label == 'efo_labels_str') {
+			ret = 'Labels';
+		} else if (label == 'facet_labels') {
+			ret = 'Top-level labels'
+		}
+		
+		return ret;
+	}
+	
+	$scope.getAppliedFilterLabel = function(filter) {
+		return $scope.getFacetLabel(filter.split(':')[0]);
+	}
+	
+	$scope.getAppliedFilterValue = function(filter) {
+		return filter.substr(filter.indexOf(':') + 1);
+	}
+	
+	$scope.showTopLevelFacets = function() {
+		var ret = true;
+		
+		if ($scope.fq && $scope.fq.length > 0) {
+			for (var i = 0; i < $scope.fq.length; i ++) {
+				if ($scope.fq[i].split(':')[0] == 'facet_labels') {
+					ret = false;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
+	$scope.showSecondLevelFacets = function() {
+		return $scope.filtersApplied();
+	}
+	
+	$scope.filtersApplied = function() {
+		return $scope.fq && $scope.fq.length > 0;
+	}
+	
 	// Initialise the page
 	self.init();
 	
 }])
+.directive('hierarchy', function(RecursionHelper) {
+    return {
+        restrict: "E",
+        scope: {
+        	entry: '=',
+        	click: '&click',
+        	topFunc: '='
+        },
+        templateUrl: 'partials/hierarchy.html',
+        compile: function(element) {
+            // Use the compile function from the RecursionHelper,
+            // And return the linking function(s) which it returns
+            return RecursionHelper.compile(element);
+        }
+    };
+})
 .controller('SparqlCtrl', ['$scope', '$http', function($scope, $http) {
 	
 	var self = this;
@@ -115,4 +205,45 @@ ontologyApp
 		return ret;
 	}
 	
+}])
+.factory('RecursionHelper', ['$compile', function($compile){
+    return {
+        /**
+         * Manually compiles the element, fixing the recursion loop.
+         * @param element
+         * @param [link] A post-link function, or an object with function(s) registered via pre and post properties.
+         * @returns An object containing the linking functions.
+         */
+        compile: function(element, link){
+            // Normalize the link parameter
+            if(angular.isFunction(link)){
+                link = { post: link };
+            }
+
+            // Break the recursion loop by removing the contents
+            var contents = element.contents().remove();
+            var compiledContents;
+            return {
+                pre: (link && link.pre) ? link.pre : null,
+                /**
+                 * Compiles and re-adds the contents
+                 */
+                post: function(scope, element){
+                    // Compile the contents
+                    if(!compiledContents){
+                        compiledContents = $compile(contents);
+                    }
+                    // Re-add the compiled contents to the element
+                    compiledContents(scope, function(clone){
+                        element.append(clone);
+                    });
+
+                    // Call the post-linking function, if any
+                    if(link && link.post){
+                        link.post.apply(null, arguments);
+                    }
+                }
+            };
+        }
+    };
 }]);
