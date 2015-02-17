@@ -2,7 +2,7 @@ package uk.co.flax.biosolr.ontology.api;
 
 import java.util.List;
 
-public class AccumulatedFacetEntry extends FacetEntry {
+public class AccumulatedFacetEntry extends FacetEntry implements Comparable<AccumulatedFacetEntry> {
 	
 	private final String uri;
 	private final long childCount;
@@ -14,6 +14,13 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	 * @param childCount
 	 * @param hierarchy
 	 */
+//	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, SortedSet<AccumulatedFacetEntry> hierarchy) {
+//		super(label, count);
+//		this.uri = uri;
+//		this.childCount = childCount;
+//		this.hierarchy = hierarchy;
+//	}
+
 	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, List<AccumulatedFacetEntry> hierarchy) {
 		super(label, count);
 		this.uri = uri;
@@ -51,6 +58,16 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	
 	public String getId() {
 		return uri.substring(uri.lastIndexOf('/') + 1);
+	}
+
+	@Override
+	public int compareTo(AccumulatedFacetEntry o) {
+		new Integer(1);
+		if (o == null) {
+			return 1;
+		} else {
+			return (int)(getTotalCount() - o.getTotalCount());
+		}
 	}
 
 }
