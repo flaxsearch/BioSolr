@@ -115,8 +115,11 @@ public class OWLIndexer {
                 anno.setLabel(new ArrayList<>(ontologyHandler.findLabels(owlClass)));
                 anno.setSynonym(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoConfig.getSynonymAnnotationURI())));
                 anno.setDescription(new ArrayList<>(ontologyHandler.findLabelsByAnnotationURI(owlClass, efoConfig.getDefinitionAnnotationURI())));
-                anno.setSubclassUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass)));
-                anno.setSuperclassUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass)));
+                anno.setChildUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass)));
+                anno.setDescendentUris(new ArrayList<>(ontologyHandler.getSubClassUris(owlClass,false)));
+                anno.setParentUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass)));
+                anno.setAncestorUris(new ArrayList<>(ontologyHandler.getSuperClassUris(owlClass, false)));
+                anno.setTreeLevel(anno.getAncestorUris().size());
                 
                 // Add the child hierarchy
                 List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(owlClass);

@@ -188,7 +188,11 @@ public class OntologyHandler {
     }
 
     public Collection<String> getSuperClassUris(OWLClass owlClass) {
-    	return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, true));
+    	return getSuperClassUris(owlClass, true);
+    }
+    
+    public Collection<String> getSuperClassUris(OWLClass owlClass, boolean direct) {
+    	return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, direct));
     }
     
     private Collection<String> getUrisFromNodeSet(NodeSet<OWLClass> nodeSet) {

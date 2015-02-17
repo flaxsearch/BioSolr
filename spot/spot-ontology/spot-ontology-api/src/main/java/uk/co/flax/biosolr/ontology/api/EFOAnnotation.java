@@ -50,14 +50,23 @@ public class EFOAnnotation {
 	@Field("description")
     private List<String> description;
 	
-	@Field("superclass_uris")
-	private List<String> superclassUris;
+	@Field("parent_uris")
+	private List<String> parentUris;
 	
-	@Field("subclass_uris")
-	private List<String> subclassUris;
+	@Field("ancestor_uris")
+	private List<String> ancestorUris;
+	
+	@Field("child_uris")
+	private List<String> childUris;
+	
+	@Field("descendent_uris")
+	private List<String> descendentUris;
 	
 	@Field("child_hierarchy")
 	private String childHierarchy;
+	
+	@Field("tree_level")
+	private int treeLevel;
 	
 	@Field("*_rel")
 	private Map<String, List<String>> relations = new HashMap<>();
@@ -163,29 +172,29 @@ public class EFOAnnotation {
 	/**
 	 * @return the superclassUris
 	 */
-	public List<String> getSuperclassUris() {
-		return superclassUris;
+	public List<String> getAncestorUris() {
+		return ancestorUris;
 	}
 
 	/**
 	 * @param superclassUris the superclassUris to set
 	 */
-	public void setSuperclassUris(List<String> superclassUris) {
-		this.superclassUris = superclassUris;
+	public void setAncestorUris(List<String> superclassUris) {
+		this.ancestorUris = superclassUris;
 	}
 
 	/**
 	 * @return the subclassUris
 	 */
-	public List<String> getSubclassUris() {
-		return subclassUris;
+	public List<String> getChildUris() {
+		return childUris;
 	}
 
 	/**
 	 * @param subclassUris the subclassUris to set
 	 */
-	public void setSubclassUris(List<String> subclassUris) {
-		this.subclassUris = subclassUris;
+	public void setChildUris(List<String> subclassUris) {
+		this.childUris = subclassUris;
 	}
 
 	/**
@@ -214,6 +223,48 @@ public class EFOAnnotation {
 	 */
 	public void setChildHierarchy(String childHierarchy) {
 		this.childHierarchy = childHierarchy;
+	}
+
+	/**
+	 * @return the treeLevel
+	 */
+	public int getTreeLevel() {
+		return treeLevel;
+	}
+
+	/**
+	 * @param treeLevel the treeLevel to set
+	 */
+	public void setTreeLevel(int treeLevel) {
+		this.treeLevel = treeLevel;
+	}
+
+	/**
+	 * @return the parentUris
+	 */
+	public List<String> getParentUris() {
+		return parentUris;
+	}
+
+	/**
+	 * @param parentUris the parentUris to set
+	 */
+	public void setParentUris(List<String> parentUris) {
+		this.parentUris = parentUris;
+	}
+
+	/**
+	 * @return the descendentUris
+	 */
+	public List<String> getDescendentUris() {
+		return descendentUris;
+	}
+
+	/**
+	 * @param descendentUris the descendentUris to set
+	 */
+	public void setDescendentUris(List<String> descendentUris) {
+		this.descendentUris = descendentUris;
 	}
 
 }

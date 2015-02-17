@@ -72,8 +72,8 @@ public class FacetAccumulator {
 			EFOAnnotation anno = annotationMap.get(uri);
 			List<AccumulatedFacetEntry> childHierarchy = new ArrayList<>();
 			long childTotal = 0;
-			if (anno.getSubclassUris() != null) {
-				for (String subUri : anno.getSubclassUris()) {
+			if (anno.getChildUris() != null) {
+				for (String subUri : anno.getChildUris()) {
 					if (annotationMap.containsKey(subUri)) {
 						AccumulatedFacetEntry subAfe = buildAccumulatedEntry(subUri, accumulatorCache, annotationMap, entryMap);
 						if (subAfe != null) {
