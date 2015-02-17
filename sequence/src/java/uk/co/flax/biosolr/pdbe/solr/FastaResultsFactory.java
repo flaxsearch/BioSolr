@@ -32,7 +32,7 @@ import uk.co.flax.biosolr.pdbe.FastaStatus;
  * scores = 1000
  * alignments = 1000
  */
-public class FastaResultsFactory implements ExternalResultsFactory {
+public class FastaResultsFactory implements XJoinResultsFactory {
 	
 	// initialisation parameters
 	public static final String INIT_EMAIL = "email";
@@ -96,7 +96,7 @@ public class FastaResultsFactory implements ExternalResultsFactory {
 	 * Call out to the FASTA service and add a filter query based on the response.
 	 */
 	@Override
-	public ExternalResults getResults(SolrParams params) throws IOException {
+	public XJoinResults getResults(SolrParams params) throws IOException {
 	    if (debugFile == null) {
 	        this.params.setSequence(getParam(params, FASTA_SEQUENCE));
 	        this.params.setExplowlim(new Double(getParam(params, FASTA_EXPLOWLIM)));

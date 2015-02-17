@@ -12,13 +12,13 @@ import org.apache.solr.handler.component.SearchComponent;
 /**
  * 
  */
-public class ExternalSearchComponent extends SearchComponent {
+public class XJoinSearchComponent extends SearchComponent {
 
 	public static final String INIT_RESULTS_FACTORY = "factoryClass";
 	public static final String LIST_PARAMETER = "listParameter";
 	public static final String EXTERNAL_PREFIX = "external";
 
-	private ExternalResultsFactory factory;
+	private XJoinResultsFactory factory;
 	
 	@Override
 	@SuppressWarnings("rawtypes")
@@ -27,7 +27,7 @@ public class ExternalSearchComponent extends SearchComponent {
 		
 		try {
 			Class<?> factoryClass = Class.forName((String)args.get(INIT_RESULTS_FACTORY));
-			factory = (ExternalResultsFactory)factoryClass.newInstance();
+			factory = (XJoinResultsFactory)factoryClass.newInstance();
 			factory.init((NamedList)args.get(EXTERNAL_PREFIX));
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException(e);
@@ -52,8 +52,8 @@ public class ExternalSearchComponent extends SearchComponent {
 	    		externalParams.set(name.substring(prefix.length()), params.get(name));
 	    	}
 	    }
-		ExternalResults results = factory.getResults(externalParams);
-		rb.req.getContext().put(ExternalResultsSearchComponent.RESULTS_TAG, results);
+		XJoinResults results = factory.getResults(externalParams);
+		rb.req.getContext().put(XJoinResultsSearchComponent.RESULTS_TAG, results);
 		
 		String listParameter = (String)params.get(getName() + "." + LIST_PARAMETER);
 		if (listParameter != null) {

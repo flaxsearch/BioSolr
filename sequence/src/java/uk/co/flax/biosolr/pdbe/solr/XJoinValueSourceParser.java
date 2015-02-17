@@ -17,7 +17,7 @@ import org.apache.solr.search.FunctionQParser;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.search.ValueSourceParser;
 
-public class ExternalValueSourceParser extends ValueSourceParser {
+public class XJoinValueSourceParser extends ValueSourceParser {
 	
 	public static final String INIT_JOIN_FIELD = "joinField";
 	
@@ -33,7 +33,7 @@ public class ExternalValueSourceParser extends ValueSourceParser {
 	
 	@Override
 	public ValueSource parse(FunctionQParser fqp) throws SyntaxError {
-		ExternalResults results = (ExternalResults)fqp.getReq().getContext().get(ExternalResultsSearchComponent.RESULTS_TAG);
+		XJoinResults results = (XJoinResults)fqp.getReq().getContext().get(XJoinResultsSearchComponent.RESULTS_TAG);
 		if (results == null) {
 			throw new RuntimeException("No external results in request context");
 		}
@@ -42,10 +42,10 @@ public class ExternalValueSourceParser extends ValueSourceParser {
 	
 	public class ExternalValueSource extends ValueSource {
 
-		private ExternalResults results;
+		private XJoinResults results;
 		private String methodName;
 
-		public ExternalValueSource(ExternalResults results, String arg) {
+		public ExternalValueSource(XJoinResults results, String arg) {
 			this.results = results;
 			this.methodName = "get" + arg.substring(0, 1).toUpperCase() + arg.substring(1);
 		}

@@ -17,7 +17,7 @@ import uk.co.flax.biosolr.pdbe.FastaJobResults;
 /**
  * Extract external results into SOLR results.
  */
-public class ExternalResultsSearchComponent extends SearchComponent {
+public class XJoinResultsSearchComponent extends SearchComponent {
 
 	public static final String INIT_JOIN_FIELD = "joinField";
 	public static final String RESULTS_FIELD_LIST = "results";
@@ -54,7 +54,7 @@ public class ExternalResultsSearchComponent extends SearchComponent {
 	    	return;
 	    }
 	    
-	    ExternalResults results = (ExternalResults)rb.req.getContext().get(RESULTS_TAG);
+	    XJoinResults results = (XJoinResults)rb.req.getContext().get(RESULTS_TAG);
 	    if (results == null) {
 	    	return;
 	    }

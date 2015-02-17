@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.co.flax.biosolr.pdbe.solr.ExternalResults;
+import uk.co.flax.biosolr.pdbe.solr.XJoinResults;
 
-public class FastaJobResults implements ExternalResults {
+public class FastaJobResults implements XJoinResults {
     
     private Map<String, Alignment> alignments = new HashMap<>();
     private Map<String, Alignment> alignmentsToShow = new HashMap<>();
