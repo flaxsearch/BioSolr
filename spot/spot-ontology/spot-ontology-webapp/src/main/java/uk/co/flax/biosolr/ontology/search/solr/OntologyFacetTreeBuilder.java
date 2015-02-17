@@ -40,43 +40,57 @@ import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
+ * Utility class to convert a list of Document EFO annotation facets into a
+ * hierarchical tree.
+ * 
+ * <p>This uses the ontology index to build a full tree of nodes which have
+ * descendants contained in the facet list. Note that there are no uniqueness checks
+ * done on the leaf nodes - if a node has multiple parents, it may appear more than
+ * once, and affect the accumulated total counts accordingly.</p>
+ * 
  * @author Matt Pearce
  */
-public class FacetAccumulator {
+public class OntologyFacetTreeBuilder {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(FacetAccumulator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyFacetTreeBuilder.class);
 	
 	private final OntologySearch ontologySearch;
 
-	public FacetAccumulator(OntologySearch ontologySearch) {
+	public OntologyFacetTreeBuilder(OntologySearch ontologySearch) {
 		this.ontologySearch = ontologySearch;
 	}
 	
-	public List<FacetEntry> accumulateEntries(List<FacetEntry> entries) {
-		Map<String, EFOAnnotation> annotationMap = searchFacetEntries(entries);
+	/**
+	 * Convert the incoming facet entries into a hierarchical facet tree, starting
+	 * from the highest parent node common to all of the facets, and terminating at
+	 * the lowest leaf level for each facet.
+	 * @param entries the annotation facets, expected to be a list of Ontology URIs.
+	 * @return a list containing one or more {@link AccumulatedFacetEntry} items representing
+	 * the full tree.
+	 */
+	public List<FacetEntry> buildFacetTree(List<FacetEntry> entries) {
+		// Look up ontology entries for every facet in the entry set.
+		Map<String, EFOAnnotation> annotationMap = lookupOntologyEntriesByFacetLabel(entries);
 		Map<String, FacetEntry> entryMap = convertEntriesToMap(entries);
 		
+		// Look up ontology entries for all parent nodes common to the incoming entries
 		Set<String> parentUris = extractParentUris(annotationMap.values());
 		// Remove URIs for which we already have EFO annotations
 		parentUris.removeAll(annotationMap.keySet());
-		Map<String, EFOAnnotation> parentMap = searchParentUris(parentUris);
+		// Add the parent ontology entries to the facet ontology entries
+		annotationMap.putAll(lookupOntologyEntriesByUri(parentUris));
 		
-		// Combine the maps
-		annotationMap.putAll(parentMap);
-		
-		// Build a map of annotations by level in the tree, so we can start at the bottom level
+		// Build a map of annotations by level in the tree, so we can start at the highest level
 		Map<Integer, List<EFOAnnotation>> levelMap = collateAnnotationsByLevel(annotationMap);
 		
 		SortedSet<FacetEntry> facets = new TreeSet<>(Collections.reverseOrder());
-		// Checked set keeps track of which child nodes we've already built
-		Set<String> checked = new HashSet<>();
 		// Take the first entry (or entries) in the level map, and build the accumulated entries
 		Iterator<Integer> levelIter = levelMap.keySet().iterator();
 		if (levelIter.hasNext()) {
 			Integer level = levelIter.next();
 			LOGGER.debug("Building AccumulatedFacetEntry at level {}", level);
 			for (EFOAnnotation anno : levelMap.get(level)) {
-				FacetEntry fe = buildAccumulatedEntryTree(level, anno, entryMap, annotationMap, checked);
+				FacetEntry fe = buildAccumulatedEntryTree(level, anno, entryMap, annotationMap);
 				facets.add(fe);
 			}
 		}
@@ -84,18 +98,29 @@ public class FacetAccumulator {
 		return new ArrayList<FacetEntry>(facets);
 	}
 	
+	/**
+	 * Recursively build an accumulated facet entry tree.
+	 * @param level current level in the tree (used for debugging/logging).
+	 * @param node the current node.
+	 * @param entryMap the facet entry map.
+	 * @param annotationMap the map of valid annotations (either in the facet map, or parents of
+	 * entries in the facet map).
+	 * @return an {@link AccumulatedFacetEntry} containing details for the current node and all
+	 * sub-nodes down to the lowest leaf which has a facet count.
+	 */
 	private AccumulatedFacetEntry buildAccumulatedEntryTree(int level, EFOAnnotation node,
-			Map<String, FacetEntry> entryMap, Map<String, EFOAnnotation> annotationMap, Set<String> checked) {
+			Map<String, FacetEntry> entryMap, Map<String, EFOAnnotation> annotationMap) {
 		SortedSet<AccumulatedFacetEntry> childHierarchy = new TreeSet<>(Collections.reverseOrder());
 		long childTotal = 0;
 		if (node.getChildUris() != null) {
 			for (String childUri : node.getChildUris()) {
 				if (annotationMap.containsKey(childUri)) {
-					LOGGER.debug("[{}] Building subAfe for {}", level, childUri);
-					AccumulatedFacetEntry subAfe = buildAccumulatedEntryTree(level + 1, annotationMap.get(childUri), entryMap, annotationMap, checked);
+					LOGGER.trace("[{}] Building subAfe for {}", level, childUri);
+					AccumulatedFacetEntry subAfe = buildAccumulatedEntryTree(level + 1, annotationMap.get(childUri),
+							entryMap, annotationMap);
 					childTotal += subAfe.getTotalCount();
 					childHierarchy.add(subAfe);
-					LOGGER.debug("[{}] subAfe total: {} - child Total {}, child count {}", level, subAfe.getTotalCount(), childTotal, childHierarchy.size());
+					LOGGER.trace("[{}] subAfe total: {} - child Total {}, child count {}", level, subAfe.getTotalCount(), childTotal, childHierarchy.size());
 				}
 			}
 		}
@@ -105,12 +130,15 @@ public class FacetAccumulator {
 			count = entryMap.get(node.getUri()).getCount();
 		}
 		
-		checked.add(node.getUri());
-
-		LOGGER.debug("[{}] Building AFE for {}", level, node.getUri());
+		LOGGER.trace("[{}] Building AFE for {}", level, node.getUri());
 		return new AccumulatedFacetEntry(node.getUri(), node.getLabel().get(0), count, childTotal, childHierarchy);
 	}
 	
+	/**
+	 * Convenience method to create a URI-keyed map of facet entries.
+	 * @param entries
+	 * @return a map of URI : FacetEntry.
+	 */
 	private Map<String, FacetEntry> convertEntriesToMap(List<FacetEntry> entries) {
 		Map<String, FacetEntry> entryMap = new HashMap<>();
 		
@@ -121,14 +149,32 @@ public class FacetAccumulator {
 		return entryMap;
 	}
 	
-	private Map<String, EFOAnnotation> searchFacetEntries(List<FacetEntry> entries) {
+	/**
+	 * Fetch the EFO annotations for a list of facet entries.
+	 * @param entries
+	 * @return a map of URI -> ontology entry for the facet entries.
+	 */
+	private Map<String, EFOAnnotation> lookupOntologyEntriesByFacetLabel(List<FacetEntry> entries) {
+		List<String> uris = new ArrayList<>(entries.size());
+		for (FacetEntry entry : entries) {
+			uris.add(entry.getLabel());
+		}
+		return lookupOntologyEntriesByUri(uris);
+	}
+	
+	/**
+	 * Fetch the EFO annotations for a collection of URIs.
+	 * @param uris
+	 * @return a map of URI -> ontology entry for the incoming URIs.
+	 */
+	private Map<String, EFOAnnotation> lookupOntologyEntriesByUri(Collection<String> uris) {
 		Map<String, EFOAnnotation> annotationMap = new HashMap<>();
 		
 		String query = "*:*";
-		String filters = buildFilterString(entries);
+		String filters = buildFilterString(uris);
 		
 		try {
-			ResultsList<EFOAnnotation> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, entries.size());
+			ResultsList<EFOAnnotation> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, uris.size());
 			for (EFOAnnotation anno : results.getResults()) {
 				annotationMap.put(anno.getUri(), anno);
 			}
@@ -139,15 +185,12 @@ public class FacetAccumulator {
 		return annotationMap;
 	}
 	
-	private String buildFilterString(List<FacetEntry> entries) {
-		Set<String> uris = new HashSet<String>();
-		for (FacetEntry entry : entries) {
-			uris.add(entry.getLabel());
-		}
-		return buildFilterString(uris);
-	}
-	
-	private String buildFilterString(Set<String> uris) {
+	/**
+	 * Build a filter string for a set of URIs.
+	 * @param uris
+	 * @return a filter string.
+	 */
+	private String buildFilterString(Collection<String> uris) {
 		StringBuilder sb = new StringBuilder(SolrOntologySearch.URI_FIELD).append(":(");
 		
 		int idx = 0;
@@ -164,6 +207,11 @@ public class FacetAccumulator {
 		return sb.toString();
 	}
 	
+	/**
+	 * Get all of the parent URIs for a collection of ontology entries.
+	 * @param annotations
+	 * @return the parent URIs.
+	 */
 	private Set<String> extractParentUris(Collection<EFOAnnotation> annotations) {
 		Set<String> parentUris = new HashSet<>();
 		
@@ -172,24 +220,6 @@ public class FacetAccumulator {
 		}
 		
 		return parentUris;
-	}
-	
-	private Map<String, EFOAnnotation> searchParentUris(Set<String> parentUris) {
-		Map<String, EFOAnnotation> annotationMap = new HashMap<>();
-		
-		String query = "*:*";
-		String filters = buildFilterString(parentUris);
-		
-		try {
-			ResultsList<EFOAnnotation> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, parentUris.size());
-			for (EFOAnnotation anno : results.getResults()) {
-				annotationMap.put(anno.getUri(), anno);
-			}
-		} catch (SearchEngineException e) {
-			LOGGER.error("Problem getting ontology entries for filter {}: {}", filters, e.getMessage());
-		}
-		
-		return annotationMap;
 	}
 	
 	private Map<Integer, List<EFOAnnotation>> collateAnnotationsByLevel(Map<String, EFOAnnotation> annotationMap) {

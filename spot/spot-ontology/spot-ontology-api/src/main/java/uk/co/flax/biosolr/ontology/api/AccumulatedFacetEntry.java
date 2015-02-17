@@ -2,6 +2,12 @@ package uk.co.flax.biosolr.ontology.api;
 
 import java.util.SortedSet;
 
+/**
+ * A facet entry which may contain a set of further facet entries, and can
+ * be recursed through to build a hierarchical tree of facets.
+ * 
+ * @author Matt Pearce
+ */
 public class AccumulatedFacetEntry extends FacetEntry implements Comparable<AccumulatedFacetEntry> {
 	
 	private final String uri;

@@ -28,7 +28,7 @@ import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.jena.JenaOntologySearch;
-import uk.co.flax.biosolr.ontology.search.solr.FacetAccumulator;
+import uk.co.flax.biosolr.ontology.search.solr.OntologyFacetTreeBuilder;
 import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 
@@ -56,7 +56,7 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 		// Create the Jena ontology search engine
 		JenaOntologySearch jenaSearch = new JenaOntologySearch(configuration.getJena(), configuration.getSolr());
 		// Create the facet accumulator
-		FacetAccumulator facetAccumulator = new FacetAccumulator(ontologySearch);
+		OntologyFacetTreeBuilder facetAccumulator = new OntologyFacetTreeBuilder(ontologySearch);
 		
 		// If you don't set the URL pattern, the AssetsBundle defined above don't work!
 		environment.jersey().setUrlPattern(configuration.getUrlPattern());
