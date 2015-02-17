@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package uk.co.flax.biosolr.pdbe;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -17,8 +17,8 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
-import uk.co.flax.biosolr.pdbe.FastaJob;
-import uk.co.flax.biosolr.pdbe.FastaStatus;
+import uk.co.flax.biosolr.pdbe.solr.XJoinResults;
+import uk.co.flax.biosolr.pdbe.solr.XJoinResultsFactory;
 
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user supplied
@@ -32,7 +32,7 @@ import uk.co.flax.biosolr.pdbe.FastaStatus;
  * scores = 1000
  * alignments = 1000
  */
-public class FastaResultsFactory implements XJoinResultsFactory {
+public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	
 	// initialisation parameters
 	public static final String INIT_EMAIL = "email";
