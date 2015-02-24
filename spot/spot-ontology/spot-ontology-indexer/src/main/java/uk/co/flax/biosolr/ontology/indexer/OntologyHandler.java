@@ -96,7 +96,7 @@ public class OntologyHandler {
         IRI iri = IRI.create(ontologyUri);
         this.ontology = manager.loadOntologyFromOntologyDocument(iri);
 		this.reasoner = new StructuralReasonerFactory().createNonBufferingReasoner(ontology);
-		this.shortFormProvider = new BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
+		this.shortFormProvider = new SimpleShortFormProvider();
 		this.nodeCounter = new ZoomaNodeCounter();
         
         // Initialise the class map

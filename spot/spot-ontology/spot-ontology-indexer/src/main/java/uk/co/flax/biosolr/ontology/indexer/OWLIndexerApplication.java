@@ -55,9 +55,9 @@ import com.hp.hpl.jena.tdb.sys.TDBInternal;
  * 
  * @author Matt Pearce
  */
-public class OWLIndexer {
+public class OWLIndexerApplication {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(OWLIndexer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(OWLIndexerApplication.class);
 	
 	private static final int SOLR_BATCH_SIZE = 1000;
 	private static final int COMMIT_WITHIN = 60000;
@@ -69,7 +69,7 @@ public class OWLIndexer {
     private final SolrServer solrServer;
 	private final OntologyHandler ontologyHandler;
 
-	public OWLIndexer(String yamlFile) throws IOException, OWLOntologyCreationException {
+	public OWLIndexerApplication(String yamlFile) throws IOException, OWLOntologyCreationException {
 		this.config = readConfig(yamlFile);
 		this.solrServer = new HttpSolrServer(config.getOntologySolrUrl());
 		this.ontologyHandler = new OntologyHandler(config.getOntologies().get("efo").getAccessURI());
@@ -242,7 +242,7 @@ public class OWLIndexer {
 		}
 
 		try {
-			OWLIndexer indexer = new OWLIndexer(args[0]);
+			OWLIndexerApplication indexer = new OWLIndexerApplication(args[0]);
 			indexer.run();
 		} catch (OWLOntologyCreationException e) {
 			System.err.println("Could not index ontology: " + e.getMessage());
