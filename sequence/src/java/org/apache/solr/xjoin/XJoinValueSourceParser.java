@@ -74,14 +74,16 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 		@Override
 		@SuppressWarnings("rawtypes")
 		public FunctionValues getValues(Map context, AtomicReaderContext readerContext) throws IOException {
-			final BinaryDocValues joinValues = FieldCache.DEFAULT.getTerms(readerContext.reader(), joinField);
+			final BinaryDocValues joinValues = FieldCache.DEFAULT.getTerms(readerContext.reader(), joinField, false);
 
 			return new DoubleDocValues(this) {
 
 				@Override
 				public double doubleVal(int doc) {
-					BytesRef joinValue = new BytesRef();
-					joinValues.get(doc, joinValue);
+					BytesRef joinValue = joinValues.get(doc);
+					if (joinValue == null) {
+						throw new RuntimeException("No such doc: " + doc);
+					}
 					Object result = results.getResult(joinValue.utf8ToString());
 					if (result == null) {
 						throw new RuntimeException("Unknown result: " + joinValue.utf8ToString());
