@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
-
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+package uk.co.flax.biosolr.ontology.storage;
 
 /**
- * Interface defining a loader for a configuration file.
+ * Exception thrown by the storage engine to indicate issues storing
+ * items in the search engine.
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
+public class StorageEngineException extends Exception {
 
-	public IndexerConfiguration loadConfiguration() throws IOException;
+	private static final long serialVersionUID = 1L;
+
+	public StorageEngineException(String message) {
+		super(message);
+	}
+
+	public StorageEngineException(Throwable cause) {
+		super(cause);
+	}
+
+	public StorageEngineException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

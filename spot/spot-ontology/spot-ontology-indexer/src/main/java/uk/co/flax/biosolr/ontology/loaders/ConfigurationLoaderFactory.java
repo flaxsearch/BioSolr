@@ -15,17 +15,31 @@
  */
 package uk.co.flax.biosolr.ontology.loaders;
 
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Interface defining a loader for a configuration file.
+ * Factory class for building a configuration loader.
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
-
-	public IndexerConfiguration loadConfiguration() throws IOException;
+public class ConfigurationLoaderFactory {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationLoaderFactory.class);
+	
+	public static ConfigurationLoader getConfigurationLoader(String configFile) {
+		ConfigurationLoader ret = null;
+		
+		String ext = configFile.substring(configFile.lastIndexOf('.') + 1);
+		if (ext.equals(".yml")) {
+			ret = new YamlConfigurationLoader(configFile);
+		}
+		
+		if (ret == null) {
+			LOGGER.error("No configuration loader found for file {}", configFile);
+		}
+		
+		return ret;
+	}
 
 }

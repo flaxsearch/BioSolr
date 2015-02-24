@@ -36,7 +36,7 @@ public class YamlConfigurationLoader implements ConfigurationLoader {
 	}
 
 	@Override
-	public IndexerConfiguration fetchConfig() throws IOException {
+	public IndexerConfiguration loadConfiguration() throws IOException {
 		FileReader reader = new FileReader(configFile);
 		Yaml yaml = new Yaml(new Constructor(IndexerConfiguration.class));
 		

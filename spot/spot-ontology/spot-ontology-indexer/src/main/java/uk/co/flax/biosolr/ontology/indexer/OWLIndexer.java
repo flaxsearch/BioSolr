@@ -77,7 +77,7 @@ public class OWLIndexer {
 	
 	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
 		ConfigurationLoader configLoader = new YamlConfigurationLoader(yamlFile);
-		return configLoader.fetchConfig();
+		return configLoader.loadConfiguration();
 	}
 	
 	public void run() throws OWLOntologyCreationException, IOException, SolrServerException {
