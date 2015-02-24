@@ -17,9 +17,14 @@ package uk.co.flax.biosolr.ontology;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
+import uk.co.flax.biosolr.ontology.storage.StorageEngine;
+import uk.co.flax.biosolr.ontology.storage.StorageEngineFactory;
 
 /**
  * Main class for indexing one or more ontologies.
@@ -28,6 +33,8 @@ import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
  */
 public class OntologyIndexer {
 	
+	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyIndexer.class);
+	
 	private final IndexerConfiguration configuration;
 	
 	public OntologyIndexer(IndexerConfiguration config) {
@@ -35,7 +42,14 @@ public class OntologyIndexer {
 	}
 	
 	public void run() {
-		
+		StorageEngine storageEngine = StorageEngineFactory.buildStorageEngine(configuration.getStorage());
+		if (storageEngine == null) {
+			System.err.println("No storage engine - aborting!");
+			return;
+		} else if (!storageEngine.isReady()) {
+			System.err.println("Storage engine is not ready - aborting!");
+			return;
+		}
 	}
 
 	public static void main(String[] args) {
@@ -44,7 +58,7 @@ public class OntologyIndexer {
 			System.exit(1);
 		}
 		
-		ConfigurationLoader configLoader = ConfigurationLoaderFactory.getConfigurationLoader(args[0]);
+		ConfigurationLoader configLoader = ConfigurationLoaderFactory.buildConfigurationLoader(args[0]);
 		if (configLoader == null) {
 			System.err.println("Could not find configuration loader for " + args[0]);
 			System.exit(1);

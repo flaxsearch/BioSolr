@@ -27,10 +27,10 @@ public class ConfigurationLoaderFactory {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationLoaderFactory.class);
 	
-	public static ConfigurationLoader getConfigurationLoader(String configFile) {
+	public static ConfigurationLoader buildConfigurationLoader(String configFile) {
 		ConfigurationLoader ret = null;
 		
-		String ext = configFile.substring(configFile.lastIndexOf('.') + 1);
+		String ext = configFile.substring(configFile.lastIndexOf('.'));
 		if (ext.equals(".yml")) {
 			ret = new YamlConfigurationLoader(configFile);
 		}

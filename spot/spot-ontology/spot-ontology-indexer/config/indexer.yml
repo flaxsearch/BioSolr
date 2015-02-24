@@ -30,3 +30,13 @@ database:
   url: "jdbc:oracle:thin:@host.ebi.ac.uk:1531:spotpro"
   username: user
   password: password
+
+# Configuration for the storage engine
+storage:
+  # Storage engine type to use
+  engineType: solr
+  
+  # Solr-specific configuration
+  solr:
+    # Base URL for the ontology index
+    baseUrl: http://localhost:8983/solr/ontology

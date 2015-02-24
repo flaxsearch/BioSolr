@@ -32,6 +32,8 @@ public class IndexerConfiguration {
 	private String tdbPath;
 	
 	private DatabaseConfiguration database;
+	
+	private StorageConfiguration storage;
 
 	/**
 	 * @return the ontologySolrUrl
@@ -101,6 +103,20 @@ public class IndexerConfiguration {
 	 */
 	public void setOntologies(Map<String, OntologyConfiguration> ontologies) {
 		this.ontologies = ontologies;
+	}
+
+	/**
+	 * @return the storage
+	 */
+	public StorageConfiguration getStorage() {
+		return storage;
+	}
+
+	/**
+	 * @param storage the storage to set
+	 */
+	public void setStorage(StorageConfiguration storage) {
+		this.storage = storage;
 	}
 
 }
