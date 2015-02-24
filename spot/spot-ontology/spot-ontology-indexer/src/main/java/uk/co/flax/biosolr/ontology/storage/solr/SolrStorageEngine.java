@@ -15,10 +15,17 @@
  */
 package uk.co.flax.biosolr.ontology.storage.solr;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
@@ -29,6 +36,10 @@ import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
  * @author Matt Pearce
  */
 public class SolrStorageEngine implements StorageEngine {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(SolrStorageEngine.class);
+	
+	static final int STATUS_OK = 0;
 	
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -43,31 +54,50 @@ public class SolrStorageEngine implements StorageEngine {
 		this.server = server;
 	}
 
-	/* (non-Javadoc)
-	 * @see uk.co.flax.biosolr.ontology.storage.StorageEngine#isReady()
-	 */
 	@Override
 	public boolean isReady() {
-		// TODO Auto-generated method stub
-		return false;
+		boolean ready = false;
+
+		try {
+			SolrPingResponse response = server.ping();
+			ready = (response != null && response.getStatus() == STATUS_OK);
+
+			if (!ready) {
+				if (response == null) {
+					LOGGER.error("Search engine returned null response from ping()");
+				} else {
+					LOGGER.error("Search engine is not ready: ", response.getResponse());
+				}
+			}
+		} catch (SolrServerException e) {
+			LOGGER.error("Server exception from ping(): {}", e.getMessage());
+		} catch (IOException e) {
+			LOGGER.error("IO exception when calling server: {}", e.getMessage());
+		}
+
+		return ready;
 	}
 
-	/* (non-Javadoc)
-	 * @see uk.co.flax.biosolr.ontology.storage.StorageEngine#storeOntologyEntry(uk.co.flax.biosolr.ontology.api.OntologyEntryBean)
-	 */
 	@Override
 	public void storeOntologyEntry(OntologyEntryBean entry) throws StorageEngineException {
-		// TODO Auto-generated method stub
-
+		storeOntologyEntries(Arrays.asList(entry));
 	}
 
-	/* (non-Javadoc)
-	 * @see uk.co.flax.biosolr.ontology.storage.StorageEngine#storeOntologyEntries(java.util.List)
-	 */
 	@Override
 	public void storeOntologyEntries(List<OntologyEntryBean> entries) throws StorageEngineException {
-		// TODO Auto-generated method stub
-
+		try {
+			UpdateResponse response = server.addBeans(entries, config.getCommitWithinMs());
+			if (response.getStatus() != STATUS_OK) {
+				LOGGER.error("Unexpected response: {}", response.getResponse());
+				throw new StorageEngineException("Could not store entries: " + response.getResponse());
+			}
+		} catch (IOException e) {
+			LOGGER.error("IO exception when calling server: {}", e.getMessage());
+			throw new StorageEngineException(e);
+		} catch (SolrServerException e) {
+			LOGGER.error("Server exception when storing entries: {}", e.getMessage());
+			throw new StorageEngineException(e);
+		}
 	}
 
 }

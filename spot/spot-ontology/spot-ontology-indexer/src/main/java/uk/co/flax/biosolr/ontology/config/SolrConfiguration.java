@@ -23,6 +23,8 @@ package uk.co.flax.biosolr.ontology.config;
 public class SolrConfiguration {
 	
 	private String baseUrl;
+	
+	private int commitWithinMs = 60000;
 
 	/**
 	 * @return the baseUrl
@@ -36,6 +38,20 @@ public class SolrConfiguration {
 	 */
 	public void setBaseUrl(String baseUrl) {
 		this.baseUrl = baseUrl;
+	}
+
+	/**
+	 * @return the commitWithin
+	 */
+	public int getCommitWithinMs() {
+		return commitWithinMs;
+	}
+
+	/**
+	 * @param commitWithin the commitWithin to set
+	 */
+	public void setCommitWithinMs(int commitWithin) {
+		this.commitWithinMs = commitWithin;
 	}
 
 }

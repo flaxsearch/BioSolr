@@ -40,3 +40,6 @@ storage:
   solr:
     # Base URL for the ontology index
     baseUrl: http://localhost:8983/solr/ontology
+    
+    # Commit within time when storing items (in ms)
+    commitWithinMs: 60000
