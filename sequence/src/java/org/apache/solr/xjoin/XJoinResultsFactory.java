@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package org.apache.solr.xjoin;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package org.apache.solr.xjoin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,18 +16,54 @@ public class FieldAppender {
 	private Set<String> fieldNames;
 	
 	/**
-	 * Create a FieldAppender for adding the specified properties.
+	 * Create a FieldAppender for adding the fields specified by the given
+	 * SOLR formatted field list (i.e. command or space delimited).
 	 */
 	public FieldAppender(String fl) {
-		fieldNames = new HashSet<>();
+		this();
 	    for (String field : fl.split("[, ]")) {
 	    	field = field.trim();
+	    	if (field.length() == 0) {
+	    		continue;
+	    	}
 	    	if ("*".equals(field)) {
 	    		fieldNames = null;
 	    		return;
 	    	}
 	    	fieldNames.add(field);
 	    }
+	}
+
+	/**
+	 * Create a FieldAppender for adding all fields (if the parameter is true)
+	 * or for no fields (but fields may be added via getFieldNames()).
+	 */
+	public FieldAppender(boolean all) {
+		fieldNames = all ? null : new HashSet<String>();
+	}
+	
+	/**
+	 * Create a FieldAppeneder for adding fields, which may be added via
+	 * getFieldNames().
+	 */
+	public FieldAppender() {
+		this(false);
+	}
+	
+	/**
+	 * Returns the (modifiable) set of field names to be added. A value of null
+	 * indicates all fields are to be added.
+	 */
+	public Set<String> getFieldNames() {
+		return fieldNames;
+	}
+	
+	/**
+	 * Indicate that all fields should be added. Once this method is called, fields
+	 * can not be added using the set returned by getFieldNames() (since it is null).
+	 */
+	public void appendAllFields() {
+		fieldNames = null;
 	}
 	
 	/**

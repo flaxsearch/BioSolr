@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package org.apache.solr.xjoin;
 
 /**
  * Interface for external process results.

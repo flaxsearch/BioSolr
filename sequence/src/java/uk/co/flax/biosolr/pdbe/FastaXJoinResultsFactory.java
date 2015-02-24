@@ -11,14 +11,14 @@ import javax.xml.rpc.ServiceException;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.xjoin.XJoinResults;
+import org.apache.solr.xjoin.XJoinResultsFactory;
 
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
-import uk.co.flax.biosolr.pdbe.solr.XJoinResults;
-import uk.co.flax.biosolr.pdbe.solr.XJoinResultsFactory;
 
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user supplied

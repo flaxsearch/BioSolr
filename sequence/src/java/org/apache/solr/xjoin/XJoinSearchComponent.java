@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package org.apache.solr.xjoin;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.lucene.document.Document;
-import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -33,15 +32,8 @@ import uk.co.flax.biosolr.pdbe.FastaJobResults;
  * in, for example, a sort spec or a boost query).
  */
 public class XJoinSearchComponent extends SearchComponent {
-
-	public static final String INIT_RESULTS_FACTORY = "factoryClass";
-	public static final String INIT_JOIN_FIELD = "joinField";
-	public static final String LIST_PARAMETER = "listParameter";
-	public static final String EXTERNAL_PREFIX = "external";
-	public static final String RESULTS_FIELD_LIST = "results";
-	public static final String DOC_FIELD_LIST = CommonParams.FL;
 	
-	public static final String RESULTS_TAG = FastaJobResults.class.getName();
+	/*package*/ static final String RESULTS_TAG = FastaJobResults.class.getName();
 
 	// factory for creating XJoinResult objects per search
 	private XJoinResultsFactory factory;
@@ -59,14 +51,14 @@ public class XJoinSearchComponent extends SearchComponent {
 		super.init(args);
 		
 		try {
-			Class<?> factoryClass = Class.forName((String)args.get(INIT_RESULTS_FACTORY));
+			Class<?> factoryClass = Class.forName((String)args.get(XJoinParameters.INIT_RESULTS_FACTORY));
 			factory = (XJoinResultsFactory)factoryClass.newInstance();
-			factory.init((NamedList)args.get(EXTERNAL_PREFIX));
+			factory.init((NamedList)args.get(XJoinParameters.EXTERNAL_PREFIX));
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
 		
-		joinField = (String)args.get(INIT_JOIN_FIELD);
+		joinField = (String)args.get(XJoinParameters.INIT_JOIN_FIELD);
 	}
 	
 	/**
@@ -86,7 +78,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	    
 	    // generate external process results, by passing 'external' prefixed parameters
 	    // from the query string to our factory
-	    String prefix = getName() + "." + EXTERNAL_PREFIX + ".";
+	    String prefix = getName() + "." + XJoinParameters.EXTERNAL_PREFIX + ".";
 	    ModifiableSolrParams externalParams = new ModifiableSolrParams();
 	    for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
 	    	String name = it.next();
@@ -97,7 +89,7 @@ public class XJoinSearchComponent extends SearchComponent {
 		results = factory.getResults(externalParams);
 		rb.req.getContext().put(XJoinSearchComponent.RESULTS_TAG, results);
 		
-		String listParameter = (String)params.get(getName() + "." + LIST_PARAMETER);
+		String listParameter = (String)params.get(getName() + "." + XJoinParameters.LIST_PARAMETER);
 		if (listParameter != null) {
 			// put a list of join ids as a request parameter that may be referenced in the URL
 			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
@@ -125,11 +117,11 @@ public class XJoinSearchComponent extends SearchComponent {
 	    }
 	    
 	    // general results
-	    FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + RESULTS_FIELD_LIST, "*"));
+	    FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
 	    NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
 	    
     	// per doc results
-	    FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + DOC_FIELD_LIST, "*"));
+	    FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));
 	    Set<String> joinFields = new HashSet<>();
 	    joinFields.add(joinField);
 	    for (DocIterator it = rb.getResults().docList.iterator(); it.hasNext(); ) {

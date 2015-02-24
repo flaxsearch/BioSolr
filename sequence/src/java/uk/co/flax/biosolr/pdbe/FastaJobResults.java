@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.co.flax.biosolr.pdbe.solr.XJoinResults;
+import org.apache.solr.xjoin.XJoinResults;
 
 public class FastaJobResults implements XJoinResults {
     
