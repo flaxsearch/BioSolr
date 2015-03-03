@@ -18,6 +18,10 @@ ontologies:
     # URI for obsolete classes
     obsoleteClassURI: "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
     
+    # URIs of parent classes whose children should be ignored (ie. obsolete classes)
+    ignoreURIs:
+      - "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
+      
 
 # Path to the TDB directory
 tdbPath: C:/Flax/ebi_data/efo_tdb

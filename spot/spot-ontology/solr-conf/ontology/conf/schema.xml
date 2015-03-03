@@ -56,6 +56,7 @@
 
 	<field name="uri" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
+    <field name="source" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="short_form" type="text_general" indexed="true" stored="true" multiValued="false" />
 	<field name="label" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="synonyms" type="text_general" indexed="true" stored="true" multiValued="true" />

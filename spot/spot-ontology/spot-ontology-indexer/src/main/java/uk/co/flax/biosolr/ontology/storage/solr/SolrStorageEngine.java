@@ -85,18 +85,22 @@ public class SolrStorageEngine implements StorageEngine {
 
 	@Override
 	public void storeOntologyEntries(List<OntologyEntryBean> entries) throws StorageEngineException {
-		try {
-			UpdateResponse response = server.addBeans(entries, config.getCommitWithinMs());
-			if (response.getStatus() != STATUS_OK) {
-				LOGGER.error("Unexpected response: {}", response.getResponse());
-				throw new StorageEngineException("Could not store entries: " + response.getResponse());
+		if (entries.isEmpty()) {
+			LOGGER.debug("storeOntologyEntries called with empty list - ignoring");
+		} else {
+			try {
+				UpdateResponse response = server.addBeans(entries, config.getCommitWithinMs());
+				if (response.getStatus() != STATUS_OK) {
+					LOGGER.error("Unexpected response: {}", response.getResponse());
+					throw new StorageEngineException("Could not store entries: " + response.getResponse());
+				}
+			} catch (IOException e) {
+				LOGGER.error("IO exception when calling server: {}", e.getMessage());
+				throw new StorageEngineException(e);
+			} catch (SolrServerException e) {
+				LOGGER.error("Server exception when storing entries: {}", e.getMessage());
+				throw new StorageEngineException(e);
 			}
-		} catch (IOException e) {
-			LOGGER.error("IO exception when calling server: {}", e.getMessage());
-			throw new StorageEngineException(e);
-		} catch (SolrServerException e) {
-			LOGGER.error("Server exception when storing entries: {}", e.getMessage());
-			throw new StorageEngineException(e);
 		}
 	}
 

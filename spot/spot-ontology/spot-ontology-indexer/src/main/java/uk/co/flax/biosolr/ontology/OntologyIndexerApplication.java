@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
+import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
+import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
@@ -31,13 +34,13 @@ import uk.co.flax.biosolr.ontology.storage.StorageEngineFactory;
  * 
  * @author Matt Pearce
  */
-public class OntologyIndexer {
+public class OntologyIndexerApplication {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyIndexer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyIndexerApplication.class);
 	
 	private final IndexerConfiguration configuration;
 	
-	public OntologyIndexer(IndexerConfiguration config) {
+	public OntologyIndexerApplication(IndexerConfiguration config) {
 		this.configuration = config;
 	}
 	
@@ -50,6 +53,17 @@ public class OntologyIndexer {
 			System.err.println("Storage engine is not ready - aborting!");
 			return;
 		}
+		
+		for (String source : configuration.getOntologies().keySet()) {
+			try {
+				OntologyIndexer indexer = new OWLOntologyIndexer(source, configuration.getOntologies().get(source),
+						storageEngine);
+				indexer.indexOntology();
+			} catch (OntologyIndexingException e) {
+				LOGGER.error("Caught exception indexing {}: {}", source, e.getMessage());
+				LOGGER.error("Exception detail:", e);
+			}
+		}
 	}
 
 	public static void main(String[] args) {
@@ -58,6 +72,9 @@ public class OntologyIndexer {
 			System.exit(1);
 		}
 		
+        // Set property to make sure we can parse all of EFO
+        System.setProperty("entityExpansionLimit", "1000000");
+        
 		ConfigurationLoader configLoader = ConfigurationLoaderFactory.buildConfigurationLoader(args[0]);
 		if (configLoader == null) {
 			System.err.println("Could not find configuration loader for " + args[0]);
@@ -65,7 +82,7 @@ public class OntologyIndexer {
 		}
 		
 		try {
-			OntologyIndexer indexer = new OntologyIndexer(configLoader.loadConfiguration());
+			OntologyIndexerApplication indexer = new OntologyIndexerApplication(configLoader.loadConfiguration());
 			indexer.run();
 		} catch (IOException e) {
 			System.err.println("Could not load configuration file " + args[0] + ": " + e.getMessage());
