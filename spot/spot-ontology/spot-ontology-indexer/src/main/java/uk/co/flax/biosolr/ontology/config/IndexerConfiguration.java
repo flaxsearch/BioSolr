@@ -17,6 +17,8 @@ package uk.co.flax.biosolr.ontology.config;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Configuration details for Ontology indexer application.
  * 
@@ -33,6 +35,7 @@ public class IndexerConfiguration {
 	
 	private StorageConfiguration storage;
 	
+	@JsonProperty("plugins")
 	private Map<String, Map<String, PluginConfiguration>> pluginTypes;
 
 	/**

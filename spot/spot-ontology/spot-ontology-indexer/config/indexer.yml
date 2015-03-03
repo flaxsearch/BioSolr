@@ -25,7 +25,7 @@ ontologies:
 
 # Plugin configuration - splits into "ontology" and "entry" sections, depending
 # on whether the plugin applies to a whole ontology or individual entries.
-pluginTypes:
+plugins:
   # ontology-level plugins
   ontology:
     # Triple store plugin definition
