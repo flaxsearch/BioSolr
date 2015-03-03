@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe.solr;
+package uk.co.flax.biosolr.pdbe;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -9,20 +9,16 @@ import java.nio.file.Paths;
 
 import javax.xml.rpc.ServiceException;
 
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.handler.component.ResponseBuilder;
-import org.apache.solr.handler.component.SearchComponent;
+import org.apache.solr.xjoin.XJoinResults;
+import org.apache.solr.xjoin.XJoinResultsFactory;
 
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
-import uk.co.flax.biosolr.pdbe.FastaJob;
-import uk.co.flax.biosolr.pdbe.FastaJobResults;
-import uk.co.flax.biosolr.pdbe.FastaStatus;
 
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user supplied
@@ -36,36 +32,32 @@ import uk.co.flax.biosolr.pdbe.FastaStatus;
  * scores = 1000
  * alignments = 1000
  */
-public class FastaSearchComponent extends SearchComponent {
-
-	public static final String COMPONENT_NAME = "fasta_search";
+public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	
-	// component initialisation parameters
+	// initialisation parameters
 	public static final String INIT_EMAIL = "email";
 	public static final String INIT_PROGRAM = "program";
 	public static final String INIT_DATABASE = "database";
 	public static final String INIT_STYPE = "stype";
 	public static final String INIT_DEBUG_FILE = "debug.file";
 	
-	// request handler parameters
-	public static final String FASTA_EXPLOWLIM = COMPONENT_NAME + ".explowlim";
-	public static final String FASTA_EXPUPPERLIM = COMPONENT_NAME + ".expupperlim";
-	public static final String FASTA_SEQUENCE = COMPONENT_NAME + ".sequence";
-	public static final String FASTA_SCORES = COMPONENT_NAME + ".scores";
-	public static final String FASTA_ALIGNMENTS = COMPONENT_NAME + ".alignments";
-	public static final String FASTA_LIST_PARAMETER = COMPONENT_NAME + ".listParameter";
+	// request parameters
+	public static final String FASTA_EXPLOWLIM = "explowlim";
+	public static final String FASTA_EXPUPPERLIM = "expupperlim";
+	public static final String FASTA_SEQUENCE = "sequence";
+	public static final String FASTA_SCORES = "scores";
+	public static final String FASTA_ALIGNMENTS = "alignments";
 	
 	private JDispatcherService_PortType fasta;
 	private String email;
-    private InputParameters params;
-    private String debugFile;
+	private String program;
+	private String database;
+	private String sType;
 
 	@Override
 	@SuppressWarnings("rawtypes")
 	public void init(NamedList args) {
-		super.init(args);
-		
-		debugFile = (String)args.get(INIT_DEBUG_FILE);
+		String debugFile = (String)args.get(INIT_DEBUG_FILE);
 		if (debugFile != null) {
 			try {
 				byte[] result = Files.readAllBytes(Paths.get(debugFile));
@@ -87,10 +79,9 @@ public class FastaSearchComponent extends SearchComponent {
 		}
 		
         email = (String)args.get(INIT_EMAIL);
-        params = new InputParameters();
-        params.setProgram((String)args.get(INIT_PROGRAM));
-        params.setDatabase(new String[] { (String)args.get(INIT_DATABASE) });
-        params.setStype((String)args.get(INIT_STYPE));
+        program = (String)args.get(INIT_PROGRAM);
+        database = (String)args.get(INIT_DATABASE);
+        sType = (String)args.get(INIT_STYPE);
 	}
 	
 	private String getParam(SolrParams params, String name) {
@@ -105,21 +96,18 @@ public class FastaSearchComponent extends SearchComponent {
 	 * Call out to the FASTA service and add a filter query based on the response.
 	 */
 	@Override
-	public void prepare(ResponseBuilder rb) throws IOException {
-	    SolrParams params = rb.req.getParams();
-	    if (! params.getBool(COMPONENT_NAME, false)) {
-	    	return;
-	    }
+	public XJoinResults getResults(SolrParams params) throws IOException {
+		InputParameters input = new InputParameters();
+    	input.setProgram(program);
+    	input.setDatabase(new String[] { database });
+    	input.setStype(sType);
+        input.setSequence(getParam(params, FASTA_SEQUENCE));
+        input.setExplowlim(new Double(getParam(params, FASTA_EXPLOWLIM)));
+        input.setExpupperlim(new Double(getParam(params, FASTA_EXPUPPERLIM)));
+        input.setScores(new Integer(getParam(params, FASTA_SCORES)));
+        input.setAlignments(new Integer(getParam(params, FASTA_ALIGNMENTS)));
 	    
-	    if (debugFile == null) {
-	        this.params.setSequence(getParam(params, FASTA_SEQUENCE));
-	        this.params.setExplowlim(new Double(getParam(params, FASTA_EXPLOWLIM)));
-	        this.params.setExpupperlim(new Double(getParam(params, FASTA_EXPUPPERLIM)));
-	        this.params.setScores(new Integer(getParam(params, FASTA_SCORES)));
-	        this.params.setAlignments(new Integer(getParam(params, FASTA_ALIGNMENTS)));
-	    }
-	    
-        FastaJob job = new FastaJob(fasta, email, this.params);
+        FastaJob job = new FastaJob(fasta, email, input);
 		job.run();
 		
 		if (! job.resultsOk()) {
@@ -135,32 +123,7 @@ public class FastaSearchComponent extends SearchComponent {
 			throw new RuntimeException("No results");
 		}
 		
-		rb.req.getContext().put(ExternalResultsSearchComponent.RESULTS_TAG, job.getResults());
-		
-		String listParameter = (String)params.get(FASTA_LIST_PARAMETER);
-		if (listParameter != null) {
-			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
-			myParams.set(listParameter, job.getResults().getEntryEntityCodes());
-			rb.req.setParams(myParams);
-		}
-	}
-
-	/**
-	 * Nothing to do.
-	 */
-	@Override
-	public void process(ResponseBuilder rb) throws IOException {
-	    // do nothing
-	}
-
-	@Override
-	public String getDescription() {
-		return "FASTA search component";
-	}
-
-	@Override
-	public String getSource() {
-		return "$source$";
+		return job.getResults();
 	}
 
 }

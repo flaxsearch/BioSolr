@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.co.flax.biosolr.pdbe.solr.ExternalResults;
+import org.apache.solr.xjoin.XJoinResults;
 
-public class FastaJobResults implements ExternalResults {
+public class FastaJobResults implements XJoinResults {
     
     private Map<String, Alignment> alignments = new HashMap<>();
     private Map<String, Alignment> alignmentsToShow = new HashMap<>();
@@ -86,13 +86,13 @@ public class FastaJobResults implements ExternalResults {
     	return String.join(",", pdbIdAlignments.keySet());
     }
     
-    public String getEntryEntityCodes() {
+    public String[] getJoinIds() {
     	String[] entries = new String[alignmentsToShow.size()];
     	int i = 0;
     	for (Alignment a : alignmentsToShow.values()) {
     		entries[i++] = a.getEntryEntity();
     	}
-    	return String.join(",", entries);
+    	return entries;
     }
     
     public Alignment getResult(String entryEntity) {
