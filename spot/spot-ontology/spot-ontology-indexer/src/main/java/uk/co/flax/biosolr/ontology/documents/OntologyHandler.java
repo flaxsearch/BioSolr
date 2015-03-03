@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.indexer;
+package uk.co.flax.biosolr.ontology.documents;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -57,6 +57,7 @@ import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNodeCounter;
 import uk.ac.ebi.fgpt.owl2json.SimpleOntologyHierarchyNode;
 import uk.ac.ebi.fgpt.owl2json.ZoomaNodeCounter;
+import uk.co.flax.biosolr.ontology.indexer.RelatedItem;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**

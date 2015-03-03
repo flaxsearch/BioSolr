@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.indexer;
+package uk.co.flax.biosolr.ontology.documents;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -41,6 +41,8 @@ import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
+import uk.co.flax.biosolr.ontology.indexer.RelatedItem;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 

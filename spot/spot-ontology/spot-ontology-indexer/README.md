@@ -22,7 +22,7 @@ searching using SPARQL queries, backed up by the search engine index, if require
 
 The document indexer can be run using the following command:
 
-    java -cp spot-ontology-indexer.jar uk.co.flax.biosolr.ontology.indexer.DocumentIndexer config.properties
+    java -cp spot-ontology-indexer.jar uk.co.flax.biosolr.ontology.documents.DocumentIndexer indexer.yml
     
-where `config.properties` points to a file similar to the example_config.properties
+where `indexer.yml` points to a file similar to the example file
 file in the config subdirectory.
