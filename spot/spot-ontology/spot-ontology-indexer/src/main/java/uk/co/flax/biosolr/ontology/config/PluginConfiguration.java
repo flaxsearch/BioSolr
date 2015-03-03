@@ -17,6 +17,8 @@ package uk.co.flax.biosolr.ontology.config;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Class representing the configuration for a single plugin.
  * 
@@ -24,6 +26,10 @@ import java.util.Map;
  */
 public class PluginConfiguration {
 	
+	public static final String ONTOLOGY_PLUGIN_KEY = "ontology";
+	public static final String ENTRY_PLUGIN_KEY = "entry";
+
+	@JsonProperty("class")
 	private String pluginClass;
 	
 	private Map<String, Object> configuration;

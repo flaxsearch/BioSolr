@@ -15,44 +15,27 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.Map;
+
 /**
- * Triple store database configuration.
- * 
  * @author Matt Pearce
  */
-public class TripleStoreConfiguration {
+public class PluginTypeConfiguration {
 	
-	private boolean buildTripleStore;
-	
-	private String tdbPath;
+	private Map<String, PluginConfiguration> plugins;
 
 	/**
-	 * @return <code>true</code> if a triple store should be built
-	 * for the ontologies.
+	 * @return the plugins
 	 */
-	public boolean isBuildTripleStore() {
-		return buildTripleStore;
+	public Map<String, PluginConfiguration> getPlugins() {
+		return plugins;
 	}
 
 	/**
-	 * @param set whether or not to build a triple store.
+	 * @param plugins the plugins to set
 	 */
-	public void setBuildTripleStore(boolean buildTripleStore) {
-		this.buildTripleStore = buildTripleStore;
-	}
-
-	/**
-	 * @return the path to the triple store database.
-	 */
-	public String getTdbPath() {
-		return tdbPath;
-	}
-
-	/**
-	 * @param tdbPath the path to the triple store database.
-	 */
-	public void setTdbPath(String tdbPath) {
-		this.tdbPath = tdbPath;
+	public void setPlugins(Map<String, PluginConfiguration> plugins) {
+		this.plugins = plugins;
 	}
 
 }

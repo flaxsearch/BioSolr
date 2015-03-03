@@ -19,17 +19,24 @@ import java.util.Map;
 
 /**
  * Generic plugin interface, defining initialise and shutdown methods.
+ * Each plugin implementation should have a zero-argument constructor.
  * 
  * @author Matt Pearce
  */
 public interface Plugin {
+	
+	/**
+	 * Create an instance of this plugin.
+	 * @return the plugin instance.
+	 */
+	public Plugin createPlugin();
 
 	/**
 	 * Initialise the plugin, using configuration supplied as a map of
 	 * objects.
 	 * @param configuration the configuration details.
 	 */
-	public void initialise(Map<String, Object> configuration);
+	public void initialise(Map<String, Object> configuration) throws PluginException;
 	
 	/**
 	 * Shut down the plugin. This allows for any resources being used to be closed

@@ -22,23 +22,15 @@ ontologies:
     ignoreURIs:
       - "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
       
-# Triple store configuration
-tripleStore:
-  # Should we create a triple store while indexing the ontologies?
-  buildTripleStore: false
-  
-  # Path to the triple store database directory
-  tdbPath: C:/Flax/ebi_data/tripleStore
-  
 
 # Plugin configuration - splits into "ontology" and "entry" sections, depending
 # on whether the plugin applies to a whole ontology or individual entries.
-plugins:
+pluginTypes:
   # ontology-level plugins
   ontology:
     # Triple store plugin definition
     tripleStore:
-      class: "uk.co.flax.biosolr.ontology.plugins.tdb.TdbOntologyPlugin"
+      class: "uk.co.flax.biosolr.ontology.plugins.impl.TDBOntologyPlugin"
       configuration:
         enabled: true
         tdbPath: C:/Flax/ebi_data/tripleStore

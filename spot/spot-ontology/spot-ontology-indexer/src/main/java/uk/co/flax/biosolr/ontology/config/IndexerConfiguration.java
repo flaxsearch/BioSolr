@@ -24,9 +24,6 @@ import java.util.Map;
  */
 public class IndexerConfiguration {
 	
-	public static final String ONTOLOGY_PLUGIN_KEY = "ontology";
-	public static final String ENTRY_PLUGIN_KEY = "entry";
-	
 	private String ontologySolrUrl;
 	private String documentsSolrUrl;
 	
@@ -36,9 +33,7 @@ public class IndexerConfiguration {
 	
 	private StorageConfiguration storage;
 	
-	private TripleStoreConfiguration tripleStore;
-	
-	private Map<String, Map<String, PluginConfiguration>> plugins;
+	private Map<String, Map<String, PluginConfiguration>> pluginTypes;
 
 	/**
 	 * @return the ontologySolrUrl
@@ -111,31 +106,17 @@ public class IndexerConfiguration {
 	}
 
 	/**
-	 * @return the tripleStore
-	 */
-	public TripleStoreConfiguration getTripleStore() {
-		return tripleStore;
-	}
-
-	/**
-	 * @param tripleStore the tripleStore to set
-	 */
-	public void setTripleStore(TripleStoreConfiguration tripleStore) {
-		this.tripleStore = tripleStore;
-	}
-
-	/**
 	 * @return the plugin
 	 */
-	public Map<String, Map<String, PluginConfiguration>> getPlugins() {
-		return plugins;
+	public Map<String,  Map<String, PluginConfiguration>> getPluginTypes() {
+		return pluginTypes;
 	}
 
 	/**
 	 * @param plugin the plugin to set
 	 */
-	public void setPlugins(Map<String, Map<String, PluginConfiguration>> plugin) {
-		this.plugins = plugin;
+	public void setPluginTypes(Map<String,  Map<String, PluginConfiguration>> plugin) {
+		this.pluginTypes = plugin;
 	}
 
 }

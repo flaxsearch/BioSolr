@@ -27,9 +27,10 @@ import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
+import uk.co.flax.biosolr.ontology.plugins.PluginException;
+import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
 import uk.co.flax.biosolr.ontology.storage.StorageEngineFactory;
-import uk.co.flax.biosolr.ontology.tdb.TripleStoreBuilder;
 
 /**
  * Main class for indexing one or more ontologies.
@@ -41,10 +42,11 @@ public class OntologyIndexerApplication {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyIndexerApplication.class);
 	
 	private final IndexerConfiguration configuration;
-	private TripleStoreBuilder tripleStoreBuilder;
+	private final PluginManager pluginManager;
 	
 	public OntologyIndexerApplication(IndexerConfiguration config) {
 		this.configuration = config;
+		this.pluginManager = new PluginManager(config.getPluginTypes());
 	}
 	
 	public void run() {
@@ -57,34 +59,30 @@ public class OntologyIndexerApplication {
 			return;
 		}
 		
+		try {
+			pluginManager.initialisePlugins();
+		} catch (PluginException e) {
+			System.err.println("Exception initialising plugins - aborting!");
+			e.printStackTrace();
+			return;
+		}
+		
 		for (String source : configuration.getOntologies().keySet()) {
 			try {
 				OntologyConfiguration ontologyConfig = configuration.getOntologies().get(source);
-				OntologyIndexer indexer = new OWLOntologyIndexer(source, ontologyConfig, storageEngine);
+				OntologyIndexer indexer = new OWLOntologyIndexer(source, ontologyConfig, storageEngine, pluginManager);
 				indexer.indexOntology();
-				addDatasetToTripleStore(ontologyConfig.getAccessURI());
+				pluginManager.processOntologyPlugins(source, ontologyConfig);
 			} catch (OntologyIndexingException e) {
 				LOGGER.error("Caught exception indexing {}: {}", source, e.getMessage());
 				LOGGER.error("Exception detail:", e);
+			} catch (PluginException e) {
+				LOGGER.error("Caught plugin exception indexing {}: {}", source, e.getMessage());
+				LOGGER.error("Exception detail:", e);
 			}
-		}
-		
-		// Close the triple store, if created
-		if (tripleStoreBuilder != null) {
-			tripleStoreBuilder.closeDataset();
 		}
 	}
 	
-	private void addDatasetToTripleStore(String source) {
-		if (configuration.getTripleStore().isBuildTripleStore()) {
-			if (tripleStoreBuilder == null) {
-				tripleStoreBuilder = new TripleStoreBuilder(configuration.getTripleStore());
-			}
-			
-			tripleStoreBuilder.loadDataset(source);
-		}
-	}
-
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			usage();

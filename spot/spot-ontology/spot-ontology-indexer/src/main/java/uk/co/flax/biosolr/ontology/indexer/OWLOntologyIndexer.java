@@ -55,6 +55,8 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
+import uk.co.flax.biosolr.ontology.plugins.PluginException;
+import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
 import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
 
@@ -74,6 +76,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final String sourceKey;
 	private final OntologyConfiguration config;
 	private final StorageEngine storageEngine;
+	private final PluginManager pluginManager;
 	
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
@@ -85,11 +88,12 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	
 	private Map<IRI, Set<String>> labels = new HashMap<>();
 	
-	public OWLOntologyIndexer(String source, OntologyConfiguration config, StorageEngine storageEngine)
+	public OWLOntologyIndexer(String source, OntologyConfiguration config, StorageEngine storageEngine, PluginManager pluginManager)
 			throws OntologyIndexingException {
 		this.sourceKey = source;
 		this.config = config;
 		this.storageEngine = storageEngine;
+		this.pluginManager = pluginManager;
 		
 		this.ignoreUris = buildIgnoreUriList();
         
@@ -137,7 +141,8 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 			
 			for (OWLClass owlClass : ontology.getClassesInSignature()) {
 				if (!shouldIgnore(owlClass)) {
-					entries.add(buildOntologyEntry(owlClass));
+					OntologyEntryBean entry = buildOntologyEntry(owlClass);
+					entries.add(entry);
 
 					if (entries.size() == BATCH_SIZE) {
 						storageEngine.storeOntologyEntries(entries);
@@ -177,6 +182,13 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         // Look up restrictions
         Map<String, List<String>> relatedItems = getRestrictions(owlClass);
         bean.setRelations(relatedItems);
+        
+        // Handle plugins
+        try {
+			pluginManager.processOntologyEntryPlugins(bean, sourceKey, config);
+		} catch (PluginException e) {
+			LOGGER.error("Plugin exception processing ontology entry {}: {}", bean.getUri(), e.getMessage());
+		}
         
 		return bean;
 	}
