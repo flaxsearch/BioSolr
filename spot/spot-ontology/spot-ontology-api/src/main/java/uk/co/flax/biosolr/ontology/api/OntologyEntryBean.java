@@ -65,6 +65,9 @@ public class OntologyEntryBean {
 	
 	@Field("*_rel")
 	private Map<String, List<String>> relations;
+	
+	@Field("*")
+	private Map<String, Object> additionalFields;
 
 	/**
 	 * @return the id
@@ -246,6 +249,20 @@ public class OntologyEntryBean {
 	 */
 	public void setRelations(Map<String, List<String>> relations) {
 		this.relations = relations;
+	}
+
+	/**
+	 * @return the additionalFields
+	 */
+	public Map<String, Object> getAdditionalFields() {
+		return additionalFields;
+	}
+
+	/**
+	 * @param additionalFields the additionalFields to set
+	 */
+	public void setAdditionalFields(Map<String, Object> additionalFields) {
+		this.additionalFields = additionalFields;
 	}
 	
 }
