@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -40,6 +39,7 @@ import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.config.TripleStoreConfiguration;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 
@@ -89,7 +89,7 @@ public class OWLIndexerApplication {
         indexAnnotations(annos);
         
         // Build the TDB dataset, if path is set
-        buildTdbDataset(config.getOntologies().get("efo"));
+        buildTdbDataset(config.getOntologies().get("efo"), config.getTripleStore());
  	}
 	
 	
@@ -211,9 +211,9 @@ public class OWLIndexerApplication {
 		solrServer.commit();
     }
     
-    private void buildTdbDataset(OntologyConfiguration ontConfig) {
-    	if (StringUtils.isNotBlank(config.getTdbPath())) {
-    		DatasetGraph dataset = TDBFactory.createDatasetGraph(config.getTdbPath());
+    private void buildTdbDataset(OntologyConfiguration ontConfig, TripleStoreConfiguration tdbConfig) {
+    	if (tdbConfig.isBuildTripleStore()) {
+    		DatasetGraph dataset = TDBFactory.createDatasetGraph(tdbConfig.getTdbPath());
     		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), ontConfig.getAccessURI(), true);
     		dataset.close();
 		}

@@ -22,9 +22,14 @@ ontologies:
     ignoreURIs:
       - "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
       
-
-# Path to the TDB directory
-tdbPath: C:/Flax/ebi_data/efo_tdb
+# Triple store configuration
+tripleStore:
+  # Should we create a triple store while indexing the ontologies?
+  buildTripleStore: true
+  
+  # Path to the triple store database directory
+  tdbPath: C:/Flax/ebi_data/tripleStore
+  
 
 # Database configuration
 database:

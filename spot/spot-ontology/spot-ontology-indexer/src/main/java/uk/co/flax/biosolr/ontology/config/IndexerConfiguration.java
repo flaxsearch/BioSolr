@@ -29,11 +29,11 @@ public class IndexerConfiguration {
 	
 	private Map<String, OntologyConfiguration> ontologies;
 	
-	private String tdbPath;
-	
 	private DatabaseConfiguration database;
 	
 	private StorageConfiguration storage;
+	
+	private TripleStoreConfiguration tripleStore;
 
 	/**
 	 * @return the ontologySolrUrl
@@ -47,13 +47,6 @@ public class IndexerConfiguration {
 	 */
 	public String getDocumentsSolrUrl() {
 		return documentsSolrUrl;
-	}
-
-	/**
-	 * @return the tdbPath
-	 */
-	public String getTdbPath() {
-		return tdbPath;
 	}
 
 	/**
@@ -75,13 +68,6 @@ public class IndexerConfiguration {
 	 */
 	public void setDocumentsSolrUrl(String documentSolrUrl) {
 		this.documentsSolrUrl = documentSolrUrl;
-	}
-
-	/**
-	 * @param tdbPath the tdbPath to set
-	 */
-	public void setTdbPath(String tdbPath) {
-		this.tdbPath = tdbPath;
 	}
 
 	/**
@@ -117,6 +103,20 @@ public class IndexerConfiguration {
 	 */
 	public void setStorage(StorageConfiguration storage) {
 		this.storage = storage;
+	}
+
+	/**
+	 * @return the tripleStore
+	 */
+	public TripleStoreConfiguration getTripleStore() {
+		return tripleStore;
+	}
+
+	/**
+	 * @param tripleStore the tripleStore to set
+	 */
+	public void setTripleStore(TripleStoreConfiguration tripleStore) {
+		this.tripleStore = tripleStore;
 	}
 
 }

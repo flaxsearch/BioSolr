@@ -8,13 +8,14 @@ of the libraries required to run the indexers.
 
 The ontology indexer can be run using the following command:
 
-    java -cp spot-ontology-indexer.jar uk.co.flax.biosolr.ontology.indexer.OWLIndexer config.properties
+    java -cp spot-ontology-indexer.jar uk.co.flax.biosolr.ontology.OntologyIndexerApplication indexer.yml
     
-where `config.properties` points to a file similar to the example_config.properties
+where `indexer.yml` points to a file similar to the example file
 file in the config subdirectory.
 
-If a `tdbPath` setting is given in the configuration details, this will build
-a TDB database from the ontology file at the same time as the ontology core. 
+If the `tripleStore/buildTripleStore` configuration option is set to true, the
+application will also add the ontologies to a TDB database while indexing them. This allows
+searching using SPARQL queries, backed up by the search engine index, if required.
 
 
 ## Indexing the documents

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
@@ -28,6 +29,7 @@ import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
 import uk.co.flax.biosolr.ontology.storage.StorageEngineFactory;
+import uk.co.flax.biosolr.ontology.tdb.TripleStoreBuilder;
 
 /**
  * Main class for indexing one or more ontologies.
@@ -39,6 +41,7 @@ public class OntologyIndexerApplication {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyIndexerApplication.class);
 	
 	private final IndexerConfiguration configuration;
+	private TripleStoreBuilder tripleStoreBuilder;
 	
 	public OntologyIndexerApplication(IndexerConfiguration config) {
 		this.configuration = config;
@@ -56,13 +59,29 @@ public class OntologyIndexerApplication {
 		
 		for (String source : configuration.getOntologies().keySet()) {
 			try {
-				OntologyIndexer indexer = new OWLOntologyIndexer(source, configuration.getOntologies().get(source),
-						storageEngine);
+				OntologyConfiguration ontologyConfig = configuration.getOntologies().get(source);
+				OntologyIndexer indexer = new OWLOntologyIndexer(source, ontologyConfig, storageEngine);
 				indexer.indexOntology();
+				addDatasetToTripleStore(ontologyConfig.getAccessURI());
 			} catch (OntologyIndexingException e) {
 				LOGGER.error("Caught exception indexing {}: {}", source, e.getMessage());
 				LOGGER.error("Exception detail:", e);
 			}
+		}
+		
+		// Close the triple store, if created
+		if (tripleStoreBuilder != null) {
+			tripleStoreBuilder.closeDataset();
+		}
+	}
+	
+	private void addDatasetToTripleStore(String source) {
+		if (configuration.getTripleStore().isBuildTripleStore()) {
+			if (tripleStoreBuilder == null) {
+				tripleStoreBuilder = new TripleStoreBuilder(configuration.getTripleStore());
+			}
+			
+			tripleStoreBuilder.loadDataset(source);
 		}
 	}
 
