@@ -3,6 +3,15 @@
 The web application provides a simple front-end, allowing the indexes
 created by the indexer to be searched.
 
+The search is across two indexes:
+
+* documents - the main document store, using documents annotated with ontology references;
+* ontology - an index of the EFO ontology, used to build facets.
+
+The documents index is built using information pulled from the EFO ontology to make searching more efficient - this
+includes parent and child node labels, as well as those for other types of relationship. These use dynamic fields
+to indicate the type of relationship between the nodes.
+
 ### Running the the application
 
 To run the application, use the following command:

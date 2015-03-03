@@ -1,12 +1,18 @@
 package uk.co.flax.biosolr.ontology.api;
 
-import java.util.List;
+import java.util.SortedSet;
 
-public class AccumulatedFacetEntry extends FacetEntry {
+/**
+ * A facet entry which may contain a set of further facet entries, and can
+ * be recursed through to build a hierarchical tree of facets.
+ * 
+ * @author Matt Pearce
+ */
+public class AccumulatedFacetEntry extends FacetEntry implements Comparable<AccumulatedFacetEntry> {
 	
 	private final String uri;
 	private final long childCount;
-	private final List<AccumulatedFacetEntry> hierarchy;
+	private final SortedSet<AccumulatedFacetEntry> hierarchy;
 
 	/**
 	 * @param label
@@ -14,7 +20,7 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	 * @param childCount
 	 * @param hierarchy
 	 */
-	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, List<AccumulatedFacetEntry> hierarchy) {
+	public AccumulatedFacetEntry(String uri, String label, long count, long childCount, SortedSet<AccumulatedFacetEntry> hierarchy) {
 		super(label, count);
 		this.uri = uri;
 		this.childCount = childCount;
@@ -31,7 +37,7 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	/**
 	 * @return the hierarchy
 	 */
-	public List<AccumulatedFacetEntry> getHierarchy() {
+	public SortedSet<AccumulatedFacetEntry> getHierarchy() {
 		return hierarchy;
 	}
 	
@@ -51,6 +57,24 @@ public class AccumulatedFacetEntry extends FacetEntry {
 	
 	public String getId() {
 		return uri.substring(uri.lastIndexOf('/') + 1);
+	}
+
+	@Override
+	public int compareTo(AccumulatedFacetEntry o) {
+		int ret = 0;
+
+		if (o == null) {
+			ret = 1;
+		} else {
+			ret = (int) (getTotalCount() - o.getTotalCount());
+			if (ret == 0) {
+				// If the counts are the same, compare the ID as well, to double-check
+				// whether they're actually the same entry
+				ret = getId().compareTo(o.getId());
+			}
+		}
+
+		return ret;
 	}
 
 }

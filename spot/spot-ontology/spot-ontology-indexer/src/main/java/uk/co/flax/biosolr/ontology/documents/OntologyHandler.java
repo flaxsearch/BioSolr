@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.indexer;
+package uk.co.flax.biosolr.ontology.documents;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -47,7 +47,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.Searcher;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -58,6 +57,7 @@ import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNodeCounter;
 import uk.ac.ebi.fgpt.owl2json.SimpleOntologyHierarchyNode;
 import uk.ac.ebi.fgpt.owl2json.ZoomaNodeCounter;
+import uk.co.flax.biosolr.ontology.indexer.RelatedItem;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 
 /**
@@ -96,7 +96,7 @@ public class OntologyHandler {
         IRI iri = IRI.create(ontologyUri);
         this.ontology = manager.loadOntologyFromOntologyDocument(iri);
 		this.reasoner = new StructuralReasonerFactory().createNonBufferingReasoner(ontology);
-		this.shortFormProvider = new BidirectionalShortFormProviderAdapter(manager, Collections.singleton(ontology), new SimpleShortFormProvider());
+		this.shortFormProvider = new SimpleShortFormProvider();
 		this.nodeCounter = new ZoomaNodeCounter();
         
         // Initialise the class map
@@ -188,7 +188,11 @@ public class OntologyHandler {
     }
 
     public Collection<String> getSuperClassUris(OWLClass owlClass) {
-    	return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, true));
+    	return getSuperClassUris(owlClass, true);
+    }
+    
+    public Collection<String> getSuperClassUris(OWLClass owlClass, boolean direct) {
+    	return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, direct));
     }
     
     private Collection<String> getUrisFromNodeSet(NodeSet<OWLClass> nodeSet) {

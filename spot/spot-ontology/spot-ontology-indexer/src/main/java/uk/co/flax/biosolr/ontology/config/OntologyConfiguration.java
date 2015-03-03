@@ -15,10 +15,14 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.List;
+
 /**
  * @author Matt Pearce
  */
 public class OntologyConfiguration {
+	
+	private String source;
 	
 	private String accessURI;
 	
@@ -27,6 +31,8 @@ public class OntologyConfiguration {
 	private String definitionAnnotationURI;
 	
 	private String obsoleteClassURI;
+	
+	private List<String> ignoreURIs;
 
 	/**
 	 * @return the accessURI
@@ -82,6 +88,34 @@ public class OntologyConfiguration {
 	 */
 	public void setObsoleteClassURI(String obsoleteClassURI) {
 		this.obsoleteClassURI = obsoleteClassURI;
+	}
+
+	/**
+	 * @return the ignoreURIs
+	 */
+	public List<String> getIgnoreURIs() {
+		return ignoreURIs;
+	}
+
+	/**
+	 * @param ignoreURIs the ignoreURIs to set
+	 */
+	public void setIgnoreURIs(List<String> ignoreURIs) {
+		this.ignoreURIs = ignoreURIs;
+	}
+
+	/**
+	 * @return the source
+	 */
+	public String getSource() {
+		return source;
+	}
+
+	/**
+	 * @param source the source to set
+	 */
+	public void setSource(String source) {
+		this.source = source;
 	}
 	
 }
