@@ -13,19 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
-
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+package uk.co.flax.biosolr.ontology.config;
 
 /**
- * Interface defining a loader for a configuration file.
+ * Configuration details for the storage engine.
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
+public class StorageConfiguration {
+	
+	private String engineType;
+	
+	private SolrConfiguration solr;
+	
+	/**
+	 * @return the storageType
+	 */
+	public String getEngineType() {
+		return engineType;
+	}
 
-	public IndexerConfiguration loadConfiguration() throws IOException;
+	/**
+	 * @param storageType the storageType to set
+	 */
+	public void setEngineType(String storageType) {
+		this.engineType = storageType;
+	}
+
+	/**
+	 * @return the solr
+	 */
+	public SolrConfiguration getSolr() {
+		return solr;
+	}
+
+	/**
+	 * @param solr the solr to set
+	 */
+	public void setSolr(SolrConfiguration solr) {
+		this.solr = solr;
+	}
 
 }

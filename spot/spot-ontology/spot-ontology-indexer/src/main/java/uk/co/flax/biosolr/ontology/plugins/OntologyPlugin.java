@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
+package uk.co.flax.biosolr.ontology.plugins;
 
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 
 /**
- * Interface defining a loader for a configuration file.
+ * Interface describing the functionality of a plugin which runs
+ * across an entire ontology, such as a triple store builder.
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
-
-	public IndexerConfiguration loadConfiguration() throws IOException;
-
+public interface OntologyPlugin extends Plugin {
+	
+	/**
+	 * Process an ontology.
+	 * @param sourceName the name of the ontology to process.
+	 * @param ontologyConfiguration the configuration details for the ontology.
+	 * @throws PluginException if a problem occurs while processing the ontology.
+	 */
+	public void process(String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException;
+	
 }

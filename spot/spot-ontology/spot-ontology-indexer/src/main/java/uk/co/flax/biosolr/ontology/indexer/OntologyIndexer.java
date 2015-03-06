@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
+package uk.co.flax.biosolr.ontology.indexer;
 
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 
 /**
- * Interface defining a loader for a configuration file.
+ * Interface defining the behaviours for an ontology indexer.
+ * 
+ * <p>There should be one of these created for each ontology being indexed.
+ * Configuration should be passed in, and the {@link #indexOntology()} method
+ * called to index the ontology's content.</p>
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
+public interface OntologyIndexer {
 
-	public IndexerConfiguration loadConfiguration() throws IOException;
+	/**
+	 * Index the ontology with the given source key.
+	 * @throws OntologyIndexingException
+	 */
+	public void indexOntology() throws OntologyIndexingException;
 
 }

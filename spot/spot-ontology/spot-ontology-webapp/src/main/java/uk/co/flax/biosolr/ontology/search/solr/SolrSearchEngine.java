@@ -21,11 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.response.LukeResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 
@@ -91,6 +94,18 @@ public abstract class SolrSearchEngine implements SearchEngine {
 		}
 		
 		return fields;
+	}
+	
+	protected String getQueryUrl(SolrQuery query, String baseUrl) {
+		StringBuilder queryUrl = new StringBuilder(baseUrl);
+		if (StringUtils.isBlank(query.getRequestHandler())) {
+			queryUrl.append("/select");
+		} else {
+			queryUrl.append(query.getRequestHandler());
+		}
+		queryUrl.append(ClientUtils.toQueryString(query, false));
+
+		return queryUrl.toString();
 	}
 	
 	protected abstract SolrServer getServer();

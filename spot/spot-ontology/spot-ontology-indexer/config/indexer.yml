@@ -18,9 +18,22 @@ ontologies:
     # URI for obsolete classes
     obsoleteClassURI: "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
     
+    # URIs of parent classes whose children should be ignored (ie. obsolete classes)
+    ignoreURIs:
+      - "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
+      
 
-# Path to the TDB directory
-tdbPath: C:/Flax/ebi_data/efo_tdb
+# Plugin configuration - splits into "ontology" and "entry" sections, depending
+# on whether the plugin applies to a whole ontology or individual entries.
+plugins:
+  # ontology-level plugins
+  ontology:
+    # Triple store plugin definition
+    tripleStore:
+      class: "uk.co.flax.biosolr.ontology.plugins.impl.TDBOntologyPlugin"
+      configuration:
+        enabled: true
+        tdbPath: C:/Flax/ebi_data/tripleStore
 
 # Database configuration
 database:
@@ -30,3 +43,16 @@ database:
   url: "jdbc:oracle:thin:@host.ebi.ac.uk:1531:spotpro"
   username: user
   password: password
+
+# Configuration for the storage engine
+storage:
+  # Storage engine type to use
+  engineType: solr
+  
+  # Solr-specific configuration
+  solr:
+    # Base URL for the ontology index
+    baseUrl: http://localhost:8983/solr/ontology
+    
+    # Commit within time when storing items (in ms)
+    commitWithinMs: 60000

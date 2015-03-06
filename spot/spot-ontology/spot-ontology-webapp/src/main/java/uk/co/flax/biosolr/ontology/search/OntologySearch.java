@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.search;
 
+import java.util.List;
+
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 
 /**
@@ -27,12 +29,13 @@ public interface OntologySearch extends SearchEngine {
 	/**
 	 * Search the ontology core for a term.
 	 * @param term the term to search.
+	 * @param filters any filters to apply.
 	 * @param start the starting position in the results (0-offset).
 	 * @param rows the maximum number of rows to return.
 	 * @return a results list of {@link EFOAnnotation} objects.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<EFOAnnotation> searchOntology(String term, int start, int rows) throws SearchEngineException;
+	public ResultsList<EFOAnnotation> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException;
 	
 	public EFOAnnotation findOntologyEntryByUri(String uri) throws SearchEngineException;
 	

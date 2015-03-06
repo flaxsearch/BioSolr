@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
-
-import java.io.IOException;
-
-import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+package uk.co.flax.biosolr.ontology.plugins;
 
 /**
- * Interface defining a loader for a configuration file.
+ * An exception wrapping a problem with a plugin class.
  * 
  * @author Matt Pearce
  */
-public interface ConfigurationLoader {
+public class PluginException extends Exception {
 
-	public IndexerConfiguration loadConfiguration() throws IOException;
+	private static final long serialVersionUID = 1L;
+
+	public PluginException(String message) {
+		super(message);
+	}
+
+	public PluginException(Throwable cause) {
+		super(cause);
+	}
+
+	public PluginException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

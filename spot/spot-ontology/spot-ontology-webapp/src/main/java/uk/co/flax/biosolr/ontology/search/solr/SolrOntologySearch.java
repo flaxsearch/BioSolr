@@ -39,6 +39,9 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 public class SolrOntologySearch extends SolrSearchEngine implements OntologySearch {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SolrOntologySearch.class);
+	
+	public static final String URI_FIELD = "uri";
+	public static final String LABEL_FIELD = "label";
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -57,14 +60,19 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	}
 
 	@Override
-	public ResultsList<EFOAnnotation> searchOntology(String term, int start, int rows) throws SearchEngineException {
+	public ResultsList<EFOAnnotation> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException {
 		ResultsList<EFOAnnotation> results = null;
 		
 		try {
 			SolrQuery query = new SolrQuery(term);
+			if (filters != null && !filters.isEmpty()) {
+				query.addFilterQuery(filters.toArray(new String[filters.size()]));
+			}
 			query.setStart(start);
 			query.setRows(rows);
 			query.setRequestHandler(config.getOntologyRequestHandler());
+			
+			LOGGER.trace("Ontology search URL: {}", getQueryUrl(query, config.getOntologyUrl()));
 			
 			QueryResponse response = server.query(query);
 			List<EFOAnnotation> annotations = response.getBeans(EFOAnnotation.class);
@@ -95,5 +103,5 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 		
 		return retVal;
 	}
-
+	
 }

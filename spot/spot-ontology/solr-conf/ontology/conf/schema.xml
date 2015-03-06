@@ -56,13 +56,22 @@
 
 	<field name="uri" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
+    <field name="source" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="short_form" type="text_general" indexed="true" stored="true" multiValued="false" />
 	<field name="label" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="synonyms" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="description" type="text_general" indexed="true" stored="true" multiValued="true" />
 	
-	<field name="subclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
-    <field name="superclass_uris" type="string" indexed="true" stored="true" multiValued="true" />
+	<!-- Single level child URIs -->
+	<field name="child_uris" type="string" indexed="true" stored="true" multiValued="true" />
+	<!-- All descendent URIs, including child URI(s) -->
+    <field name="descendent_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Single level parent URI(s) -->
+    <field name="parent_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- All ancestor URIs, including parent URI(s) -->
+    <field name="ancestor_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    
+    <field name="tree_level" type="int" indexed="true" stored="true" multiValued="false" />
 
     <!-- Full child hierarchy, represented in JSON -->
     <field name="child_hierarchy" type="string" indexed="false" stored="true" />
