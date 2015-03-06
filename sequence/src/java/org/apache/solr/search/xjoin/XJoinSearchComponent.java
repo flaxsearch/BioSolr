@@ -33,7 +33,7 @@ import uk.co.flax.biosolr.pdbe.FastaJobResults;
  */
 public class XJoinSearchComponent extends SearchComponent {
 	
-	/*package*/ static final String RESULTS_TAG = FastaJobResults.class.getName();
+	/*package*/ static final String RESULTS_TAG = XJoinResults.class.getName();
 
 	// factory for creating XJoinResult objects per search
 	private XJoinResultsFactory factory;
