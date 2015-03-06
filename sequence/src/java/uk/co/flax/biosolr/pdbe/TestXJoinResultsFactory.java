@@ -21,19 +21,25 @@ public class TestXJoinResultsFactory implements XJoinResultsFactory {
 
 	@Override
 	public XJoinResults getResults(SolrParams params) throws IOException {
-		return new XJoinResults() {
+		return new TestResults();
+	}
+	
+	public class TestResults implements XJoinResults {
 
-			@Override
-			public Object getResult(final String joinId) {
-				return new Result(joinId, 0.5);
-			}
+		@Override
+		public Object getResult(final String joinId) {
+			return new Result(joinId, 0.5);
+		}
 
-			@Override
-			public Iterable<String> getJoinIds() {
-				return Arrays.asList(values);
-			}
-			
-		};
+		@Override
+		public Iterable<String> getJoinIds() {
+			return Arrays.asList(values);
+		}
+		
+		public String getTest() {
+			return "a test string";
+		}
+		
 	}
 	
 	public static class Result {
