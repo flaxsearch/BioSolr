@@ -26,6 +26,9 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 	// the name of the associated XJoinSearchComponent
 	private String componentName;
 	
+	// the default value if the results don't have an entry
+	private double defaultValue;
+	
 	/**
 	 * Initialise - set the join id field.
 	 */
@@ -35,6 +38,7 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 		super.init(args);
 		
 		componentName = (String)args.get(XJoinParameters.INIT_XJOIN_COMPONENT_NAME);
+		defaultValue = (double)args.get(XJoinParameters.INIT_DEFAULT_VALUE);
 	}
 	
 	/**
@@ -92,7 +96,7 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 					}
 					Object result = results.getResult(joinValue.utf8ToString());
 					if (result == null) {
-						throw new RuntimeException("Unknown result: " + joinValue.utf8ToString());
+						return defaultValue;
 					}
 					try {
 						Method method = result.getClass().getMethod(methodName);
