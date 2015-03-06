@@ -30,8 +30,6 @@ import org.apache.solr.search.DocIterator;
  * in, for example, a sort spec or a boost query).
  */
 public class XJoinSearchComponent extends SearchComponent {
-	
-	/*package*/ static final String RESULTS_TAG = XJoinResults.class.getName();
 
 	// factory for creating XJoinResult objects per search
 	private XJoinResultsFactory factory;
@@ -59,6 +57,11 @@ public class XJoinSearchComponent extends SearchComponent {
 		joinField = (String)args.get(XJoinParameters.INIT_JOIN_FIELD);
 	}
 	
+	// get the context tag for XJoin results
+	/*package*/ String getResultsTag() {
+		return XJoinResults.class.getName() + "::" + getName();
+	}
+	
 	/**
 	 * Generate external process results (if they have not already been generated).
 	 */
@@ -69,7 +72,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	    	return;
 	    }
 	    
-	    XJoinResults results = (XJoinResults)rb.req.getContext().get(RESULTS_TAG);
+	    XJoinResults results = (XJoinResults)rb.req.getContext().get(getResultsTag());
 	    if (results != null) {
 	    	return;
 	    }
@@ -85,7 +88,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	    	}
 	    }
 		results = factory.getResults(externalParams);
-		rb.req.getContext().put(XJoinSearchComponent.RESULTS_TAG, results);
+		rb.req.getContext().put(getResultsTag(), results);
 		
 		String listParameter = (String)params.get(getName() + "." + XJoinParameters.LIST_PARAMETER);
 		if (listParameter != null) {
@@ -109,7 +112,7 @@ public class XJoinSearchComponent extends SearchComponent {
 	    	return;
 	    }
 	    
-	    XJoinResults results = (XJoinResults)rb.req.getContext().get(RESULTS_TAG);
+	    XJoinResults results = (XJoinResults)rb.req.getContext().get(getResultsTag());
 	    if (results == null || rb.getResults() == null) {
 	    	return;
 	    }
@@ -129,6 +132,10 @@ public class XJoinSearchComponent extends SearchComponent {
 		    	docAppender.addNamedList(general, "doc", object);
 	    	}
 	    }
+	}
+	
+	/*package*/ String getJoinField() {
+		return joinField;
 	}
 
 	@Override
