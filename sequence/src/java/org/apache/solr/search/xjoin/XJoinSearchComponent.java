@@ -13,8 +13,6 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.search.DocIterator;
 
-import uk.co.flax.biosolr.pdbe.FastaJobResults;
-
 /**
  * SOLR Search Component for performing an "x-join". It must be added to a request handler
  * in both the first and last component lists.
