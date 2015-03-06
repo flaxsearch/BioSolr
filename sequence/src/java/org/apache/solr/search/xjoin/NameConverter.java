@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 /**
  * Utility methods for converting between method names and field names.

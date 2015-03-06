@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 import org.junit.Test;
 

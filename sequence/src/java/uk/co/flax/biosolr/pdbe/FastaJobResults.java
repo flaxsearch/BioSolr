@@ -1,13 +1,14 @@
 package uk.co.flax.biosolr.pdbe;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.solr.xjoin.XJoinResults;
+import org.apache.solr.search.xjoin.XJoinResults;
 
 public class FastaJobResults implements XJoinResults {
     
@@ -86,13 +87,13 @@ public class FastaJobResults implements XJoinResults {
     	return String.join(",", pdbIdAlignments.keySet());
     }
     
-    public String[] getJoinIds() {
+    public Iterable<String> getJoinIds() {
     	String[] entries = new String[alignmentsToShow.size()];
     	int i = 0;
     	for (Alignment a : alignmentsToShow.values()) {
     		entries[i++] = a.getEntryEntity();
     	}
-    	return entries;
+    	return Arrays.asList(entries);
     }
     
     public Alignment getResult(String entryEntity) {

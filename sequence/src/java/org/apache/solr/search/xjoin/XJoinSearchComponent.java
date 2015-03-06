@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -93,7 +93,7 @@ public class XJoinSearchComponent extends SearchComponent {
 		if (listParameter != null) {
 			// put a list of join ids as a request parameter that may be referenced in the URL
 			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
-			String[] joinIds = results.getJoinIds();
+			Iterable<String> joinIds = results.getJoinIds();
 			myParams.set(listParameter, String.join(",", joinIds));
 			rb.req.setParams(myParams);
 		}

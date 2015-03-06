@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.xjoin.FieldAppender;
+import org.apache.solr.search.xjoin.FieldAppender;
 import org.junit.Test;
 
 public class TestFieldAppender {

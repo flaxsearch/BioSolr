@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 /**
  * Interface for external process results.
@@ -13,6 +13,6 @@ public interface XJoinResults {
 	/**
 	 * Get all external process join ids.
 	 */
-	String[] getJoinIds();
+	Iterable<String> getJoinIds();
 
 }

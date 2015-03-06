@@ -11,8 +11,8 @@ import javax.xml.rpc.ServiceException;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.xjoin.XJoinResults;
-import org.apache.solr.xjoin.XJoinResultsFactory;
+import org.apache.solr.search.xjoin.XJoinResults;
+import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;

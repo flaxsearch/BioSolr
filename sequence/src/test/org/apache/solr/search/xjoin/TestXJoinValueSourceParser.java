@@ -1,4 +1,4 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,10 +22,10 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.FunctionQParser;
 import org.apache.solr.search.SyntaxError;
-import org.apache.solr.xjoin.XJoinParameters;
-import org.apache.solr.xjoin.XJoinResults;
-import org.apache.solr.xjoin.XJoinSearchComponent;
-import org.apache.solr.xjoin.XJoinValueSourceParser;
+import org.apache.solr.search.xjoin.XJoinParameters;
+import org.apache.solr.search.xjoin.XJoinResults;
+import org.apache.solr.search.xjoin.XJoinSearchComponent;
+import org.apache.solr.search.xjoin.XJoinValueSourceParser;
 import org.junit.Test;
 
 public class TestXJoinValueSourceParser extends LuceneTestCase {
@@ -53,7 +53,7 @@ public class TestXJoinValueSourceParser extends LuceneTestCase {
 			}
 
 			@Override
-			public String[] getJoinIds() {
+			public Iterable<String> getJoinIds() {
 				// not used by XJoinValueSourceParser
 				return null;
 			}
