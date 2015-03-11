@@ -8,7 +8,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.xjoin.XJoinResults;
 import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
-public class TestXJoinResultsFactory implements XJoinResultsFactory {
+public class ExampleXJoinResultsFactory implements XJoinResultsFactory {
 
 	private String[] values;
 	
@@ -21,10 +21,10 @@ public class TestXJoinResultsFactory implements XJoinResultsFactory {
 
 	@Override
 	public XJoinResults getResults(SolrParams params) throws IOException {
-		return new TestResults();
+		return new Results();
 	}
 	
-	public class TestResults implements XJoinResults {
+	public class Results implements XJoinResults {
 
 		@Override
 		public Object getResult(final String joinId) {
