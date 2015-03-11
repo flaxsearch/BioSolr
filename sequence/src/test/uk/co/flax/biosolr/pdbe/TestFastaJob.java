@@ -20,7 +20,7 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
 
 public class TestFastaJob {
 
-	private static final String RESULT_PATH = "../../../../../result";
+	private static final String RESULT_PATH = "../../../../../result2";
 	
 	@Test
 	public void parse() throws IOException, URISyntaxException {
