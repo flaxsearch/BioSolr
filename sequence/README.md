@@ -12,7 +12,7 @@ path in solrconfig.xml, as should a JAR containing the user implementations of t
 
 For example:
 
-<config>
+```<config>
   ..
   <!-- XJoin contrib JAR file -->
   <lib path="/path/to/xjoin.jar" />
@@ -21,6 +21,7 @@ For example:
   <lib path="/path/to/xjoin_test.jar" />
   ..
 </config>
+```
 
 
 Java classes and interfaces
@@ -75,13 +76,14 @@ referenced from other SOLR parameters. It takes the following initialisation par
 
 For example, in solrconfig.xml:
 
-<searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+```<searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
   <str name="factoryClass">test.TestXJoinResultsFactory</str>
   <str name="joinField">id</str>
   <lst name="external">
     <str name="values">1,2,3</str>
   </lst>
 </searchComponent>
+```
 
 Here, the search component instantiates a new TextXJoinResultsFactory during initialisation, and passes it the
 "values" parameter (1, 2, 3) to configure it. To properly use the XJoinSearchComponent in a request handler, it must
@@ -98,7 +100,7 @@ be included at the start and end of the component list, and may be configured wi
          
 For example:
 
-<requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
+```<requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
   <lst name="defaults">
     ..
     <bool name="xjoin_test">true</bool>
@@ -113,6 +115,7 @@ For example:
     <str>xjoin_test</str>
   </arr>
 </requestHandler>
+```
 
 
 XJoinValueSourceParser:
@@ -128,10 +131,11 @@ below). The parameters for configuration in solrconfig.xml are:
 
 For example:
 
-<valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+```<valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
   <str name="xJoinSearchComponent">xjoin_test</str>
   <double name="defaultValue">1.0</double>
 </valueSourceParser>
+```
 
 
 Putting it together - the SOLR query URL
@@ -139,10 +143,12 @@ Putting it together - the SOLR query URL
 
 Here is an example SOLR query URL to perform an xjoin:
 
-  http://solrserver:8983/solr/collection1/xjoin?defType=edismax&q=*:*&xjoin_test.external.q=foobar&fl=id,score&fq={!terms+f=id+v=$xx}&bf=test_fn(value)
+```http://solrserver:8983/solr/collection1/xjoin?defType=edismax&q=*:*&xjoin_test.external.q=foobar&fl=id,score&fq={!terms+f=id+v=$xx}&bf=test_fn(value)
+```
 
 This might result in the following SOLR response:
 
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <response>
   <lst name="responseHeader">
@@ -174,6 +180,7 @@ This might result in the following SOLR response:
     </lst>
   </lst>
 </response>
+```
 
 Notes:
 
