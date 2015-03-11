@@ -12,7 +12,8 @@ path in solrconfig.xml, as should a JAR containing the user implementations of t
 
 For example:
 
-```<config>
+```
+<config>
   ..
   <!-- XJoin contrib JAR file -->
   <lib path="/path/to/xjoin.jar" />
@@ -23,11 +24,10 @@ For example:
 </config>
 ```
 
-
 Java classes and interfaces
 ---------------------------
 
-XJoinResultsFactory:
+### XJoinResultsFactory
 
 The user implementation of this interface is responsible for connecting to the external source to perform a query (or
 otherwise collect results). Parameters with prefix "<component name>.external." are passed from the SOLR query URL to
@@ -42,8 +42,7 @@ pararameterise the search. The interface has the following methods:
 For example, the implementation might perform queries of an external source based on the 'q' SOLR query URL parameter
 (in full, <component name>.external.q).
 
-
-XJoinResults:
+### XJoinResults
 
 A user implementation of this interface is returned by the getResults() method of the XJoinResultsFactory
 implementation. It has methods:
@@ -52,8 +51,7 @@ implementation. It has methods:
 
   * Iterable<String> getJoinIds() - this should return the join attribute values for results of the external search
 
-
-XJoinSearchComponent:
+### XJoinSearchComponent
 
 This is the central Java class of the contrib. It is a SOLR search component, configured in solrconfig.xml and
 included in one or more SOLR request handlers. It has two main responsibilities:
@@ -76,7 +74,8 @@ referenced from other SOLR parameters. It takes the following initialisation par
 
 For example, in solrconfig.xml:
 
-```<searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+```
+<searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
   <str name="factoryClass">test.TestXJoinResultsFactory</str>
   <str name="joinField">id</str>
   <lst name="external">
@@ -100,7 +99,8 @@ be included at the start and end of the component list, and may be configured wi
          
 For example:
 
-```<requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
+```
+<requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
   <lst name="defaults">
     ..
     <bool name="xjoin_test">true</bool>
@@ -117,8 +117,7 @@ For example:
 </requestHandler>
 ```
 
-
-XJoinValueSourceParser:
+### XJoinValueSourceParser
 
 This class provides a SOLR function that may be used, for example, in a boost function to weight the result score from
 external values. The function returns an attribute value from the external result with matching join attribute. The
@@ -131,19 +130,20 @@ below). The parameters for configuration in solrconfig.xml are:
 
 For example:
 
-```<valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+```
+<valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
   <str name="xJoinSearchComponent">xjoin_test</str>
   <double name="defaultValue">1.0</double>
 </valueSourceParser>
 ```
-
 
 Putting it together - the SOLR query URL
 ----------------------------------------
 
 Here is an example SOLR query URL to perform an xjoin:
 
-```http://solrserver:8983/solr/collection1/xjoin?defType=edismax&q=*:*&xjoin_test.external.q=foobar&fl=id,score&fq={!terms+f=id+v=$xx}&bf=test_fn(value)
+```
+http://solrserver:8983/solr/collection1/xjoin?defType=edismax&q=*:*&xjoin_test.external.q=foobar&fl=id,score&fq={!terms+f=id+v=$xx}&bf=test_fn(value)
 ```
 
 This might result in the following SOLR response:
