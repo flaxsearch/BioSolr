@@ -65,7 +65,29 @@ public class TestFastaJob {
 					 "ATQNQYGEFDIDCDNLSYMPTVVFEINGKMYPLTPSAYTSQDQGFCTSGFQSENHSQKWILGDVFIREYY" +
 					 "SVFDRANNLVGLAKAI", sequence);
 		
-		assertEquals("2QZX,3ZKI,2QZW,1TZS,2G94,1FMX,3ZKG,3ZKQ,2EWY,3ZKS,3ZKM,3ZKN,3ZKX,1ENT,3PBD,2IGX,2IGY,1QRP,1ZAP,3ZL7,2BKT,2BKS,1CMS,3PB5,4J0V,4J17,2V12,1PPM,2V11,4J0Y,2V13,4J0T,2V10,1PPK,4Q1N,1PPL,3OOT,4J0P,4LP9,4AMT,3BRA,2V0Z,2V16,4CMS,3ER3,3ER5,1FMU,2JXR,6APR,2BJU,4AA9,4AA8,3ZMG,4J1K,2VS2,4LAP,4J1F,4J1E,2R9B,4J1C,1DP5,4J1I,4J1H,4K9H,1FQ7,1FQ6,1FQ5,4J0Z,1FQ4,3IXJ,1FQ8,2IL2,4LBT,1AM5,1DPJ,3QVI,2IKO,3VYD,3VYE,3O9L,1GKT,3ZLQ,3VYF,4CKU,1G0V,3Q3T,3QVC,3PRS,3VSW,4GJD,3ZOV,4GJC,3Q4B,4GJB,1HRN,4GJA,1YX9,1BIM,1BIL,3SFC,1PSO,1ME6,4GJ9,3PEP,1PSN,4GJ8,4GJ7,3VSX,3UTL,3QRV,1PSA,1YG9,3PSG,1UH7,3CMS,1UH9,4EXG,1UH8,2PSG,3PSY,1QDM,3Q5H,1SGZ,1XDH,3F9Q,1HTR,4EWO,2I4Q,4RLD,2V00,3OQK,3PCW,2WED,3URL,3UFL,2JJI,3URJ,2WEA,3PCZ,1XE6,2WEC,3URI,3OQF,2WEB,1XE5,1M43,2JJJ,1FLH,3Q70,1LS5,1QS8,3QS1,1MIQ,3VCM,3Q6Y,1W6I,1W6H,1E82,1E81,1E80,1E5O,1IZD,1IZE,3VUC,3U6A,3PBZ,3PVK,2REN,1B5F,4LHH,2APR,3LIZ,3PGI,4L6B,1EED,1WKR,2G27,2G26,2P4J,1GVT,4AUC,1GVU,1GVV,2G1Y,1GVW,1GVX,2G20,2G1O,2RMP,2G1N,2G24,2G1S,4KUP,2G1R,2G22,2G21,4BFB,4B78,4B77,4B72,2ER7,2ER9,4BFD,3T7X,4B70,4OD9,2ER6,1IBQ,3PWW,2ER0,3OWN,4PYV,2VKM,3LZY,1XS7,5ER1,3G6Z,3OAD,1AVF,3FV3,3CIC,3CID,1SME,3CIB,4OBZ,3C9X,1LF3,1LF4,4OC6,3PI0,3G72,5APR,3T7P,3K1W,3T7Q,3G70,4BEK,4BEL,1J71,5ER2,1LF2,1LEE,3GW5,3FNS,3FNT,3FNU,4GJ6,4GJ5,1SMR,1PFZ,2ASI,3OAG,3T6I,5PEP,4GID,4B1E,4APE,2FDP,4ER4,4B1C,4ER1,4B1D,4ER2,4APR,1OEW,1OEX,1EAG,1BXQ,1BXO,1APW,1APV,1APU,1APT,2NR6,3PLL,2IKU,1F34,1ER8,3PLD,3BUH,3BUG,1MPP,3BUF,2H6T,3TNE,2H6S,1EPP,1EPQ,1EPR,1EPL,1EPM,1EPN,1EPO,3EMY,1BBS,1LYW,1XN2,2FS4,1LYB,1OD1,1LYA,1CZI,2ANL,1XN3,2X0B,4K8S,3KM4,3PM4,3APP,4PEP,1RNE,3D91,4FS4,4B0Q,3PMY,3PMU,3APR", results.getPdbIdCodes());
+		assertEquals("2QZX,3ZKI,2QZW,1TZS,2G94,1FMX,3ZKG,3ZKQ,2EWY,3ZKS,3ZKM,3ZKN,3ZKX,1ENT," +
+					 "3PBD,2IGX,2IGY,1QRP,1ZAP,3ZL7,2BKT,2BKS,1CMS,3PB5,4J0V,4J17,2V12,1PPM," +
+					 "2V11,4J0Y,2V13,4J0T,2V10,1PPK,4Q1N,1PPL,3OOT,4J0P,4LP9,4AMT,3BRA,2V0Z," +
+					 "2V16,4CMS,3ER3,3ER5,1FMU,2JXR,6APR,2BJU,4AA9,4AA8,3ZMG,4J1K,2VS2,4LAP," +
+					 "4J1F,4J1E,2R9B,4J1C,1DP5,4J1I,4J1H,4K9H,1FQ7,1FQ6,1FQ5,4J0Z,1FQ4,3IXJ," +
+					 "1FQ8,2IL2,4LBT,1AM5,1DPJ,3QVI,2IKO,3VYD,3VYE,3O9L,1GKT,3ZLQ,3VYF,4CKU," +
+					 "1G0V,3Q3T,3QVC,3PRS,3VSW,4GJD,3ZOV,4GJC,3Q4B,4GJB,1HRN,4GJA,1YX9,1BIM," +
+					 "1BIL,3SFC,1PSO,1ME6,4GJ9,3PEP,1PSN,4GJ8,4GJ7,3VSX,3UTL,3QRV,1PSA,1YG9," +
+					 "3PSG,1UH7,3CMS,1UH9,4EXG,1UH8,2PSG,3PSY,1QDM,3Q5H,1SGZ,1XDH,3F9Q,1HTR," +
+					 "4EWO,2I4Q,4RLD,2V00,3OQK,3PCW,2WED,3URL,3UFL,2JJI,3URJ,2WEA,3PCZ,1XE6," +
+					 "2WEC,3URI,3OQF,2WEB,1XE5,1M43,2JJJ,1FLH,3Q70,1LS5,1QS8,3QS1,1MIQ,3VCM," +
+					 "3Q6Y,1W6I,1W6H,1E82,1E81,1E80,1E5O,1IZD,1IZE,3VUC,3U6A,3PBZ,3PVK,2REN," +
+					 "1B5F,4LHH,2APR,3LIZ,3PGI,4L6B,1EED,1WKR,2G27,2G26,2P4J,1GVT,4AUC,1GVU," +
+					 "1GVV,2G1Y,1GVW,1GVX,2G20,2G1O,2RMP,2G1N,2G24,2G1S,4KUP,2G1R,2G22,2G21," +
+					 "4BFB,4B78,4B77,4B72,2ER7,2ER9,4BFD,3T7X,4B70,4OD9,2ER6,1IBQ,3PWW,2ER0," +
+					 "3OWN,4PYV,2VKM,3LZY,1XS7,5ER1,3G6Z,3OAD,1AVF,3FV3,3CIC,3CID,1SME,3CIB," +
+					 "4OBZ,3C9X,1LF3,1LF4,4OC6,3PI0,3G72,5APR,3T7P,3K1W,3T7Q,3G70,4BEK,4BEL," +
+					 "1J71,5ER2,1LF2,1LEE,3GW5,3FNS,3FNT,3FNU,4GJ6,4GJ5,1SMR,1PFZ,2ASI,3OAG," +
+					 "3T6I,5PEP,4GID,4B1E,4APE,2FDP,4ER4,4B1C,4ER1,4B1D,4ER2,4APR,1OEW,1OEX," +
+					 "1EAG,1BXQ,1BXO,1APW,1APV,1APU,1APT,2NR6,3PLL,2IKU,1F34,1ER8,3PLD,3BUH," +
+					 "3BUG,1MPP,3BUF,2H6T,3TNE,2H6S,1EPP,1EPQ,1EPR,1EPL,1EPM,1EPN,1EPO,3EMY," +
+					 "1BBS,1LYW,1XN2,2FS4,1LYB,1OD1,1LYA,1CZI,2ANL,1XN3,2X0B,4K8S,3KM4,3PM4," +
+					 "3APP,4PEP,1RNE,3D91,4FS4,4B0Q,3PMY,3PMU,3APR", results.getPdbIdCodes());
 		
 		String idChains = StringUtils.join(results.getResultOrder(), ',');
 		assertEquals("1CZI_E,1CZI_E,4AUC_A,1CMS_A,4CMS_A,4CMS_A,1CMS_A,4AUC_A,4AA8_A,4AA8_A," +
@@ -172,8 +194,44 @@ public class TestFastaJob {
 		assertEquals("3PSY_A", results.getAlignment("3PSY_A").getPdbIdChain());
 		assertEquals("3psy_1", results.getAlignment("3PSY_A").getEntryEntity());
 		
-		assertEquals("3zki_2,1xn3_3,1apw_5,3pcz_1,1gvu_1,4rld_entity,1apv_5,2anl_1,6apr_5,4bfd_1,2jjj_1,3vuc_1,1apt_5,3vuc_2,2psg_1,4apr_5,2jxr_1,1apu_5,5pep_1,3emy_1,1miq_1,1miq_2,1ibq_2,2p4j_3,3oqf_1,4gjb_1,1ppk_5,3oqf_2,3q6y_1,4pep_1,3zl7_1,2g1r_1,4j0v_1,4j17_1,2g1r_2,1ppl_5,4j1c_1,3pll_1,1am5_1,2p4j_2,4gja_1,2nr6_1,1fq8_1,2g1n_1,3k1w_2,3k1w_1,1fmx_1,4k8s_1,1fmu_1,3zks_1,1fmx_2,4k8s_3,3pcw_1,1oew_1,1ppm_5,4gj9_2,3pld_1,3vcm_1,3pgi_1,4j1e_1,4ewo_1,4cku_5,3lzy_1,4cku_4,2bju_1,1bxo_1,4b77_1,4aa8_1,4gj8_2,3oag_1,3oag_4,2qzx_1,1sgz_4,3vcm_2,3pmy_1,2g27_1,4gj7_2,4gj7_1,3q5h_1,3pmu_1,3q70_1,2igy_1,3zkg_1,3vsw_1,3q5h_2,2ren_1,3apr_5,1fq4_1,2v12_3,3uri_1,3cic_2,4k9h_1,2fs4_1,1lf4_1,4pyv_2,1eag_1,3t7p_1,1fq6_1,2v12_15,3fv3_8,4pyv_1,2v16_3,4gjd_2,1lf2_1,1fq5_1,3ufl_1,3url_1,3tne_1,4od9_4,4od9_2,4od9_1,4j1k_1,1psn_1,3fns_2,1tzs_1,4q1n_2,1psa_2,4q1n_1,3psy_1,2ewy_3,3bra_1,3f9q_1,2jji_1,2ewy_1,2g1y_1,1czi_5,1lyw_1,1lyw_2,4exg_1,4auc_1,1w6h_1,4b72_1,1w6h_2,1w6i_1,2g1s_1,2g24_1,1rne_1,2fdp_1,2g24_2,2r9b_1,2g22_2,2g1o_2,4fs4_2,4er1_5,2r9b_2,3fnt_1,2g20_1,2iko_1,2g94_3,3fnu_4,4j1f_1,2g26_2,1mpp_1,3own_1,3own_2,2apr_1,1ize_1,1xe5_1,1dp5_1,3zkn_1,3zkn_2,2qzw_2,2qzw_1,1e81_5,1pfz_3,1pfz_1,3g72_1,3t7x_1,1f34_1,3urj_1,1e80_5,3t7q_1,1er8_5,1dpj_1,3cid_1,1e82_5,1xdh_2,1uh8_1,4l6b_1,1bim_2,3psg_1,1pso_5,1xn2_4,4lbt_1,5er1_5,1od1_1,1uh9_1,2g21_2,5er2_5,2g21_1,3qvi_4,3qvi_3,1bil_2,1bil_1,3zmg_1,2v11_15,5apr_5,4gid_4,2v11_3,3prs_1,4gid_2,2bks_1,1avf_10,4lap_entity,4cms_1,2v00_1,4bfb_2,3oot_1,4bfb_1,3qrv_1,4amt_1,3qrv_2,3q3t_1,3er5_5,1xn2_3,2bkt_1,3oot_2,2iku_2,1sme_1,1ls5_1,3pi0_1,1smr_5,3c9x_1,3zkx_1,1j71_1,2er0_5,4b1d_1,3er3_5,1oex_1,4ape_1,4b1e_1,4j0p_1,1qrp_5,1m43_1,3pep_1,1eed_16,1yx9_1,2rmp_1,3vyf_1,2er7_5,3g6z_2,3liz_1,1yg9_1,4kup_1,3vye_1,2h6t_1,1xe6_1,4j0t_1,1xe6_2,4er2_5,2i4q_1,4b1c_1,1b5f_3,3bug_1,4er4_5,1ls5_2,3buh_1,1me6_2,1lya_2,1cms_1,1lya_3,4j0y_1,1ent_5,3pb5_1,3app_1,2vs2_1,3vyd_1,3km4_2,1uh7_1,3buf_1,1qs8_1,3utl_1,3ixj_3,1lyb_2,1lyb_1,1lyb_4,1wkr_1,1gvw_1,1me6_1,2il2_1,3pbz_1,1epq_5,1xs7_4,3qs1_1,3d91_2,3qs1_2,1lee_1,1epp_5,1g0v_1,3q4b_1,1flh_1,1fq7_1,2asi_1,1epr_5,2igx_1,2v10_3,3cms_1,4b70_1,3zlq_1,3zov_1,4obz_3,4gj6_1,4obz_2,4j1h_1,4gj6_2,1izd_1,1zap_1,1bxq_1,4gj5_1,2x0b_3,3o9l_3,2x0b_5,4obz_4,3o9l_1,2er9_5,3o9l_4,3pww_1,4j1i_1,3oad_4,1gvt_1,1qdm_1,3oad_1,3oad_2,3sfc_2,1htr_2,2er6_5,1epn_5,2wea_1,1epo_5,2h6s_1,3pm4_1,1lf3_1,2web_1,3gw5_1,1epl_5,4lhh_1,3vsx_2,3vsx_1,3zkq_1,1gkt_1,2v13_1,3g70_2,4gjc_2,3qvc_1,1epm_5,3oqk_2,1e5o_5,1gvx_1,4lp9_1,3oqk_1,4b0q_1,4b78_1,3pbd_1,2wed_1,4aa9_1,3zkm_2,3u6a_1,2wec_1,2v0z_3,4oc6_1,4oc6_2,3t6i_1,2vkm_2,1gvv_1,3pvk_1,4j0z_1,4bek_1,1hrn_2,1bbs_1,1hrn_1,4bel_2,3cib_1"
-		+"", StringUtils.join(results.getJoinIds(), ','));
+		assertEquals("3zki_2,1xn3_3,1apw_5,3pcz_1,1gvu_1,4rld_entity,1apv_5,2anl_1,6apr_5," +
+					 "4bfd_1,2jjj_1,3vuc_1,1apt_5,3vuc_2,2psg_1,4apr_5,2jxr_1,1apu_5,5pep_1," +
+					 "3emy_1,1miq_1,1miq_2,1ibq_2,2p4j_3,3oqf_1,4gjb_1,1ppk_5,3oqf_2,3q6y_1," +
+					 "4pep_1,3zl7_1,2g1r_1,4j0v_1,4j17_1,2g1r_2,1ppl_5,4j1c_1,3pll_1,1am5_1," +
+					 "2p4j_2,4gja_1,2nr6_1,1fq8_1,2g1n_1,3k1w_2,3k1w_1,1fmx_1,4k8s_1,1fmu_1," +
+					 "3zks_1,1fmx_2,4k8s_3,3pcw_1,1oew_1,1ppm_5,4gj9_2,3pld_1,3vcm_1,3pgi_1," +
+					 "4j1e_1,4ewo_1,4cku_5,3lzy_1,4cku_4,2bju_1,1bxo_1,4b77_1,4aa8_1,4gj8_2," +
+					 "3oag_1,3oag_4,2qzx_1,1sgz_4,3vcm_2,3pmy_1,2g27_1,4gj7_2,4gj7_1,3q5h_1," +
+					 "3pmu_1,3q70_1,2igy_1,3zkg_1,3vsw_1,3q5h_2,2ren_1,3apr_5,1fq4_1,2v12_3," +
+					 "3uri_1,3cic_2,4k9h_1,2fs4_1,1lf4_1,4pyv_2,1eag_1,3t7p_1,1fq6_1,2v12_15," +
+					 "3fv3_8,4pyv_1,2v16_3,4gjd_2,1lf2_1,1fq5_1,3ufl_1,3url_1,3tne_1,4od9_4," +
+					 "4od9_2,4od9_1,4j1k_1,1psn_1,3fns_2,1tzs_1,4q1n_2,1psa_2,4q1n_1,3psy_1," +
+					 "2ewy_3,3bra_1,3f9q_1,2jji_1,2ewy_1,2g1y_1,1czi_5,1lyw_1,1lyw_2,4exg_1," +
+					 "4auc_1,1w6h_1,4b72_1,1w6h_2,1w6i_1,2g1s_1,2g24_1,1rne_1,2fdp_1,2g24_2," +
+					 "2r9b_1,2g22_2,2g1o_2,4fs4_2,4er1_5,2r9b_2,3fnt_1,2g20_1,2iko_1,2g94_3," +
+					 "3fnu_4,4j1f_1,2g26_2,1mpp_1,3own_1,3own_2,2apr_1,1ize_1,1xe5_1,1dp5_1," +
+					 "3zkn_1,3zkn_2,2qzw_2,2qzw_1,1e81_5,1pfz_3,1pfz_1,3g72_1,3t7x_1,1f34_1," +
+					 "3urj_1,1e80_5,3t7q_1,1er8_5,1dpj_1,3cid_1,1e82_5,1xdh_2,1uh8_1,4l6b_1," +
+					 "1bim_2,3psg_1,1pso_5,1xn2_4,4lbt_1,5er1_5,1od1_1,1uh9_1,2g21_2,5er2_5," +
+					 "2g21_1,3qvi_4,3qvi_3,1bil_2,1bil_1,3zmg_1,2v11_15,5apr_5,4gid_4,2v11_3," +
+					 "3prs_1,4gid_2,2bks_1,1avf_10,4lap_entity,4cms_1,2v00_1,4bfb_2,3oot_1," +
+					 "4bfb_1,3qrv_1,4amt_1,3qrv_2,3q3t_1,3er5_5,1xn2_3,2bkt_1,3oot_2,2iku_2," +
+					 "1sme_1,1ls5_1,3pi0_1,1smr_5,3c9x_1,3zkx_1,1j71_1,2er0_5,4b1d_1,3er3_5," +
+					 "1oex_1,4ape_1,4b1e_1,4j0p_1,1qrp_5,1m43_1,3pep_1,1eed_16,1yx9_1,2rmp_1," +
+					 "3vyf_1,2er7_5,3g6z_2,3liz_1,1yg9_1,4kup_1,3vye_1,2h6t_1,1xe6_1,4j0t_1," +
+					 "1xe6_2,4er2_5,2i4q_1,4b1c_1,1b5f_3,3bug_1,4er4_5,1ls5_2,3buh_1,1me6_2," +
+					 "1lya_2,1cms_1,1lya_3,4j0y_1,1ent_5,3pb5_1,3app_1,2vs2_1,3vyd_1,3km4_2," +
+					 "1uh7_1,3buf_1,1qs8_1,3utl_1,3ixj_3,1lyb_2,1lyb_1,1lyb_4,1wkr_1,1gvw_1," +
+					 "1me6_1,2il2_1,3pbz_1,1epq_5,1xs7_4,3qs1_1,3d91_2,3qs1_2,1lee_1,1epp_5," +
+					 "1g0v_1,3q4b_1,1flh_1,1fq7_1,2asi_1,1epr_5,2igx_1,2v10_3,3cms_1,4b70_1," +
+					 "3zlq_1,3zov_1,4obz_3,4gj6_1,4obz_2,4j1h_1,4gj6_2,1izd_1,1zap_1,1bxq_1," +
+					 "4gj5_1,2x0b_3,3o9l_3,2x0b_5,4obz_4,3o9l_1,2er9_5,3o9l_4,3pww_1,4j1i_1," +
+					 "3oad_4,1gvt_1,1qdm_1,3oad_1,3oad_2,3sfc_2,1htr_2,2er6_5,1epn_5,2wea_1," +
+					 "1epo_5,2h6s_1,3pm4_1,1lf3_1,2web_1,3gw5_1,1epl_5,4lhh_1,3vsx_2,3vsx_1," +
+					 "3zkq_1,1gkt_1,2v13_1,3g70_2,4gjc_2,3qvc_1,1epm_5,3oqk_2,1e5o_5,1gvx_1," +
+					 "4lp9_1,3oqk_1,4b0q_1,4b78_1,3pbd_1,2wed_1,4aa9_1,3zkm_2,3u6a_1,2wec_1," +
+					 "2v0z_3,4oc6_1,4oc6_2,3t6i_1,2vkm_2,1gvv_1,3pvk_1,4j0z_1,4bek_1,1hrn_2," +
+					 "1bbs_1,1hrn_1,4bel_2,3cib_1", StringUtils.join(results.getJoinIds(), ','));
 		
 		assertEquals(results.getResult("3fv3_8").getPdbIdChain(), "3FV3_H");
 	}
