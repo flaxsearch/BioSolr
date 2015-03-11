@@ -20,9 +20,11 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
 
 public class TestFastaJob {
 
+	private static final String RESULT_PATH = "../../../../../result";
+	
 	@Test
 	public void parse() throws IOException, URISyntaxException {
-		byte[] result = Files.readAllBytes(Paths.get(TestFastaJob.class.getResource("result").toURI()));
+		byte[] result = Files.readAllBytes(Paths.get(TestFastaJob.class.getResource(RESULT_PATH).toURI()));
 		
 		JDispatcherService_PortType fasta = mock(JDispatcherService_PortType.class);
 		when(fasta.getStatus(null)).thenReturn(FastaStatus.DONE);

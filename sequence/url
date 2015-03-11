@@ -1,0 +1,1 @@
+http://localhost:8983/solr/pdb_entity_db1/select?q=*:*&xjoin_fasta=true&fq=text:hemoglobin&fq=%7B!terms+f=entry_entity+v=$tt%7D&bf=fasta%28percent_identity%29&xjoin_fasta.external.sequence=MNKPQTIYEKLGGENAMKAAVPLFYKKVLADERVKHFFKNTDMDHQTKQQTDFLTMLLGGPNHYKGKNMTEAHKGMNLQNLHFDAIIENLAATLKELGVTDAVINEAAKVIEHTRKDMLGK
