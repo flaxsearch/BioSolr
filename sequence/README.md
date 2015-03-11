@@ -137,6 +137,18 @@ For example:
 </valueSourceParser>
 ```
 
+Mapping between attributes and Java methods
+-------------------------------------------
+
+Java method names are converted into attribute (field) names by stripping the initial "get" or "is" and converting
+the remainder from CamelCase to lowercase-with-underscores, and vice versa.
+
+For example, getScore() <-> score or getFooBar() <-> foo_bar.
+
+The field list parameter of XJoinSearchComponent (fl) can be given as *, in which case all methods beginning 'get'
+or 'is' are converted into fields in the SOLR result for the document.
+
+
 Putting it together - the SOLR query URL
 ----------------------------------------
 
