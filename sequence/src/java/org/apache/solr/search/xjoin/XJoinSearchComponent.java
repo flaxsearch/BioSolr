@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -95,7 +96,7 @@ public class XJoinSearchComponent extends SearchComponent {
 			// put a list of join ids as a request parameter that may be referenced in the URL
 			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
 			Iterable<String> joinIds = results.getJoinIds();
-			myParams.set(listParameter, String.join(",", joinIds));
+			myParams.set(listParameter, StringUtils.join(joinIds, ','));
 			rb.req.setParams(myParams);
 		}
 	}

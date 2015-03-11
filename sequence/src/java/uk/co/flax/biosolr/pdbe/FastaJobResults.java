@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.search.xjoin.XJoinResults;
 
 public class FastaJobResults implements XJoinResults {
@@ -84,7 +85,7 @@ public class FastaJobResults implements XJoinResults {
     }
     
     public String getPdbIdCodes() {
-    	return String.join(",", pdbIdAlignments.keySet());
+    	return StringUtils.join(pdbIdAlignments.keySet(), ',');
     }
     
     public Iterable<String> getJoinIds() {
