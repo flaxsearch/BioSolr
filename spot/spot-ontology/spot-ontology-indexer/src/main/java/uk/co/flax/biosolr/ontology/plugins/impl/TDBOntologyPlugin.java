@@ -17,6 +17,7 @@ package uk.co.flax.biosolr.ontology.plugins.impl;
 
 import java.util.Map;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,8 @@ public class TDBOntologyPlugin implements OntologyPlugin {
 	static final String TDB_PATH_CFGKEY = "tdbPath";
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(TDBOntologyPlugin.class);
-	
+
+    private boolean enabled;
 	private DatasetGraph dataset;
 	
 	public TDBOntologyPlugin() {
@@ -59,12 +61,15 @@ public class TDBOntologyPlugin implements OntologyPlugin {
 		LOGGER.debug("Initialising ontology plugin: {}", PLUGIN_NAME);
 		if (!configuration.containsKey(ENABLED_CFGKEY)) {
 			LOGGER.info("No '{}' config key - assuming plugin disabled", ENABLED_CFGKEY);
-		} else if ((Boolean) configuration.get(ENABLED_CFGKEY)) {
-			if (!configuration.containsKey(TDB_PATH_CFGKEY)) {
-				throw new PluginInitialisationException("No " + TDB_PATH_CFGKEY + " specified - cannot create TDB dataset.");
-			} else {
-				this.dataset = TDBFactory.createDatasetGraph((String) configuration.get(TDB_PATH_CFGKEY));
-			}
+		} else {
+            enabled = (Boolean)configuration.get(ENABLED_CFGKEY);
+            if (enabled) {
+                if (!configuration.containsKey(TDB_PATH_CFGKEY)) {
+                    throw new PluginInitialisationException("No " + TDB_PATH_CFGKEY + " specified - cannot create TDB dataset.");
+                } else {
+                    this.dataset = TDBFactory.createDatasetGraph((String) configuration.get(TDB_PATH_CFGKEY));
+                }
+            }
 		}
 	}
 
@@ -78,8 +83,12 @@ public class TDBOntologyPlugin implements OntologyPlugin {
 
 	@Override
 	public void process(String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException {
-		LOGGER.debug("Loading dataset {} into triple store from {}", sourceName, ontologyConfiguration.getAccessURI());
-		TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), ontologyConfiguration.getAccessURI(), true);
+        if (enabled) {
+            LOGGER.debug("Loading dataset {} into triple store from {}", sourceName, ontologyConfiguration.getAccessURI());
+            TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), ontologyConfiguration.getAccessURI(), true);
+        } else {
+            LOGGER.debug("TDB plugin disabled - skipping");
+        }
 	}
 
 }
