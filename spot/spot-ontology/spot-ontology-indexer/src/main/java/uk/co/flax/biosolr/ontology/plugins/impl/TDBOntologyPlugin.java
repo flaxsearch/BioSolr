@@ -24,6 +24,7 @@ import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.plugins.OntologyPlugin;
 import uk.co.flax.biosolr.ontology.plugins.Plugin;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
+import uk.co.flax.biosolr.ontology.plugins.PluginInitialisationException;
 
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.tdb.TDBFactory;
@@ -54,13 +55,13 @@ public class TDBOntologyPlugin implements OntologyPlugin {
 	}
 
 	@Override
-	public void initialise(Map<String, Object> configuration) throws PluginException {
+	public void initialise(Map<String, Object> configuration) throws PluginInitialisationException {
 		LOGGER.debug("Initialising ontology plugin: {}", PLUGIN_NAME);
 		if (!configuration.containsKey(ENABLED_CFGKEY)) {
 			LOGGER.info("No '{}' config key - assuming plugin disabled", ENABLED_CFGKEY);
 		} else if ((Boolean) configuration.get(ENABLED_CFGKEY)) {
 			if (!configuration.containsKey(TDB_PATH_CFGKEY)) {
-				throw new PluginException("No " + TDB_PATH_CFGKEY + " specified - cannot create TDB dataset.");
+				throw new PluginInitialisationException("No " + TDB_PATH_CFGKEY + " specified - cannot create TDB dataset.");
 			} else {
 				this.dataset = TDBFactory.createDatasetGraph((String) configuration.get(TDB_PATH_CFGKEY));
 			}
