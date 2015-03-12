@@ -29,6 +29,8 @@ import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.config.PluginConfiguration;
 
 /**
+ * Singleton class for managing all of the plugins used while indexing the ontology.
+ * 
  * @author Matt Pearce
  */
 public class PluginManager {
@@ -46,6 +48,12 @@ public class PluginManager {
 		initialisePlugins();
 	}
 	
+	/**
+	 * Initialise the plugin manager.
+	 * @param configuration a map of plugin types, with each value holding plugin name
+	 * to configuration details mappings.
+	 * @throws PluginInitialisationException if the plugins cannot be initialised.
+	 */
 	public static void initialisePluginManager(Map<String,  Map<String, PluginConfiguration>> configuration) throws PluginInitialisationException{
 		if (pluginManager != null) {
 			throw new PluginInitialisationException("Plugin manager has already been initialised.");
@@ -54,6 +62,10 @@ public class PluginManager {
 		pluginManager = new PluginManager(configuration);
 	}
 	
+	/**
+	 * Get the singleton {@link PluginManager} instance.
+	 * @return the plugin manager.
+	 */
 	public static PluginManager getInstance() {
 		return pluginManager;
 	}

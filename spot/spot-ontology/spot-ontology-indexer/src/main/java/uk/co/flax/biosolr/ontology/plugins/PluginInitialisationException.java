@@ -17,6 +17,7 @@ package uk.co.flax.biosolr.ontology.plugins;
 
 /**
  * Exception thrown while initialising the plugins or {@link PluginManager}.
+ * 
  * @author Matt Pearce
  */
 public class PluginInitialisationException extends RuntimeException {

@@ -87,9 +87,17 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final RestrictionVisitor restrictionVisitor;
 	
 	private Map<IRI, Set<String>> labels = new HashMap<>();
-	
-	public OWLOntologyIndexer(String source, OntologyConfiguration config, StorageEngine storageEngine, PluginManager pluginManager)
-			throws OntologyIndexingException {
+
+	/**
+	 * Create the OWL Ontology indexer.
+	 * @param source the name of the ontology being indexed (eg. "efo").
+	 * @param config the configuration details for the ontology.
+	 * @param storageEngine the engine being used to store the indexed data.
+	 * @param pluginManager the plugin manager.
+	 * @throws OntologyIndexingException
+	 */
+	public OWLOntologyIndexer(String source, OntologyConfiguration config, StorageEngine storageEngine,
+			PluginManager pluginManager) throws OntologyIndexingException {
 		this.sourceKey = source;
 		this.config = config;
 		this.storageEngine = storageEngine;
