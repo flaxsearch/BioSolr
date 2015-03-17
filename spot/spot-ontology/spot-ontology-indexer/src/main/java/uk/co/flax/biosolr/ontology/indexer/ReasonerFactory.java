@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
+
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 
 /**
@@ -36,6 +38,7 @@ public class ReasonerFactory {
 	
 	public static final String HERMIT_REASONER = "hermit";
 	public static final String ELK_REASONER = "elk";
+	public static final String PELLET_REASONER = "pellet";
 
 	public ReasonerFactory() {
 	}
@@ -48,6 +51,8 @@ public class ReasonerFactory {
 			reasoner = new Reasoner(ontology);
 		} else if (cfgReasoner.equals(ELK_REASONER)) {
 			reasoner = new ElkReasonerFactory().createReasoner(ontology);
+		} else if (cfgReasoner.equals(PELLET_REASONER)) {
+			reasoner = new PelletReasonerFactory().createReasoner(ontology);
 		} else {
 			LOGGER.info("Reasoner {} not recognized - using HermiT", cfgReasoner);
 			reasoner = new Reasoner(ontology);

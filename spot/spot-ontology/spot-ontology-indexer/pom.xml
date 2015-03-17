@@ -114,5 +114,10 @@
 			<artifactId>elk-owlapi</artifactId>
 			<version>0.4.2</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.ansell.pellet</groupId>
+			<artifactId>pellet-owlapiv3</artifactId>
+			<version>2.3.6-ansell</version>
+		</dependency>
 	</dependencies>
 </project>
