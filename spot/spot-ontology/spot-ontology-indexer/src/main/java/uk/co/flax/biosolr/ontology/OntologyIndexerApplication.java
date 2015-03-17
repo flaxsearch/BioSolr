@@ -99,6 +99,7 @@ public class OntologyIndexerApplication {
 			System.exit(1);
 		} catch (Exception e) {
 			System.err.println("Error initialising indexer: " + e.getMessage());
+            e.printStackTrace();
 			System.exit(1);
 		}
 	}

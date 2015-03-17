@@ -29,6 +29,7 @@ import java.util.Set;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -39,13 +40,10 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
-import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -68,8 +66,6 @@ import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
 public class OWLOntologyIndexer implements OntologyIndexer {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyIndexer.class);
-	
-	private static final int BATCH_SIZE = 1000;
 	
 	private static final String RELATION_FIELD_SUFFIX = "_rel";
 	
@@ -107,7 +103,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         
 		try {
 			this.ontology = loadOntology();
-			this.reasoner = new StructuralReasonerFactory().createNonBufferingReasoner(ontology);
+			this.reasoner = new ReasonerFactory().buildReasoner(config, ontology);
 			this.shortFormProvider = new SimpleShortFormProvider();
 			this.owlNothingIRI = ontology.getOWLOntologyManager().getOWLDataFactory().getOWLNothing().getIRI();
 			this.restrictionVisitor = new RestrictionVisitor(Collections.singleton(ontology));
@@ -120,7 +116,9 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         LOGGER.info("Loading ontology from {}...", config.getAccessURI());
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         IRI iri = IRI.create(config.getAccessURI());
-        return manager.loadOntologyFromOntologyDocument(iri);
+        OWLOntology ont = manager.loadOntology(iri);
+        LOGGER.debug("Ontology loaded");
+        return ont;
 	}
 	
 	private List<URI> buildIgnoreUriList() {
@@ -142,7 +140,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 	@Override
 	public void indexOntology() throws OntologyIndexingException {
-		List<OntologyEntryBean> entries = new ArrayList<>(BATCH_SIZE);
+		List<OntologyEntryBean> entries = new ArrayList<>(config.getBatchSize());
 
 		try {
 			int count = 0;
@@ -152,7 +150,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 					OntologyEntryBean entry = buildOntologyEntry(owlClass);
 					entries.add(entry);
 
-					if (entries.size() == BATCH_SIZE) {
+					if (entries.size() == config.getBatchSize()) {
 						storageEngine.storeOntologyEntries(entries);
 						count += entries.size();
 						LOGGER.info("Indexed {} entries", count);
@@ -255,16 +253,17 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	}
 	
 	private Collection<String> findAnnotations(IRI iri, OWLAnnotationProperty typeAnnotation) {
-        Set<String> classNames = new HashSet<>();
-
+        Collection<String> classNames = new HashSet<String>();
+        	
         // get all label annotations
-        for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(iri), typeAnnotation)) {
+        for (OWLAnnotationAssertionAxiom axiom : ontology.getAnnotationAssertionAxioms(iri)) {
+        	OWLAnnotation labelAnnotation = axiom.getAnnotation();
         	OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
         	if (labelAnnotationValue instanceof OWLLiteral) {
         		classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
         	}
         }
-		
+
         return classNames;
 	}
 	
@@ -331,12 +330,11 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		
 		Map<String, List<RelatedItem>> restrictions = new HashMap<>();
 		for (OWLObjectSomeValuesFrom val : restrictionVisitor.getSomeValues()) {
-			OWLPropertyExpression prop = val.getProperty();
 			OWLClassExpression exp = val.getFiller();
 			
 			// Get the shortname of the property expression
 			String shortForm = null;
-			Set<OWLObjectProperty> signatureProps = prop.getObjectPropertiesInSignature();
+			Set<OWLObjectProperty> signatureProps = val.getProperty().getObjectPropertiesInSignature();
 			for (OWLObjectProperty sigProp : signatureProps) {
 				Collection<String> labels = findLabels(sigProp.getIRI());
 				if (labels.size() > 0) {

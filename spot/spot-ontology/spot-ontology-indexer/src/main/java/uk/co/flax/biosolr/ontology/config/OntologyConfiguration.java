@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,9 +31,13 @@ public class OntologyConfiguration {
 	
 	private String definitionAnnotationURI;
 	
-	private String obsoleteClassURI;
+	private String obsoleteClassURI = "";
 	
-	private List<String> ignoreURIs;
+	private List<String> ignoreURIs = new ArrayList<>();
+	
+	private String reasoner;
+	
+	private int batchSize = 1000;
 
 	/**
 	 * @return the accessURI
@@ -116,6 +121,34 @@ public class OntologyConfiguration {
 	 */
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	/**
+	 * @return the reasoner
+	 */
+	public String getReasoner() {
+		return reasoner;
+	}
+
+	/**
+	 * @param reasoner the reasoner to set
+	 */
+	public void setReasoner(String reasoner) {
+		this.reasoner = reasoner;
+	}
+
+	/**
+	 * @return the batchSize
+	 */
+	public int getBatchSize() {
+		return batchSize;
+	}
+
+	/**
+	 * @param batchSize the batchSize to set
+	 */
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
 	}
 	
 }
