@@ -1,3 +1,5 @@
 /target
 /solr-conf/documents/data
 /solr-conf/ontology/data
+
+.idea
