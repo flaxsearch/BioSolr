@@ -15,8 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -34,6 +33,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -44,8 +44,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.util.AnnotationValueShortFormProvider;
 import org.semanticweb.owlapi.util.ShortFormProvider;
-import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +74,13 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final StorageEngine storageEngine;
 	private final PluginManager pluginManager;
 	
+	private final OWLOntologyManager manager;
+	private final OWLDataFactory factory;
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
 	private final ShortFormProvider shortFormProvider;
 	
-	private final List<URI> ignoreUris;
+	private final Collection<IRI> ignoreUris;
 	private final IRI owlNothingIRI;
 	private final RestrictionVisitor restrictionVisitor;
 	
@@ -102,10 +104,22 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		this.ignoreUris = buildIgnoreUriList();
         
 		try {
+			this.manager = OWLManager.createOWLOntologyManager();
+			this.factory = manager.getOWLDataFactory();
 			this.ontology = loadOntology();
 			this.reasoner = new ReasonerFactory().buildReasoner(config, ontology);
-			this.shortFormProvider = new SimpleShortFormProvider();
-			this.owlNothingIRI = ontology.getOWLOntologyManager().getOWLDataFactory().getOWLNothing().getIRI();
+			
+			this.shortFormProvider = new AnnotationValueShortFormProvider(
+					Collections.singletonList(factory.getOWLAnnotationProperty(IRI.create(config.getLabelURI()))),
+					Collections.<OWLAnnotationProperty, List<String>> emptyMap(), manager);
+
+            // collect things we want to ignore for OWL vocab
+            ignoreUris.add(factory.getOWLThing().getIRI());
+            ignoreUris.add(factory.getOWLNothing().getIRI());
+            ignoreUris.add(factory.getOWLTopObjectProperty().getIRI());
+            ignoreUris.add(factory.getOWLBottomObjectProperty().getIRI());
+
+			this.owlNothingIRI = factory.getOWLNothing().getIRI();
 			this.restrictionVisitor = new RestrictionVisitor(Collections.singleton(ontology));
 		} catch (OWLOntologyCreationException e) {
 			throw new OntologyIndexingException(e);
@@ -114,25 +128,16 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	
 	private OWLOntology loadOntology() throws OWLOntologyCreationException {
         LOGGER.info("Loading ontology from {}...", config.getAccessURI());
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-        IRI iri = IRI.create(config.getAccessURI());
-        OWLOntology ont = manager.loadOntology(iri);
+        OWLOntology ont = manager.loadOntology(IRI.create(config.getAccessURI()));
         LOGGER.debug("Ontology loaded");
         return ont;
 	}
 	
-	private List<URI> buildIgnoreUriList() {
-		List<URI> ignoreUris = new ArrayList<>();
+	private Collection<IRI> buildIgnoreUriList() {
+		Collection<IRI> ignoreUris = new HashSet<>();
 		
 		if (config.getIgnoreURIs() != null) {
-			for (String uriString : config.getIgnoreURIs()) {
-				try {
-					URI uri = new URI(uriString);
-					ignoreUris.add(uri);
-				} catch (URISyntaxException e) {
-					LOGGER.error("URI syntax exception: {}", e.getMessage());
-				}
-			}
+			config.getIgnoreURIs().stream().map(IRI::create).collect(Collectors.toSet());
 		}
 		
 		return ignoreUris;
@@ -203,7 +208,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		boolean ret = false;
 		
 		if (config.getIgnoreURIs() != null) {
-			for (URI uri : ignoreUris) {
+			for (IRI uri : ignoreUris) {
 				if (isChildOf(owlClass, uri)) {
 					ret = true;
 					break;
@@ -220,7 +225,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	 * @param parentUri the URI of the ancestor to look for.
 	 * @return <code>true</code> if the class is a child of the parent URI.
 	 */
-    private boolean isChildOf(OWLClass owlClass, URI parentUri) {
+    private boolean isChildOf(OWLClass owlClass, IRI parentUri) {
     	boolean ret = false;
     	
     	// Loop through all parent classes of the class, looking for the parent URI

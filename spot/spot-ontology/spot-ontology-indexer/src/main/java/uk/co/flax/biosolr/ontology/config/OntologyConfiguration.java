@@ -27,6 +27,8 @@ public class OntologyConfiguration {
 	
 	private String accessURI;
 	
+	private String labelURI;
+	
 	private String synonymAnnotationURI;
 	
 	private String definitionAnnotationURI;
@@ -149,6 +151,20 @@ public class OntologyConfiguration {
 	 */
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
+	}
+
+	/**
+	 * @return the labelURI
+	 */
+	public String getLabelURI() {
+		return labelURI;
+	}
+
+	/**
+	 * @param labelURI the labelURI to set
+	 */
+	public void setLabelURI(String labelURI) {
+		this.labelURI = labelURI;
 	}
 	
 }
