@@ -130,8 +130,15 @@ public class OntologyFacetTreeBuilder {
 			count = entryMap.get(node.getUri()).getCount();
 		}
 		
+		String label;
+		if (node.getLabel() == null) {
+			label = node.getShortForm();
+		} else {
+			label = node.getLabel().get(0);
+		}
+		
 		LOGGER.trace("[{}] Building AFE for {}", level, node.getUri());
-		return new AccumulatedFacetEntry(node.getUri(), node.getLabel().get(0), count, childTotal, childHierarchy);
+		return new AccumulatedFacetEntry(node.getUri(), label, count, childTotal, childHierarchy);
 	}
 	
 	/**
