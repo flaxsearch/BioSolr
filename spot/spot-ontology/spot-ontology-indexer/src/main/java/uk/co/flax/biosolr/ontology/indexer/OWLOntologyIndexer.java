@@ -44,9 +44,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.util.AnnotationValueShortFormProvider;
 import org.semanticweb.owlapi.util.ShortFormProvider;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,9 +108,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 			this.ontology = loadOntology();
 			this.reasoner = new ReasonerFactory().buildReasoner(config, ontology);
 			
-			this.shortFormProvider = new AnnotationValueShortFormProvider(
-					Collections.singletonList(factory.getOWLAnnotationProperty(IRI.create(config.getLabelURI()))),
-					Collections.<OWLAnnotationProperty, List<String>> emptyMap(), manager);
+			this.shortFormProvider = new SimpleShortFormProvider();
 
             // collect things we want to ignore for OWL vocab
             ignoreUris.add(factory.getOWLThing().getIRI());
@@ -246,8 +243,8 @@ public class OWLOntologyIndexer implements OntologyIndexer {
             Set<String> classNames = new HashSet<>();
 
             // get label annotation property
-        	OWLAnnotationProperty labelAnnotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
-        			.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
+			OWLAnnotationProperty labelAnnotationProperty = factory
+					.getOWLAnnotationProperty(IRI.create(config.getLabelURI()));
         	
         	classNames = new HashSet<>(findAnnotations(iri, labelAnnotationProperty));
 
@@ -262,10 +259,12 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         	
         // get all label annotations
         for (OWLAnnotationAssertionAxiom axiom : ontology.getAnnotationAssertionAxioms(iri)) {
-        	OWLAnnotation labelAnnotation = axiom.getAnnotation();
-        	OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-        	if (labelAnnotationValue instanceof OWLLiteral) {
-        		classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+        	if (axiom.getProperty().equals(typeAnnotation)) {
+        		OWLAnnotation labelAnnotation = axiom.getAnnotation();
+        		OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
+        		if (labelAnnotationValue instanceof OWLLiteral) {
+        			classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+        		}
         	}
         }
 
@@ -274,7 +273,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	
 	private List<String> findLabelsByAnnotationURI(OWLClass owlClass, String annotationUri) {
         // get synonym annotation property
-		OWLAnnotationProperty annotationProperty = ontology.getOWLOntologyManager().getOWLDataFactory()
+		OWLAnnotationProperty annotationProperty = factory
 				.getOWLAnnotationProperty(IRI.create(annotationUri));
         
         return new ArrayList<>(findAnnotations(owlClass.getIRI(), annotationProperty));
