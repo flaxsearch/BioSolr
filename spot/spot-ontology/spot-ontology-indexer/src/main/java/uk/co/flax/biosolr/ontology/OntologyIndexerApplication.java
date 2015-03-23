@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
-import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
-import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
