@@ -44,6 +44,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.slf4j.Logger;
@@ -80,7 +81,6 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final ShortFormProvider shortFormProvider;
 	
 	private final Collection<IRI> ignoreUris;
-	private final IRI owlNothingIRI;
 	private final RestrictionVisitor restrictionVisitor;
 	
 	private Map<IRI, Set<String>> labels = new HashMap<>();
@@ -108,7 +108,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 			this.ontology = loadOntology();
 			this.reasoner = new ReasonerFactory().buildReasoner(config, ontology);
 			
-			this.shortFormProvider = new SimpleShortFormProvider();
+			this.shortFormProvider = new BidirectionalShortFormProviderAdapter(new SimpleShortFormProvider());
 
             // collect things we want to ignore for OWL vocab
             ignoreUris.add(factory.getOWLThing().getIRI());
@@ -116,7 +116,6 @@ public class OWLOntologyIndexer implements OntologyIndexer {
             ignoreUris.add(factory.getOWLTopObjectProperty().getIRI());
             ignoreUris.add(factory.getOWLBottomObjectProperty().getIRI());
 
-			this.owlNothingIRI = factory.getOWLNothing().getIRI();
 			this.restrictionVisitor = new RestrictionVisitor(Collections.singleton(ontology));
 		} catch (OWLOntologyCreationException e) {
 			throw new OntologyIndexingException(e);
@@ -228,7 +227,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
     	// Loop through all parent classes of the class, looking for the parent URI
         NodeSet<OWLClass> superclasses = reasoner.getSuperClasses(owlClass, false);
         for (OWLClassExpression oce : superclasses.getFlattened()) {
-            if (!oce.isAnonymous() && oce.asOWLClass().getIRI().toURI().equals(parentUri)) {
+            if (!oce.isAnonymous() && oce.asOWLClass().getIRI().equals(parentUri)) {
             	// Found the parent URI - break the loop
                 ret = true;
                 break;
@@ -292,11 +291,8 @@ public class OWLOntologyIndexer implements OntologyIndexer {
     	
     	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
-    			if (!expr.isAnonymous()) {
-    				IRI iri = expr.asOWLClass().getIRI();
-    				if (!iri.equals(owlNothingIRI)) {
-	    				uris.add(iri.toURI().toString());
-    				}
+    			if (!expr.isAnonymous() && !shouldIgnore(expr)) {
+    				uris.add(expr.getIRI().toString());
     			}
     		}
     	}
