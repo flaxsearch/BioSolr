@@ -25,14 +25,6 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user supplied
  * sequence.
- * 
- * program = ssearch
- * database = pdb
- * stype = protein
- * 
- * explowlim = 0.0d
- * scores = 1000
- * alignments = 1000
  */
 public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	
