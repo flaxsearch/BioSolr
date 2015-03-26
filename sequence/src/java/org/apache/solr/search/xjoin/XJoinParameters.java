@@ -17,6 +17,10 @@ public class XJoinParameters {
 
 	// XJoinValueSourceParser parameters
 	public static final String INIT_XJOIN_COMPONENT_NAME = "xJoinSearchComponent";
+	public static final String INIT_ATTRIBUTE = "attribute";
 	public static final String INIT_DEFAULT_VALUE = "defaultValue";
+	
+	// XJoinQParserPlugin parameters
+	public static final String INIT_FIELD = "f";
 	
 }

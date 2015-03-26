@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -40,6 +42,10 @@ public class FastaJob implements Runnable {
     private Pattern pattern3 = Pattern.compile("^Smith-Waterman score:.*?\\;(.*?)\\% .*? overlap \\((.*?)\\)$");
     private Pattern pattern4 = Pattern.compile("^EMBOS  (\\s*.*?)$");            
     private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
+    
+    // sometimes an alignment appears twice in the results - need to ignore all but
+    // the first, so remember those we have completed
+    private Set<Alignment> completeAlignments = new HashSet<>();
     
     public IOException getException() {
     	return exception;
@@ -148,14 +154,20 @@ public class FastaJob implements Runnable {
                 line = reader.readLine();
             } else if (matcher2.find()) {
             	int n = firstGroup(matcher2);
-                String pdbId_chain1 = matcher2.group(n);
+                String pdbIdChain = matcher2.group(n);
                 
-                if (pdbId_chain1.contains("Entity")) {
-                	pdbId_chain1 = pdbId_chain1.replaceFirst(" ", "_");  
+                if (pdbIdChain.contains("Entity")) {
+                	pdbIdChain = pdbIdChain.replaceFirst(" ", "_");  
                 }
                 
-                Alignment a = results.getAlignment(pdbId_chain1);
+                Alignment a = results.getAlignment(pdbIdChain);
                 assert a != null;
+
+                // ignore second set of sequence details for this alignment
+                // (but still need to consume lines)
+                if (completeAlignments.contains(a)) {
+                	a = null;
+                }
                 
                 while ((line = reader.readLine()) != null) {
                     Matcher m2 = pattern2.matcher(line);
@@ -165,26 +177,34 @@ public class FastaJob implements Runnable {
 
                     if (m3.find()) {
                         double identity = new Double(m3.group(1));
-                        a.setPercentIdentity(identity);
                         String overLap = m3.group(2);
                         String[] o = overLap.split(":");
                         String[] oIn = o[0].split("-");
                         String[] oOut = o[1].split("-");
-                        a.setQueryOverlapStart(oIn[0]);
-                        a.setQueryOverlapEnd(oIn[1]);
-                        a.setDbOverlapStart(oOut[0]);
-                        a.setDbOverlapEnd(oOut[1]);
+                        if (a != null) {
+	                        a.setPercentIdentity(identity);
+	                        a.setQueryOverlapStart(oIn[0]);
+	                        a.setQueryOverlapEnd(oIn[1]);
+	                        a.setDbOverlapStart(oOut[0]);
+	                        a.setDbOverlapEnd(oOut[1]);
+                        }
                     } else if (m2.find()) {
                         break;
                     } else if (m4.find()) {
-                        a.addQuerySequence(m4.group(1));
+                    	if (a != null) {
+                    		a.addQuerySequence(m4.group(1));
+                    	}
                     } else if (m5.find()) {
                         int n4 = firstGroup(m5);
-                        a.addReturnSequence(m5.group(n4));
+                        if (a != null) {
+                        	a.addReturnSequence(m5.group(n4));
+                        }
                     }
                 }
                 
-                results.updateSequenceGroup(a);
+                if (a != null) {
+	                completeAlignments.add(a);
+                }
             } else {
             	line = reader.readLine();
             }

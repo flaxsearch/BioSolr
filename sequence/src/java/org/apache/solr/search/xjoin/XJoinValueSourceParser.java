@@ -23,14 +23,17 @@ import org.apache.solr.search.ValueSourceParser;
  */
 public class XJoinValueSourceParser extends ValueSourceParser {
 	
-	// the name of the associated XJoinSearchComponent
+	// the name of the associated XJoinSearchComponent - could be null
 	private String componentName;
+	
+	// the attribute to examine in external results - could be null
+	private String attribute;
 	
 	// the default value if the results don't have an entry
 	private double defaultValue;
 	
 	/**
-	 * Initialise - set the join id field.
+	 * Initialise from configuration.
 	 */
 	@Override
 	@SuppressWarnings("rawtypes")
@@ -38,7 +41,14 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 		super.init(args);
 		
 		componentName = (String)args.get(XJoinParameters.INIT_XJOIN_COMPONENT_NAME);
+		attribute = (String)args.get(XJoinParameters.INIT_ATTRIBUTE);
 		defaultValue = (double)args.get(XJoinParameters.INIT_DEFAULT_VALUE);
+		
+		if (componentName == null && attribute == null) {
+			throw new RuntimeException("One of " + XJoinParameters.INIT_XJOIN_COMPONENT_NAME +
+								   	   " or " + XJoinParameters.INIT_ATTRIBUTE +
+								   	   " must be specified");
+		}
 	}
 	
 	/**
@@ -47,13 +57,16 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 	 */
 	@Override
 	public ValueSource parse(FunctionQParser fqp) throws SyntaxError {
+		String componentName = this.componentName != null ? this.componentName : fqp.parseArg();
+		String attribute = this.attribute != null ? this.attribute : fqp.parseArg();
+		
 		XJoinSearchComponent xJoin = (XJoinSearchComponent)fqp.getReq().getCore().getSearchComponent(componentName);
 		String joinField = xJoin.getJoinField();
 		XJoinResults results = (XJoinResults)fqp.getReq().getContext().get(xJoin.getResultsTag());
 		if (results == null) {
 			throw new RuntimeException("No xjoin results in request context");
 		}
-		return new XJoinValueSource(joinField, results, fqp.parseArg());
+		return new XJoinValueSource(joinField, results, attribute);
 	}
 	
 	/**
@@ -72,13 +85,12 @@ public class XJoinValueSourceParser extends ValueSourceParser {
 
 		/**
 		 * Create an ExternalValueSource for the given external process results, for
-		 * extracting the named property (the method used to extract the property is based
-		 * on the argument to the function, so e.g. (foo_bar) => getFooBar())
+		 * extracting the named attribute.
 		 */
-		public XJoinValueSource(String joinField, XJoinResults results, String arg) {
+		public XJoinValueSource(String joinField, XJoinResults results, String attribute) {
 			this.joinField = joinField;
 			this.results = results;
-			this.methodName = NameConverter.getMethodName(arg);
+			this.methodName = NameConverter.getMethodName(attribute);
 		}
 
 		@Override

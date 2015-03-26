@@ -15,7 +15,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		if (args.length < 4) {
-			System.err.println("Too few command line arguments");
+			System.err.println("Arguments: [sequence] [e value] [n scores] [n alignments]");
 			return;
 		}
 		try {
@@ -24,6 +24,8 @@ public class Main {
 
 			String sequence = args[0];
 			double eVal = new Double(args[1]);
+			int nScores = new Integer(args[2]);
+			int nAlignments = new Integer(args[3]);
 			
 			InputParameters params = new InputParameters();
 			params.setProgram("ssearch");
@@ -32,8 +34,8 @@ public class Main {
 	        params.setSequence(sequence);
 	        params.setExplowlim(0.0d);
 	        params.setExpupperlim(eVal);
-	        params.setScores(1000);
-	        params.setAlignments(1000);
+	        params.setScores(nScores);
+	        params.setAlignments(nAlignments);
 			
 	        FastaJob job = new FastaJob(fasta, EMAIL, params);
 			job.run();
