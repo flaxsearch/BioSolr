@@ -25,13 +25,17 @@ public class OntologyConfiguration {
 	
 	private String source;
 	
+	private String namespace;
+	
 	private String accessURI;
 	
 	private String labelURI;
 	
-	private String synonymAnnotationURI;
+	private List<String> baseUris;
 	
-	private String definitionAnnotationURI;
+	private List<String> synonymAnnotationURI;
+	
+	private List<String> definitionAnnotationURI;
 	
 	private String obsoleteClassURI = "";
 	
@@ -58,28 +62,28 @@ public class OntologyConfiguration {
 	/**
 	 * @return the synonymAnnotationURI
 	 */
-	public String getSynonymAnnotationURI() {
+	public List<String> getSynonymAnnotationURI() {
 		return synonymAnnotationURI;
 	}
 
 	/**
 	 * @param synonymAnnotationURI the synonymAnnotationURI to set
 	 */
-	public void setSynonymAnnotationURI(String synonymAnnotationURI) {
+	public void setSynonymAnnotationURI(List<String> synonymAnnotationURI) {
 		this.synonymAnnotationURI = synonymAnnotationURI;
 	}
 
 	/**
 	 * @return the definitionAnnotationURI
 	 */
-	public String getDefinitionAnnotationURI() {
+	public List<String> getDefinitionAnnotationURI() {
 		return definitionAnnotationURI;
 	}
 
 	/**
 	 * @param definitionAnnotationURI the definitionAnnotationURI to set
 	 */
-	public void setDefinitionAnnotationURI(String definitionAnnotationURI) {
+	public void setDefinitionAnnotationURI(List<String> definitionAnnotationURI) {
 		this.definitionAnnotationURI = definitionAnnotationURI;
 	}
 
@@ -165,6 +169,34 @@ public class OntologyConfiguration {
 	 */
 	public void setLabelURI(String labelURI) {
 		this.labelURI = labelURI;
+	}
+
+	/**
+	 * @return the namespace
+	 */
+	public String getNamespace() {
+		return namespace;
+	}
+
+	/**
+	 * @param namespace the namespace to set
+	 */
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
+	/**
+	 * @return the baseUris
+	 */
+	public List<String> getBaseUris() {
+		return baseUris;
+	}
+
+	/**
+	 * @param baseUris the baseUris to set
+	 */
+	public void setBaseUris(List<String> baseUris) {
+		this.baseUris = baseUris;
 	}
 	
 }

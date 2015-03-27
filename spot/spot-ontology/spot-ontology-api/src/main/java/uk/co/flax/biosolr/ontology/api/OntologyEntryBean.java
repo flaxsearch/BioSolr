@@ -40,7 +40,7 @@ public class OntologyEntryBean {
 	private String source;
 	
 	@Field("short_form")
-    private String shortForm;
+    private List<String> shortForm;
 	
 	@Field("label")
     private List<String> label;
@@ -62,6 +62,9 @@ public class OntologyEntryBean {
 	
 	@Field("descendent_uris")
 	private List<String> descendentUris;
+	
+	@Field("type")
+	private String type;
 	
 	@Field("*_rel")
 	private Map<String, List<String>> relations;
@@ -128,14 +131,14 @@ public class OntologyEntryBean {
 	/**
 	 * @return the shortForm
 	 */
-	public String getShortForm() {
+	public List<String> getShortForm() {
 		return shortForm;
 	}
 
 	/**
 	 * @param shortForm the shortForm to set
 	 */
-	public void setShortForm(String shortForm) {
+	public void setShortForm(List<String> shortForm) {
 		this.shortForm = shortForm;
 	}
 
@@ -263,6 +266,20 @@ public class OntologyEntryBean {
 	 */
 	public void setAdditionalFields(Map<String, Object> additionalFields) {
 		this.additionalFields = additionalFields;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
 	}
 	
 }

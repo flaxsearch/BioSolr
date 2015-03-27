@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.ontology.indexer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,13 +51,15 @@ import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.spot.exception.OntologyLoadingException;
 import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.indexer.loaders.BasicOWLOntologyLoader;
+import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
 import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
-import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
 
 /**
  * Class to handle indexing a single OWL ontology file.
@@ -73,6 +76,8 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final OntologyConfiguration config;
 	private final StorageEngine storageEngine;
 	private final PluginManager pluginManager;
+	
+	private final OntologyLoader loader;
 	
 	private final OWLOntologyManager manager;
 	private final OWLDataFactory factory;
@@ -100,9 +105,12 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		this.storageEngine = storageEngine;
 		this.pluginManager = pluginManager;
 		
+		
 		this.ignoreUris = buildIgnoreUriList();
         
 		try {
+			this.loader = new BasicOWLOntologyLoader(config, new ReasonerFactory());
+			
 			this.manager = OWLManager.createOWLOntologyManager();
 			this.factory = manager.getOWLDataFactory();
 			this.ontology = loadOntology();
@@ -118,6 +126,8 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 			this.restrictionVisitor = new RestrictionVisitor(Collections.singleton(ontology));
 		} catch (OWLOntologyCreationException e) {
+			throw new OntologyIndexingException(e);
+		} catch (OntologyLoadingException e) {
 			throw new OntologyIndexingException(e);
 		}
 	}
@@ -141,34 +151,72 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 	@Override
 	public void indexOntology() throws OntologyIndexingException {
-		List<OntologyEntryBean> entries = new ArrayList<>(config.getBatchSize());
+		List<OntologyEntryBean> documents = new ArrayList<>(loader.getAllClasses().size());
 
-		try {
-			int count = 0;
+//        for (IRI classTerm : loader.getAllClasses()) {
+//            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+//            builder.setType(TermType.CLASS.toString().toLowerCase());
+//            documents.add(builder.createTermDocument());
+//        }
+//
+//        for (IRI classTerm : loader.getAllObjectPropertyIRIs()) {
+//            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+//            builder.setType(TermType.PROPERTY.toString().toLowerCase());
+//            documents.add(builder.createTermDocument());
+//        }
+//
+//        for (IRI classTerm : loader.getAllAnnotationPropertyIRIs()) {
+//            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+//            builder.setType(TermType.PROPERTY.toString().toLowerCase());
+//            documents.add(builder.createTermDocument());
+//        }
+//
+//        for (IRI classTerm : loader.getAllIndividualIRIs()) {
+//            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+//            builder.setType(TermType.INDIVIDUAL.toString().toLowerCase());
+//            documents.add(builder.createTermDocument());
+//        }
+        
+//		try {
+//			int count = 0;
 			
-			for (OWLClass owlClass : ontology.getClassesInSignature()) {
-				if (!shouldIgnore(owlClass)) {
-					OntologyEntryBean entry = buildOntologyEntry(owlClass);
-					entries.add(entry);
-
-					if (entries.size() == config.getBatchSize()) {
-						storageEngine.storeOntologyEntries(entries);
-						count += entries.size();
-						LOGGER.info("Indexed {} entries", count);
-						entries.clear();
-					}
-				}
-			}
+//			for (OWLClass owlClass : ontology.getClassesInSignature()) {
+//				if (!shouldIgnore(owlClass)) {
+//					OntologyEntryBean entry = buildOntologyEntry(owlClass);
+//					entries.add(entry);
+//
+//					if (entries.size() == config.getBatchSize()) {
+//						storageEngine.storeOntologyEntries(entries);
+//						count += entries.size();
+//						LOGGER.info("Indexed {} entries", count);
+//						entries.clear();
+//					}
+//				}
+//			}
 			
 			// Index the final batch
-			storageEngine.storeOntologyEntries(entries);
-			count += entries.size();
-			LOGGER.info("Indexed {} entries", count);
-		} catch (StorageEngineException e) {
-			LOGGER.error("Caught storage engine exception: {}", e.getMessage());
-		}
+//			storageEngine.storeOntologyEntries(entries);
+//			count += entries.size();
+//			LOGGER.info("Indexed {} entries", count);
+//		} catch (StorageEngineException e) {
+//			LOGGER.error("Caught storage engine exception: {}", e.getMessage());
+//		}
 		
 		LOGGER.info("Indexing complete");
+	}
+	
+	private OntologyEntryBean buildOntologyEntry(OntologyLoader loader, IRI termIRI) {
+		OntologyEntryBean bean = new OntologyEntryBean();
+		bean.setSource(sourceKey);
+		bean.setUri(termIRI.toString());
+        bean.setId(sourceKey + "_" + bean.getUri());
+        bean.setShortForm(new ArrayList<String>(loader.getAccessions(termIRI)));
+        
+        if (loader.getTermSynonyms().containsKey(termIRI)) {
+            bean.setSynonym(new ArrayList<>(loader.getTermSynonyms().get(termIRI)));
+        }
+        
+        return bean;
 	}
 	
 	private OntologyEntryBean buildOntologyEntry(OWLClass owlClass) {
@@ -177,10 +225,10 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		bean.setSource(sourceKey);
         bean.setUri(owlClass.getIRI().toString());
         bean.setId(sourceKey + "_" + bean.getUri());
-        bean.setShortForm(shortFormProvider.getShortForm(owlClass));
+        bean.setShortForm(Arrays.asList(shortFormProvider.getShortForm(owlClass)));
         bean.setLabel(findLabels(owlClass.getIRI()));
-        bean.setSynonym(findLabelsByAnnotationURI(owlClass, config.getSynonymAnnotationURI()));
-        bean.setDescription(findLabelsByAnnotationURI(owlClass, config.getDefinitionAnnotationURI()));
+        bean.setSynonym(findLabelsByAnnotationURIs(owlClass, config.getSynonymAnnotationURI()));
+        bean.setDescription(findLabelsByAnnotationURIs(owlClass, config.getDefinitionAnnotationURI()));
         bean.setChildUris(new ArrayList<>(getSubClassUris(owlClass, true)));
         bean.setParentUris(new ArrayList<>(getSuperClassUris(owlClass, true)));
         bean.setDescendentUris(new ArrayList<>(getSubClassUris(owlClass, false)));
@@ -268,6 +316,16 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         }
 
         return classNames;
+	}
+	
+	private List<String> findLabelsByAnnotationURIs(OWLClass owlClass, List<String> annotationUris) {
+		List<String> labels = new ArrayList<>();
+		
+		for (String uri : annotationUris) {
+			labels.addAll(findLabelsByAnnotationURI(owlClass, uri));
+		}
+		
+		return labels;
 	}
 	
 	private List<String> findLabelsByAnnotationURI(OWLClass owlClass, String annotationUri) {
