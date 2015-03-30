@@ -155,31 +155,13 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 	@Override
 	public void indexOntology() throws OntologyIndexingException {
-		List<TermDocument> documents = new ArrayList<>(loader.getAllClasses().size());
+		List<TermDocument> documents = buildDocumentList();
 
-        for (IRI classTerm : loader.getAllClasses()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
-            builder.setType(TermType.CLASS.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
-        }
+		// Index documents in batches
+		int count = 0, end = count + config.getBatchSize();
+		while (count <= documents.size()) {
 
-        for (IRI classTerm : loader.getAllObjectPropertyIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
-            builder.setType(TermType.PROPERTY.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
-        }
-
-        for (IRI classTerm : loader.getAllAnnotationPropertyIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
-            builder.setType(TermType.PROPERTY.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
-        }
-
-        for (IRI classTerm : loader.getAllIndividualIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
-            builder.setType(TermType.INDIVIDUAL.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
-        }
+		}
 
 //		try {
 //			int count = 0;
@@ -207,6 +189,36 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 //		}
 
 		LOGGER.info("Indexing complete");
+	}
+
+	private List<TermDocument> buildDocumentList() {
+		List<TermDocument> documents = new ArrayList<>(loader.getAllClasses().size());
+
+        for (IRI classTerm : loader.getAllClasses()) {
+            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+            builder.setType(TermType.CLASS.toString().toLowerCase());
+            documents.add(builder.createTermDocument());
+        }
+
+        for (IRI classTerm : loader.getAllObjectPropertyIRIs()) {
+            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+            builder.setType(TermType.PROPERTY.toString().toLowerCase());
+            documents.add(builder.createTermDocument());
+        }
+
+        for (IRI classTerm : loader.getAllAnnotationPropertyIRIs()) {
+            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+            builder.setType(TermType.PROPERTY.toString().toLowerCase());
+            documents.add(builder.createTermDocument());
+        }
+
+        for (IRI classTerm : loader.getAllIndividualIRIs()) {
+            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+            builder.setType(TermType.INDIVIDUAL.toString().toLowerCase());
+            documents.add(builder.createTermDocument());
+        }
+
+        return documents;
 	}
 
     private TermDocumentBuilder extractFeatures(OntologyLoader loader, IRI termIRI) {
