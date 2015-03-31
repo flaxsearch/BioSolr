@@ -8,7 +8,7 @@
 	</appender>
 
 	<!-- Enable trace-level flax logging -->
-	<logger name="uk.co.flax" level="TRACE"/>
+	<logger name="uk.co.flax" level="DEBUG"/>
 
 	<root level="WARN">
 		<appender-ref ref="consoleAppender" />
