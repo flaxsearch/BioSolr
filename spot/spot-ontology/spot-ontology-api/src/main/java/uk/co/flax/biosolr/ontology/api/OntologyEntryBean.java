@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -60,14 +62,31 @@ public class OntologyEntryBean {
 	@Field("child_uris")
 	private List<String> childUris;
 	
-	@Field("descendent_uris")
-	private List<String> descendentUris;
+	@Field("descendant_uris")
+	private List<String> descendantUris;
+	
+	@Field("equivalent_uris")
+	private List<String> equivalentUris;
+	
+	@Field("logical_descriptions")
+	private List<String> logicalDescriptions;
 	
 	@Field("type")
 	private String type;
 	
+	@Field("is_defining_ontology")
+	private boolean definingOntology;
+	
+	@Field("is_obsolete")
+	private boolean obsolete;
+	
+	@Field("is_root")
+	private boolean root;
+	
 	@Field("*_rel")
 	private Map<String, List<String>> relations;
+	@Field("*_annotation")
+	private Map<String, List<String>> annotations;
 	
 	@Field("*")
 	private Map<String, Object> additionalFields;
@@ -194,8 +213,8 @@ public class OntologyEntryBean {
 	/**
 	 * @param parentUris the parentUris to set
 	 */
-	public void setParentUris(List<String> parentUris) {
-		this.parentUris = parentUris;
+	public void setParentUris(Collection<String> parentUris) {
+		this.parentUris = new ArrayList<>(parentUris);
 	}
 
 	/**
@@ -208,8 +227,8 @@ public class OntologyEntryBean {
 	/**
 	 * @param ancestorUris the ancestorUris to set
 	 */
-	public void setAncestorUris(List<String> ancestorUris) {
-		this.ancestorUris = ancestorUris;
+	public void setAncestorUris(Collection<String> ancestorUris) {
+		this.ancestorUris = new ArrayList<>(ancestorUris);
 	}
 
 	/**
@@ -222,22 +241,22 @@ public class OntologyEntryBean {
 	/**
 	 * @param childUris the childUris to set
 	 */
-	public void setChildUris(List<String> childUris) {
-		this.childUris = childUris;
+	public void setChildUris(Collection<String> childUris) {
+		this.childUris = new ArrayList<>(childUris);
 	}
 
 	/**
 	 * @return the descendentUris
 	 */
-	public List<String> getDescendentUris() {
-		return descendentUris;
+	public List<String> getDescendantUris() {
+		return descendantUris;
 	}
 
 	/**
-	 * @param descendentUris the descendentUris to set
+	 * @param descendantUris the descendentUris to set
 	 */
-	public void setDescendentUris(List<String> descendentUris) {
-		this.descendentUris = descendentUris;
+	public void setDescendantUris(Collection<String> descendantUris) {
+		this.descendantUris = new ArrayList<>(descendantUris);
 	}
 
 	/**
@@ -280,6 +299,74 @@ public class OntologyEntryBean {
 	 */
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public boolean isDefiningOntology() {
+		return definingOntology;
+	}
+
+	public void setDefiningOntology(boolean definingOntology) {
+		this.definingOntology = definingOntology;
+	}
+
+	public boolean isObsolete() {
+		return obsolete;
+	}
+
+	public void setObsolete(boolean obsolete) {
+		this.obsolete = obsolete;
+	}
+
+	public Map<String, List<String>> getAnnotations() {
+		return annotations;
+	}
+
+	public void setAnnotations(Map<String, List<String>> annotations) {
+		this.annotations = annotations;
+	}
+
+	public boolean isRoot() {
+		return root;
+	}
+
+	public void setRoot(boolean root) {
+		this.root = root;
+	}
+
+	public List<String> getEquivalentUris() {
+		return equivalentUris;
+	}
+	
+	public void setEquivalentUris(Collection<String> uris) {
+		this.equivalentUris = new ArrayList<>(uris);
+	}
+
+	public List<String> getLogicalDescriptions() {
+		return logicalDescriptions;
+	}
+
+	public void setLogicalDescriptions(List<String> logicalDescriptions) {
+		this.logicalDescriptions = logicalDescriptions;
+	}
+
+	public void setParentUris(List<String> parentUris) {
+		this.parentUris = parentUris;
+	}
+
+	public void setAncestorUris(List<String> ancestorUris) {
+		this.ancestorUris = ancestorUris;
+	}
+
+	public void setChildUris(List<String> childUris) {
+		this.childUris = childUris;
+	}
+
+	public void setDescendantUris(List<String> descendantUris) {
+		this.descendantUris = descendantUris;
+	}
+
+	public void setEquivalentUris(List<String> equivalentUris) {
+		this.equivalentUris = equivalentUris;
 	}
 	
 }

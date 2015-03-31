@@ -64,6 +64,7 @@ import uk.co.flax.biosolr.ontology.indexer.visitors.RestrictionVisitor;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
+import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
 
 /**
  * Class to handle indexing a single OWL ontology file.
@@ -114,6 +115,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 		try {
 			this.loader = new BasicOWLOntologyLoader(config, new ReasonerFactory());
+			loader.initializeOntology();
 
 			this.manager = OWLManager.createOWLOntologyManager();
 			this.factory = manager.getOWLDataFactory();
@@ -155,67 +157,57 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 
 	@Override
 	public void indexOntology() throws OntologyIndexingException {
-		List<TermDocument> documents = buildDocumentList();
+		List<OntologyEntryBean> documents = buildOntologyEntries();
 
-		// Index documents in batches
-		int count = 0, end = count + config.getBatchSize();
-		while (count <= documents.size()) {
+		try {
+			int numDocuments = documents.size();
+			LOGGER.debug("Extracted {} documents", numDocuments);
+			
+			// Index documents in batches
+			int count = 0;
+			while (count < numDocuments) {
+				int end = count + config.getBatchSize();
+				if (end > numDocuments) {
+					end = numDocuments;
+				}
 
+				storageEngine.storeOntologyEntries(documents.subList(count, end));
+				
+				count = end;
+				LOGGER.info("Indexed {} / {} entries", count, numDocuments);
+			}
+		} catch (StorageEngineException e) {
+			LOGGER.error("Caught storage engine exception: {}", e.getMessage());
 		}
-
-//		try {
-//			int count = 0;
-
-//			for (OWLClass owlClass : ontology.getClassesInSignature()) {
-//				if (!shouldIgnore(owlClass)) {
-//					OntologyEntryBean entry = buildOntologyEntry(owlClass);
-//					entries.add(entry);
-//
-//					if (entries.size() == config.getBatchSize()) {
-//						storageEngine.storeOntologyEntries(entries);
-//						count += entries.size();
-//						LOGGER.info("Indexed {} entries", count);
-//						entries.clear();
-//					}
-//				}
-//			}
-
-			// Index the final batch
-//			storageEngine.storeOntologyEntries(entries);
-//			count += entries.size();
-//			LOGGER.info("Indexed {} entries", count);
-//		} catch (StorageEngineException e) {
-//			LOGGER.error("Caught storage engine exception: {}", e.getMessage());
-//		}
 
 		LOGGER.info("Indexing complete");
 	}
 
-	private List<TermDocument> buildDocumentList() {
-		List<TermDocument> documents = new ArrayList<>(loader.getAllClasses().size());
+	private List<OntologyEntryBean> buildOntologyEntries() {
+		List<OntologyEntryBean> documents = new ArrayList<>(loader.getAllClasses().size());
 
         for (IRI classTerm : loader.getAllClasses()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+        	OntologyEntryBean builder = buildOntologyEntry(loader, classTerm);
             builder.setType(TermType.CLASS.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
+            documents.add(builder);
         }
 
         for (IRI classTerm : loader.getAllObjectPropertyIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+        	OntologyEntryBean builder = buildOntologyEntry(loader, classTerm);
             builder.setType(TermType.PROPERTY.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
+            documents.add(builder);
         }
 
         for (IRI classTerm : loader.getAllAnnotationPropertyIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+        	OntologyEntryBean builder = buildOntologyEntry(loader, classTerm);
             builder.setType(TermType.PROPERTY.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
+            documents.add(builder);
         }
 
         for (IRI classTerm : loader.getAllIndividualIRIs()) {
-            TermDocumentBuilder builder = extractFeatures(loader, classTerm);
+        	OntologyEntryBean builder = buildOntologyEntry(loader, classTerm);
             builder.setType(TermType.INDIVIDUAL.toString().toLowerCase());
-            documents.add(builder.createTermDocument());
+            documents.add(builder);
         }
 
         return documents;
@@ -329,12 +321,116 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		bean.setUri(termIRI.toString());
         bean.setId(sourceKey + "_" + bean.getUri());
         bean.setShortForm(new ArrayList<String>(loader.getAccessions(termIRI)));
+        bean.setDefiningOntology(loader.isLocalTerm(termIRI));
+        bean.setObsolete(loader.isObsoleteTerm(termIRI));
+        bean.setLabel(Arrays.asList(loader.getTermLabels().get(termIRI)));
 
         if (loader.getTermSynonyms().containsKey(termIRI)) {
             bean.setSynonym(new ArrayList<>(loader.getTermSynonyms().get(termIRI)));
         }
 
+        if (loader.getTermDefinitions().containsKey(termIRI)) {
+            bean.setDescription(new ArrayList<>(loader.getTermDefinitions().get(termIRI)));
+        }
+
+        if (loader.getDirectParentTerms().containsKey(termIRI)) {
+            bean.setParentUris(loader.getDirectParentTerms().get(termIRI).stream().map(IRI::toString).collect(Collectors.toSet()));
+		} else {
+			LOGGER.debug("Setting root " + termIRI);
+			bean.setRoot(true);
+		}
+        
+        if (loader.getAllParentTerms().containsKey(termIRI)) {
+            bean.setAncestorUris(loader.getAllParentTerms().get(termIRI).stream().map(IRI::toString).collect(Collectors.toSet()));
+        }
+
+        if (loader.getDirectChildTerms().containsKey(termIRI)) {
+            bean.setChildUris(loader.getDirectChildTerms().get(termIRI).stream().map(IRI::toString).collect(Collectors.toSet()));
+        }
+
+        if (loader.getAllChildTerms().containsKey(termIRI)) {
+            bean.setDescendantUris(loader.getAllChildTerms().get(termIRI).stream().map(IRI::toString).collect(Collectors.toSet()));
+        }
+        
+        if (loader.getEquivalentTerms().containsKey(termIRI))    {
+            bean.setEquivalentUris(loader.getEquivalentTerms().get(termIRI).stream().map(IRI::toString).collect(Collectors.toSet()));
+        }
+        
+        bean.setLogicalDescriptions(collectLogicalDescriptions(loader, termIRI));
+        
+        // Add all annotations
+        bean.setAnnotations(collectAnnotations(loader, termIRI));
+        // Add all related terms
+        bean.setRelations(collectRelatedTerms(loader, termIRI));
+
         return bean;
+	}
+	
+	private Map<String, List<String>> collectAnnotations(OntologyLoader loader, IRI termIRI) {
+		Map<String, List<String>> annotations = null;
+		
+		if (!loader.getAnnotations(termIRI).isEmpty()) {
+            Map<String, Collection<String>> annSets = new HashMap<>();
+
+            for (IRI relation : loader.getAnnotations(termIRI).keySet()) {
+                String labelName = loader.getTermLabels().get(relation) + "_annotation";
+                if (!annSets.containsKey(labelName)) {
+                    annSets.put(labelName, new HashSet<>());
+                }
+				annSets.get(labelName).addAll(loader.getAnnotations(termIRI).get(relation));
+            }
+            
+            // Convert annotations to lists
+            annotations = new HashMap<>();
+            for (String key : annSets.keySet()) {
+            	annotations.put(key, new ArrayList<String>(annSets.get(key)));
+            }
+		}
+		
+		return annotations;
+	}
+
+	private Map<String, List<String>> collectRelatedTerms(OntologyLoader loader, IRI termIRI) {
+		Map<String, List<String>> relations = null;
+		
+		if (!loader.getAnnotations(termIRI).isEmpty()) {
+            Map<String, Collection<String>> relatedSets = new HashMap<>();
+
+            for (IRI relation : loader.getRelatedTerms(termIRI).keySet()) {
+                String labelName = loader.getTermLabels().get(relation) + "_rel";
+                if (!relatedSets.containsKey(labelName)) {
+                    relatedSets.put(labelName, new HashSet<>());
+                }
+                relatedSets.get(labelName).addAll(
+                        loader.getRelatedTerms(termIRI).get(relation).stream().map(IRI::toString).collect(Collectors.toSet()));
+            }
+            
+            // Convert annotations to lists
+            relations = new HashMap<>();
+            for (String key : relatedSets.keySet()) {
+            	relations.put(key, new ArrayList<String>(relatedSets.get(key)));
+            }
+		}
+		
+		return relations;
+	}
+	
+	private List<String> collectLogicalDescriptions(OntologyLoader loader, IRI termIRI) {
+		List<String> descriptions = null;
+		
+        Collection<String> logicalDescriptions = new HashSet<>();
+        if (loader.getLogicalSuperClassDescriptions().containsKey(termIRI)) {
+            logicalDescriptions.addAll(loader.getLogicalSuperClassDescriptions().get(termIRI));
+        }
+        if (loader.getLogicalEquivalentClassDescriptions().containsKey(termIRI)) {
+            logicalDescriptions.addAll(loader.getLogicalEquivalentClassDescriptions().get(termIRI));
+        }
+
+        if (!logicalDescriptions.isEmpty()) {
+        	descriptions = new ArrayList<>(logicalDescriptions);
+        }
+        
+        return descriptions;
 	}
 
 	private OntologyEntryBean buildOntologyEntry(OWLClass owlClass) {
@@ -349,7 +445,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
         bean.setDescription(findLabelsByAnnotationURIs(owlClass, config.getDefinitionAnnotationURI()));
         bean.setChildUris(new ArrayList<>(getSubClassUris(owlClass, true)));
         bean.setParentUris(new ArrayList<>(getSuperClassUris(owlClass, true)));
-        bean.setDescendentUris(new ArrayList<>(getSubClassUris(owlClass, false)));
+        bean.setDescendantUris(new ArrayList<>(getSubClassUris(owlClass, false)));
         bean.setAncestorUris(new ArrayList<>(getSuperClassUris(owlClass, false)));
 
         // Look up restrictions

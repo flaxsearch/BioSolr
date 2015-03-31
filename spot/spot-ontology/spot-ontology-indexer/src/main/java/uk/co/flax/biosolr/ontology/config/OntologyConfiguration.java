@@ -31,7 +31,7 @@ public class OntologyConfiguration {
 	
 	private String labelURI;
 	
-	private List<String> baseUris;
+	private List<String> baseURI;
 	
 	private List<String> synonymAnnotationURI;
 	
@@ -188,15 +188,15 @@ public class OntologyConfiguration {
 	/**
 	 * @return the baseUris
 	 */
-	public List<String> getBaseUris() {
-		return baseUris;
+	public List<String> getBaseURI() {
+		return baseURI;
 	}
 
 	/**
 	 * @param baseUris the baseUris to set
 	 */
-	public void setBaseUris(List<String> baseUris) {
-		this.baseUris = baseUris;
+	public void setBaseURI(List<String> baseUris) {
+		this.baseURI = baseUris;
 	}
 	
 }

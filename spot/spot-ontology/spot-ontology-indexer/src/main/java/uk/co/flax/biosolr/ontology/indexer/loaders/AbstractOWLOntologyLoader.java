@@ -132,7 +132,7 @@ public abstract class AbstractOWLOntologyLoader implements OntologyLoader {
                 config.getDefinitionAnnotationURI().stream()
                         .map(IRI::create).
                         collect(Collectors.toSet()));
-        setBaseIRI(config.getBaseUris());
+        setBaseIRI(config.getBaseURI());
 
         try {
             setOntologyResource(new URI(config.getAccessURI()));
@@ -265,11 +265,12 @@ public abstract class AbstractOWLOntologyLoader implements OntologyLoader {
 
             }
             // find out if this term is local to the ontology based on the base URIs
-            for (String base : getBaseIRI()) {
-                if (entity.getIRI().toString().startsWith(base)) {
-                    addLocalTerms(entity.getIRI());
-                }
-            }
+			for (String base : getBaseIRI()) {
+				if (entity.getIRI().toString().startsWith(base)) {
+					addLocalTerms(entity.getIRI());
+				}
+			}
+            
             // index the different types of entity
             entity.accept(new OWLEntityVisitor() {
                 @Override
@@ -678,6 +679,7 @@ public abstract class AbstractOWLOntologyLoader implements OntologyLoader {
     public boolean isLocalTerm(IRI entityIRI) {
         return this.localTerms.contains(entityIRI);
     }
+    
     public void setBaseIRI(Collection<String> baseIRIs) {
         this.baseIRIs = baseIRIs;
     }

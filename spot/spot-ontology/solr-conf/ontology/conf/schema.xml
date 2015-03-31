@@ -57,19 +57,32 @@
 	<field name="uri" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="uri_key" type="int" indexed="true" stored="true" multiValued="false" />
     <field name="source" type="string" indexed="true" stored="true" multiValued="false" />
-	<field name="short_form" type="text_general" indexed="true" stored="true" multiValued="false" />
+	<field name="short_form" type="string" indexed="true" stored="true" multiValued="true" />
 	<field name="label" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="synonyms" type="text_general" indexed="true" stored="true" multiValued="true" />
 	<field name="description" type="text_general" indexed="true" stored="true" multiValued="true" />
 	
 	<!-- Single level child URIs -->
 	<field name="child_uris" type="string" indexed="true" stored="true" multiValued="true" />
-	<!-- All descendent URIs, including child URI(s) -->
-    <field name="descendent_uris" type="string" indexed="true" stored="true" multiValued="true" />
+	<!-- All descendant URIs, including child URI(s) -->
+    <field name="descendant_uris" type="string" indexed="true" stored="true" multiValued="true" />
     <!-- Single level parent URI(s) -->
     <field name="parent_uris" type="string" indexed="true" stored="true" multiValued="true" />
     <!-- All ancestor URIs, including parent URI(s) -->
     <field name="ancestor_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    
+    <!-- Type of node -->
+    <field name="type" type="string" indexed="true" stored="true" multiValued="false" />
+    <!-- Is this the defining ontology for this entry? -->
+    <field name="is_defining_ontology" type="boolean" indexed="true" stored="true" multiValued="false" />
+    <!-- Is this term obsolete? -->
+    <field name="is_obsolete" type="boolean" indexed="true" stored="true" multiValued="false" />
+    <!-- Is this a root node? -->
+    <field name="is_root" type="boolean" indexed="true" stored="true" multiValued="false" />
+    <!-- Equivalent URIs -->
+    <field name="equivalent_uris" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Logical descriptions -->
+    <field name="logical_descriptions" type="string" indexed="true" stored="true" multiValued="true" />
     
     <field name="tree_level" type="int" indexed="true" stored="true" multiValued="false" />
 
@@ -78,6 +91,8 @@
 
     <!-- Dynamic field(s) holding relation types -->
     <dynamicField name="*_rel" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Dynamic field(s) holding annotations -->
+    <dynamicField name="*_annotation" type="string" indexed="true" stored="true" multiValued="true" />
 
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
