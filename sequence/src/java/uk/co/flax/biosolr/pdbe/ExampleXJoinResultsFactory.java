@@ -33,6 +33,7 @@ public class ExampleXJoinResultsFactory implements XJoinResultsFactory<String> {
 
 		@Override
 		public Iterable<String> getOrderedJoinIds() {
+			Arrays.sort(values);
 			return Arrays.asList(values);
 		}
 		
