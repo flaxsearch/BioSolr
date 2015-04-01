@@ -3,16 +3,16 @@ package org.apache.solr.search.xjoin;
 /**
  * Interface for external process results.
  */
-public interface XJoinResults {
+public interface XJoinResults<IdType> {
 
 	/**
 	 * Get the external process result with given join id.
 	 */
-	Object getResult(String joinId);
+	Object getResult(IdType joinId);
 	
 	/**
-	 * Get all external process join ids.
+	 * Get an ordered (ascending) iterable of external process join ids.
 	 */
-	Iterable<String> getJoinIds();
+	Iterable<IdType> getOrderedJoinIds();
 
 }

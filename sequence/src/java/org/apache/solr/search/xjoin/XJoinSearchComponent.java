@@ -95,7 +95,7 @@ public class XJoinSearchComponent extends SearchComponent {
 		if (listParameter != null) {
 			// put a list of join ids as a request parameter that may be referenced in the URL
 			ModifiableSolrParams myParams = new ModifiableSolrParams(rb.req.getParams());
-			Iterable<String> joinIds = results.getJoinIds();
+			Iterable<String> joinIds = results.getOrderedJoinIds();
 			myParams.set(listParameter, StringUtils.join(joinIds, ','));
 			rb.req.setParams(myParams);
 		}

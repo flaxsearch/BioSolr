@@ -8,7 +8,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.xjoin.XJoinResults;
 import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
-public class ExampleXJoinResultsFactory implements XJoinResultsFactory {
+public class ExampleXJoinResultsFactory implements XJoinResultsFactory<String> {
 
 	private String[] values;
 	
@@ -20,19 +20,19 @@ public class ExampleXJoinResultsFactory implements XJoinResultsFactory {
 	}
 
 	@Override
-	public XJoinResults getResults(SolrParams params) throws IOException {
+	public XJoinResults<String> getResults(SolrParams params) throws IOException {
 		return new Results();
 	}
 	
-	public class Results implements XJoinResults {
+	public class Results implements XJoinResults<String> {
 
 		@Override
-		public Object getResult(final String joinId) {
+		public Object getResult(String joinId) {
 			return new Result(joinId, 0.5);
 		}
 
 		@Override
-		public Iterable<String> getJoinIds() {
+		public Iterable<String> getOrderedJoinIds() {
 			return Arrays.asList(values);
 		}
 		

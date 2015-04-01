@@ -8,7 +8,7 @@ import org.apache.solr.common.util.NamedList;
 /**
  * Interface for external process results factories.
  */
-public interface XJoinResultsFactory {
+public interface XJoinResultsFactory<IdType> {
 	
 	/**
 	 * Initialise the factory with the given parameters.
@@ -19,6 +19,6 @@ public interface XJoinResultsFactory {
 	/**
 	 * Get external process results based on the given parameters.
 	 */
-	public XJoinResults getResults(SolrParams params) throws IOException;
+	public XJoinResults<IdType> getResults(SolrParams params) throws IOException;
 
 }

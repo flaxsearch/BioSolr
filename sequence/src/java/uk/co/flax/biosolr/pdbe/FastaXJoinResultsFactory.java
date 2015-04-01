@@ -26,7 +26,7 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
  * Connect to FASTA service and generate a PDB id filter based on a user supplied
  * sequence.
  */
-public class FastaXJoinResultsFactory implements XJoinResultsFactory {
+public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
 	
 	// initialisation parameters
 	public static final String INIT_EMAIL = "email";
@@ -91,7 +91,7 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	 * Call out to the FASTA service and add a filter query based on the response.
 	 */
 	@Override
-	public XJoinResults getResults(SolrParams params) throws IOException {
+	public XJoinResults<String> getResults(SolrParams params) throws IOException {
 		InputParameters input = new InputParameters();
     	input.setProgram(program);
     	input.setDatabase(new String[] { database });
@@ -122,15 +122,16 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 		boolean unique = new Boolean(params.get(FASTA_UNIQUE_PDB_IDS));
 		final Map<String, Alignment> alignments = results.getAlignments(unique);
 		
-		return new XJoinResults() {
+		return new XJoinResults<String>() {
 
 			@Override
-		    public Iterable<String> getJoinIds() {
+		    public Iterable<String> getOrderedJoinIds() {
 		    	String[] entries = new String[alignments.size()];
 		    	int i = 0;
 		    	for (Alignment a : alignments.values()) {
 		    		entries[i++] = getEntryEntity(a);
 		    	}
+		    	Arrays.sort(entries);
 		    	return Arrays.asList(entries);
 		    }
 		    
