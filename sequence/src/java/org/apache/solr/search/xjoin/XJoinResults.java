@@ -11,7 +11,8 @@ public interface XJoinResults<IdType> {
 	Object getResult(IdType joinId);
 	
 	/**
-	 * Get an ordered (ascending) iterable of external process join ids.
+	 * Get an ordered (ascending) iterable of external process join ids (null is
+	 * not a valid id).
 	 */
 	Iterable<IdType> getOrderedJoinIds();
 

@@ -45,9 +45,6 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrConstantScoreQuery;
 import org.apache.solr.search.SyntaxError;
 
-/**
- * 
- */
 public class XJoinQParserPlugin extends QParserPlugin {
 	
   public static final String NAME = "xjoin";
@@ -143,4 +140,5 @@ public class XJoinQParserPlugin extends QParserPlugin {
       }
     };
   }
+  
 }
