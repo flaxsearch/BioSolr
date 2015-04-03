@@ -46,7 +46,7 @@ import org.apache.solr.search.SolrConstantScoreQuery;
 import org.apache.solr.search.SyntaxError;
 
 public class XJoinQParserPlugin extends QParserPlugin {
-	
+  
   public static final String NAME = "xjoin";
 
   /** The separator to use in the underlying suggester */
@@ -57,7 +57,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
   
   @Override @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
-	  // nothing to do
+    // nothing to do
   }
 
   private static enum Method {
@@ -105,22 +105,22 @@ public class XJoinQParserPlugin extends QParserPlugin {
       @Override
       public Query parse() throws SyntaxError {
         String componentName = localParams.get(QueryParsing.V);//never null
-  		XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
+        XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
 
-  		FieldType ft = req.getSchema().getFieldTypeNoEx(xJoin.getJoinField());
+        FieldType ft = req.getSchema().getFieldTypeNoEx(xJoin.getJoinField());
         Method method = Method.valueOf(localParams.get(METHOD, Method.termsFilter.name()));
         //TODO pick the default method based on various heuristics from benchmarks
 
-		XJoinResults<?> results = (XJoinResults<?>)req.getContext().get(xJoin.getResultsTag());
-		if (results == null) {
-			throw new RuntimeException("No xjoin results in request context");
-		}
+        XJoinResults<?> results = (XJoinResults<?>)req.getContext().get(xJoin.getResultsTag());
+        if (results == null) {
+          throw new RuntimeException("No xjoin results in request context");
+        }
 
-		//FIXME this is where we would do any boolean combinations
-		List<Object> joinIds = new ArrayList<>();
-		for (Object joinId : results.getOrderedJoinIds()) {
-			joinIds.add(joinId);
-		}
+        //FIXME this is where we would do any boolean combinations
+        List<Object> joinIds = new ArrayList<>();
+        for (Object joinId : results.getJoinIds()) {
+          joinIds.add(joinId);
+        }
 
         BytesRef[] bytesRefs = new BytesRef[joinIds.size()];
         BytesRef term = new BytesRef();
@@ -129,7 +129,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
           String joinStr = joinIds.get(i).toString();
           // logic same as TermQParserPlugin
           if (ft != null) {
-            ft.readableToIndexed(joinStr, term);
+        	ft.readableToIndexed(joinStr, term);
           } else {
             term.copyChars(joinStr);
           }

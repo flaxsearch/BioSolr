@@ -125,7 +125,7 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
 		return new XJoinResults<String>() {
 
 			@Override
-		    public Iterable<String> getOrderedJoinIds() {
+		    public Iterable<String> getJoinIds() {
 		    	String[] entries = new String[alignments.size()];
 		    	int i = 0;
 		    	for (Alignment a : alignments.values()) {
