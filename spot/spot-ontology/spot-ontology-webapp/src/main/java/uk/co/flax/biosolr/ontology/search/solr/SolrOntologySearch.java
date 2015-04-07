@@ -25,7 +25,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
+import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
@@ -42,6 +42,7 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	
 	public static final String URI_FIELD = "uri";
 	public static final String LABEL_FIELD = "label";
+	public static final String CHILD_URI_FIELD = "child_uris";
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -51,17 +52,19 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 		this.server = new HttpSolrServer(config.getOntologyUrl());
 	}
 	
+	@Override
 	protected SolrServer getServer() {
 		return server;
 	}
 	
+	@Override
 	protected Logger getLogger() {
 		return LOGGER;
 	}
 
 	@Override
-	public ResultsList<EFOAnnotation> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException {
-		ResultsList<EFOAnnotation> results = null;
+	public ResultsList<OntologyEntryBean> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException {
+		ResultsList<OntologyEntryBean> results = null;
 		
 		try {
 			SolrQuery query = new SolrQuery(term);
@@ -75,7 +78,7 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 			LOGGER.trace("Ontology search URL: {}", getQueryUrl(query, config.getOntologyUrl()));
 			
 			QueryResponse response = server.query(query);
-			List<EFOAnnotation> annotations = response.getBeans(EFOAnnotation.class);
+			List<OntologyEntryBean> annotations = response.getBeans(OntologyEntryBean.class);
 			results = new ResultsList<>(annotations, rows, (start / rows), response.getResults().getNumFound());
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
@@ -85,15 +88,15 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	}
 	
 	@Override
-	public EFOAnnotation findOntologyEntryByUri(String uri) throws SearchEngineException {
-		EFOAnnotation retVal = null;
+	public OntologyEntryBean findOntologyEntryByUri(String uri) throws SearchEngineException {
+		OntologyEntryBean retVal = null;
 		
 		try {
 			SolrQuery query = new SolrQuery(uri);
 			query.setRequestHandler(config.getOntologyNodeRequestHandler());
 			
 			QueryResponse response = server.query(query);
-			List<EFOAnnotation> annotations = response.getBeans(EFOAnnotation.class);
+			List<OntologyEntryBean> annotations = response.getBeans(OntologyEntryBean.class);
 			if (annotations.size() > 0) {
 				retVal = annotations.get(0);
 			}

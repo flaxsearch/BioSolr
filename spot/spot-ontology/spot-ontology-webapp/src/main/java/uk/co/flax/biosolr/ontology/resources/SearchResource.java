@@ -32,7 +32,7 @@ import uk.co.flax.biosolr.ontology.api.SearchResponse;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
-import uk.co.flax.biosolr.ontology.search.solr.OntologyFacetTreeBuilder;
+import uk.co.flax.biosolr.ontology.search.solr.FacetTreeBuilder;
 
 /**
  * @author Matt Pearce
@@ -43,9 +43,9 @@ public class SearchResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
 
 	private final DocumentSearch documents;
-	private final OntologyFacetTreeBuilder facetAccumulator;
+	private final FacetTreeBuilder facetAccumulator;
 
-	public SearchResource(DocumentSearch doc, OntologyFacetTreeBuilder facetAccumulator) {
+	public SearchResource(DocumentSearch doc, FacetTreeBuilder facetAccumulator) {
 		this.documents = doc;
 		this.facetAccumulator = facetAccumulator;
 	}

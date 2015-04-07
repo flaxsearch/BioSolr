@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.AccumulatedFacetEntry;
-import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
 import uk.co.flax.biosolr.ontology.api.FacetEntry;
+import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
@@ -50,7 +50,7 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
  * 
  * @author Matt Pearce
  */
-public class OntologyFacetTreeBuilder {
+public class OntologyFacetTreeBuilder implements FacetTreeBuilder {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyFacetTreeBuilder.class);
 	
@@ -68,9 +68,10 @@ public class OntologyFacetTreeBuilder {
 	 * @return a list containing one or more {@link AccumulatedFacetEntry} items representing
 	 * the full tree.
 	 */
+	@Override
 	public List<FacetEntry> buildFacetTree(List<FacetEntry> entries) {
 		// Look up ontology entries for every facet in the entry set.
-		Map<String, EFOAnnotation> annotationMap = lookupOntologyEntriesByFacetLabel(entries);
+		Map<String, OntologyEntryBean> annotationMap = lookupOntologyEntriesByFacetLabel(entries);
 		Map<String, FacetEntry> entryMap = convertEntriesToMap(entries);
 		
 		// Look up ontology entries for all parent nodes common to the incoming entries
@@ -81,7 +82,7 @@ public class OntologyFacetTreeBuilder {
 		annotationMap.putAll(lookupOntologyEntriesByUri(parentUris));
 		
 		// Build a map of annotations by level in the tree, so we can start at the highest level
-		Map<Integer, List<EFOAnnotation>> levelMap = collateAnnotationsByLevel(annotationMap);
+		Map<Integer, List<OntologyEntryBean>> levelMap = collateAnnotationsByLevel(annotationMap);
 		
 		SortedSet<FacetEntry> facets = new TreeSet<>(Collections.reverseOrder());
 		// Take the first entry (or entries) in the level map, and build the accumulated entries
@@ -89,7 +90,7 @@ public class OntologyFacetTreeBuilder {
 		if (levelIter.hasNext()) {
 			Integer level = levelIter.next();
 			LOGGER.debug("Building AccumulatedFacetEntry at level {}", level);
-			for (EFOAnnotation anno : levelMap.get(level)) {
+			for (OntologyEntryBean anno : levelMap.get(level)) {
 				FacetEntry fe = buildAccumulatedEntryTree(level, anno, entryMap, annotationMap);
 				facets.add(fe);
 			}
@@ -108,8 +109,8 @@ public class OntologyFacetTreeBuilder {
 	 * @return an {@link AccumulatedFacetEntry} containing details for the current node and all
 	 * sub-nodes down to the lowest leaf which has a facet count.
 	 */
-	private AccumulatedFacetEntry buildAccumulatedEntryTree(int level, EFOAnnotation node,
-			Map<String, FacetEntry> entryMap, Map<String, EFOAnnotation> annotationMap) {
+	private AccumulatedFacetEntry buildAccumulatedEntryTree(int level, OntologyEntryBean node,
+			Map<String, FacetEntry> entryMap, Map<String, OntologyEntryBean> annotationMap) {
 		SortedSet<AccumulatedFacetEntry> childHierarchy = new TreeSet<>(Collections.reverseOrder());
 		long childTotal = 0;
 		if (node.getChildUris() != null) {
@@ -132,7 +133,7 @@ public class OntologyFacetTreeBuilder {
 		
 		String label;
 		if (node.getLabel() == null) {
-			label = node.getShortForm();
+			label = node.getShortForm().get(0);
 		} else {
 			label = node.getLabel().get(0);
 		}
@@ -161,7 +162,7 @@ public class OntologyFacetTreeBuilder {
 	 * @param entries
 	 * @return a map of URI -> ontology entry for the facet entries.
 	 */
-	private Map<String, EFOAnnotation> lookupOntologyEntriesByFacetLabel(List<FacetEntry> entries) {
+	private Map<String, OntologyEntryBean> lookupOntologyEntriesByFacetLabel(List<FacetEntry> entries) {
 		List<String> uris = new ArrayList<>(entries.size());
 		for (FacetEntry entry : entries) {
 			uris.add(entry.getLabel());
@@ -174,15 +175,15 @@ public class OntologyFacetTreeBuilder {
 	 * @param uris
 	 * @return a map of URI -> ontology entry for the incoming URIs.
 	 */
-	private Map<String, EFOAnnotation> lookupOntologyEntriesByUri(Collection<String> uris) {
-		Map<String, EFOAnnotation> annotationMap = new HashMap<>();
+	private Map<String, OntologyEntryBean> lookupOntologyEntriesByUri(Collection<String> uris) {
+		Map<String, OntologyEntryBean> annotationMap = new HashMap<>();
 		
 		String query = "*:*";
 		String filters = buildFilterString(uris);
 		
 		try {
-			ResultsList<EFOAnnotation> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, uris.size());
-			for (EFOAnnotation anno : results.getResults()) {
+			ResultsList<OntologyEntryBean> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, uris.size());
+			for (OntologyEntryBean anno : results.getResults()) {
 				annotationMap.put(anno.getUri(), anno);
 			}
 		} catch (SearchEngineException e) {
@@ -219,25 +220,26 @@ public class OntologyFacetTreeBuilder {
 	 * @param annotations
 	 * @return the parent URIs.
 	 */
-	private Set<String> extractParentUris(Collection<EFOAnnotation> annotations) {
+	private Set<String> extractParentUris(Collection<OntologyEntryBean> annotations) {
 		Set<String> parentUris = new HashSet<>();
 		
-		for (EFOAnnotation anno : annotations) {
+		for (OntologyEntryBean anno : annotations) {
 			parentUris.addAll(anno.getAncestorUris());
 		}
 		
 		return parentUris;
 	}
 	
-	private Map<Integer, List<EFOAnnotation>> collateAnnotationsByLevel(Map<String, EFOAnnotation> annotationMap) {
-		Map<Integer, List<EFOAnnotation>> levelMap = new TreeMap<>();
+	private Map<Integer, List<OntologyEntryBean>> collateAnnotationsByLevel(Map<String, OntologyEntryBean> annotationMap) {
+		Map<Integer, List<OntologyEntryBean>> levelMap = new TreeMap<>();
 
-		for (EFOAnnotation anno : annotationMap.values()) {
-			if (!levelMap.containsKey(anno.getTreeLevel())) {
-				levelMap.put(anno.getTreeLevel(), new ArrayList<EFOAnnotation>());
+		for (OntologyEntryBean anno : annotationMap.values()) {
+			int level = anno.getAncestorUris().size();
+			if (!levelMap.containsKey(level)) {
+				levelMap.put(level, new ArrayList<OntologyEntryBean>());
 			}
 
-			levelMap.get(anno.getTreeLevel()).add(anno);
+			levelMap.get(level).add(anno);
 		}
 		
 		return levelMap;
