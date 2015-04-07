@@ -6,13 +6,15 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Map;
 
 import javax.xml.rpc.ServiceException;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.xjoin.XJoinResults;
-import org.apache.solr.xjoin.XJoinResultsFactory;
+import org.apache.solr.search.xjoin.XJoinResults;
+import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
@@ -23,16 +25,8 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user supplied
  * sequence.
- * 
- * program = ssearch
- * database = pdb
- * stype = protein
- * 
- * explowlim = 0.0d
- * scores = 1000
- * alignments = 1000
  */
-public class FastaXJoinResultsFactory implements XJoinResultsFactory {
+public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
 	
 	// initialisation parameters
 	public static final String INIT_EMAIL = "email";
@@ -47,6 +41,7 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	public static final String FASTA_SEQUENCE = "sequence";
 	public static final String FASTA_SCORES = "scores";
 	public static final String FASTA_ALIGNMENTS = "alignments";
+	public static final String FASTA_UNIQUE_PDB_IDS = "unique_pdb_ids";
 	
 	private JDispatcherService_PortType fasta;
 	private String email;
@@ -96,7 +91,7 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 	 * Call out to the FASTA service and add a filter query based on the response.
 	 */
 	@Override
-	public XJoinResults getResults(SolrParams params) throws IOException {
+	public XJoinResults<String> getResults(SolrParams params) throws IOException {
 		InputParameters input = new InputParameters();
     	input.setProgram(program);
     	input.setDatabase(new String[] { database });
@@ -123,7 +118,47 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory {
 			throw new RuntimeException("No results");
 		}
 		
-		return job.getResults();
+		FastaJobResults results = job.getResults();
+		boolean unique = new Boolean(params.get(FASTA_UNIQUE_PDB_IDS));
+		final Map<String, Alignment> alignments = results.getAlignments(unique);
+		
+		return new XJoinResults<String>() {
+
+			@Override
+		    public Iterable<String> getJoinIds() {
+		    	String[] entries = new String[alignments.size()];
+		    	int i = 0;
+		    	for (Alignment a : alignments.values()) {
+		    		entries[i++] = getEntryEntity(a);
+		    	}
+		    	Arrays.sort(entries);
+		    	return Arrays.asList(entries);
+		    }
+		    
+			@Override
+		    public Alignment getResult(String joinId) {
+		    	String[] bits = joinId.split("_");
+		    	if (bits.length != 2) {
+		    		throw new RuntimeException("Bad entry_entity format: " + joinId);
+		    	}
+		    	String pdbId = bits[0].toUpperCase();
+		    	int chain = Integer.parseInt(bits[1]) + 'A' - 1;
+		    	String pdbIdChain = pdbId + "_" + Character.valueOf((char)chain);
+		    	return alignments.get(pdbIdChain);
+		    }
+			
+		};
 	}
+
+    private String getEntryEntity(Alignment a) {
+    	// pdb SOLR entry_entity: lower case, and numbers for chain instead of letters
+    	if (a.getChain().length() == 1) {
+        	int chainId = (int)a.getChain().charAt(0) - (int)'A' + 1;
+        	return a.getPdbId().toLowerCase() + "_" + chainId;
+    	} else {
+    		// chain is "Entity" (from PRE_PDB entries)
+    		return a.getPdbId().toLowerCase() + "_" + a.getChain().toLowerCase();
+    	}
+    }
 
 }

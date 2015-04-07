@@ -69,17 +69,6 @@ public class Alignment {
     public String getPdbIdChain() {
     	return pdbId + "_" + chain;
     }
-
-    public String getEntryEntity() {
-    	// pdb SOLR entry_entity: lower case, and numbers for chain instead of letters
-    	if (chain.length() == 1) {
-        	int chainId = (int)chain.charAt(0) - (int)'A' + 1;
-        	return pdbId.toLowerCase() + "_" + chainId;
-    	} else {
-    		// chain is "Entity" (from PRE_PDB entries)
-    		return pdbId.toLowerCase() + "_" + chain.toLowerCase();
-    	}
-    }
     
     public String getQuerySequenceString() {
         return querySeq;

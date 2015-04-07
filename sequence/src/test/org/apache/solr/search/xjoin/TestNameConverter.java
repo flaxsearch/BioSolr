@@ -1,9 +1,9 @@
-package org.apache.solr.xjoin;
+package org.apache.solr.search.xjoin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.apache.solr.xjoin.NameConverter;
+import org.apache.solr.search.xjoin.NameConverter;
 import org.junit.Test;
 
 public class TestNameConverter {
