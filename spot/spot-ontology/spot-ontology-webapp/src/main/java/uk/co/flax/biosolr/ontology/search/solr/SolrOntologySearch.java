@@ -43,6 +43,7 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	public static final String URI_FIELD = "uri";
 	public static final String LABEL_FIELD = "label";
 	public static final String CHILD_URI_FIELD = "child_uris";
+	public static final String SHORT_FORM_FIELD = "short_form";
 
 	private final SolrConfiguration config;
 	private final SolrServer server;
@@ -64,12 +65,20 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 
 	@Override
 	public ResultsList<OntologyEntryBean> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException {
+		return searchOntology(term, filters, start, rows, null);
+	}
+	
+	@Override
+	public ResultsList<OntologyEntryBean> searchOntology(String term, List<String> filters, int start, int rows, List<String> fields) throws SearchEngineException {
 		ResultsList<OntologyEntryBean> results = null;
 		
 		try {
 			SolrQuery query = new SolrQuery(term);
 			if (filters != null && !filters.isEmpty()) {
 				query.addFilterQuery(filters.toArray(new String[filters.size()]));
+			}
+			if (fields != null && !fields.isEmpty()) {
+				query.setFields(fields.toArray(new String[fields.size()]));
 			}
 			query.setStart(start);
 			query.setRows(rows);

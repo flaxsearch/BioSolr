@@ -28,6 +28,12 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChildNodeFacetTreeBuilder.class);
 	
+	private static final List<String> FIELD_LIST = Arrays.asList(
+			SolrOntologySearch.URI_FIELD,
+			SolrOntologySearch.CHILD_URI_FIELD,
+			SolrOntologySearch.LABEL_FIELD,
+			SolrOntologySearch.SHORT_FORM_FIELD);
+	
 	private final OntologySearch ontologySearch;
 
 	public ChildNodeFacetTreeBuilder(OntologySearch ontologySearch) {
@@ -109,7 +115,8 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 			String filters = buildFilterString(uriField, uris);
 
 			try {
-				ResultsList<OntologyEntryBean> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, uris.size());
+				ResultsList<OntologyEntryBean> results = ontologySearch.searchOntology(
+						query, Arrays.asList(filters), 0, uris.size(), FIELD_LIST);
 				annotationMap = results.getResults().stream().collect(Collectors.toMap(OntologyEntryBean::getUri, Function.identity()));
 			} catch (SearchEngineException e) {
 				LOGGER.error("Problem getting ontology entries for filter {}: {}", filters, e.getMessage());
