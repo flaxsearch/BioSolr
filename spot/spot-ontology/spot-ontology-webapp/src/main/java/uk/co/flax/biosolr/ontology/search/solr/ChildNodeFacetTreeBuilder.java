@@ -39,28 +39,18 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		// Extract the URIs from the facet entries
 		Set<String> uriSet = extractIdsFromFacets(entries);
 		
-		// Look up all nodes with those URIs in their child list
-		Map<String, OntologyEntryBean> annotationMap = lookupOntologyEntriesByUri(uriSet, true);
+		// Find all parent nodes for the incoming URIs
+		Map<String, OntologyEntryBean> annotationMap = findParentNodes(uriSet);
 		
-		// Look up nodes all the way up the tree
-		Set<String> lookupSet = extractIdsFromAnnotations(annotationMap.values());
-		while (lookupSet.size() > 0) {
-			Map<String, OntologyEntryBean> lookupMap = lookupOntologyEntriesByUri(lookupSet, true);
-			annotationMap.putAll(lookupMap);
-			
-			lookupSet = extractIdsFromAnnotations(lookupMap.values());
-			lookupSet.removeAll(annotationMap.keySet());
-		}
-		
-		// Look up the very bottom-level entries
+		// Find the bottom-level nodes, if there are any which haven't been looked up
 		uriSet.removeAll(annotationMap.keySet());
-		// Look up by URI, rather than child URI
-		annotationMap.putAll(lookupOntologyEntriesByUri(uriSet, false));
+		annotationMap.putAll(filterEntriesByField(uriSet, SolrOntologySearch.URI_FIELD));
 		
 		// Find the top node(s)
 		Set<String> topUris = findTopLevelNodes(annotationMap);
+		LOGGER.debug("Found {} top level nodes", topUris.size());
 		
-		// Convert the original facets to a map
+		// Convert the original facets to a map, keyed by URI
 		Map<String, FacetEntry> entryMap = 
 				entries.stream().collect(Collectors.toMap(FacetEntry::getLabel, Function.identity()));
 
@@ -74,26 +64,49 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		return facetTrees;
 	}
 	
+	/**
+	 * Find all parent nodes for the given set of URIs.
+	 * @param uris the starting set of URIs.
+	 * @return a map of nodes, keyed by their URIs.
+	 */
+	private Map<String, OntologyEntryBean> findParentNodes(Collection<String> uris) {
+		Map<String, OntologyEntryBean> parentNodes = new HashMap<>();
+		
+		Set<String> childrenFound = new HashSet<>();
+		Set<String> childUris = new HashSet<>(uris);
+		
+		while (childUris.size() > 0) {
+			// Find the direct parents for the current child URIs
+			Map<String, OntologyEntryBean> parents = filterEntriesByField(childUris, SolrOntologySearch.CHILD_URI_FIELD);
+			parentNodes.putAll(parents);
+			childrenFound.addAll(childUris);
+			
+			// Get the IDs for all the retrieved nodes - these are the next set of
+			// nodes whose parents should be found.
+			childUris = parents.keySet();
+			// Strip out any nodes we've already looked up
+			childUris.removeAll(childrenFound);
+		};
+		
+		return parentNodes;
+	}
+	
 	private Set<String> extractIdsFromFacets(List<FacetEntry> entries) {
 		return entries.stream().map(FacetEntry::getLabel).collect(Collectors.toSet());
 	}
 	
-	private Set<String> extractIdsFromAnnotations(Collection<OntologyEntryBean> annotations) {
-		return annotations.stream().map(OntologyEntryBean::getUri).collect(Collectors.toSet());
-	}
-	
 	/**
-	 * Fetch the EFO annotations for a collection of URIs.
-	 * @param uris
-	 * @return a map of URI -> ontology entry for the incoming URIs.
+	 * Fetch the EFO annotations containing one or more URIs in a particular field.
+	 * @param uris the URIs to check for.
+	 * @param uriField the field to filter against.
+	 * @return a map of URI to ontology entry for the incoming URIs.
 	 */
-	private Map<String, OntologyEntryBean> lookupOntologyEntriesByUri(Collection<String> uris, boolean children) {
+	private Map<String, OntologyEntryBean> filterEntriesByField(Collection<String> uris, String uriField) {
 		Map<String, OntologyEntryBean> annotationMap = new HashMap<>();
 		if (uris.size() > 0) {
-			LOGGER.debug("Looking up {} entries by URI", uris.size());
-
+			LOGGER.debug("Looking up {} ontology entries in field {}", uris.size(), uriField);
 			String query = "*:*";
-			String filters = buildFilterString(children ? SolrOntologySearch.CHILD_URI_FIELD : SolrOntologySearch.URI_FIELD, uris);
+			String filters = buildFilterString(uriField, uris);
 
 			try {
 				ResultsList<OntologyEntryBean> results = ontologySearch.searchOntology(query, Arrays.asList(filters), 0, uris.size());
