@@ -1,5 +1,7 @@
 package org.apache.solr.search.xjoin;
 
+import java.util.Locale;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -58,7 +60,8 @@ public class NameConverter {
   public static String getMethodName(String fieldName) {
     StringBuilder methodName = new StringBuilder("get");
     for (String bit : fieldName.split("_")) {
-      methodName.append(bit.substring(0, 1).toUpperCase());
+      // English locale since code is written in English
+      methodName.append(bit.substring(0, 1).toUpperCase(Locale.ENGLISH));
       methodName.append(bit.substring(1));
     }
     return methodName.toString();
