@@ -1740,10 +1740,8 @@
   </searchComponent>
   
   <!-- BioSolr FASTA -->
-  <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin">
-    <str name="xJoinSearchComponent">xjoin_fasta</str>
-  </queryParser>
-
+  <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin" />
+  
   <valueSourceParser name="fasta" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
     <str name="xJoinSearchComponent">xjoin_fasta</str>
     <double name="defaultValue">1.0</double>
@@ -1767,7 +1765,7 @@
   </searchComponent>
   
   <searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">uk.co.flax.biosolr.pdbe.ExampleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
     <str name="joinField">entry_entity</str>
     <lst name="external">
       <str name="values">2afi_1,3aeu_2,1aky_1</str>

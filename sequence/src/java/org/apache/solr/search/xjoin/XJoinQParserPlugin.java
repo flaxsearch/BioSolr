@@ -106,6 +106,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
       public Query parse() throws SyntaxError {
         String componentName = localParams.get(QueryParsing.V);//never null
         XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
+        
+        //TODO boolean combinations e.g. {!xjoin}x1 OR (x2 AND x3)
 
         FieldType ft = req.getSchema().getFieldTypeNoEx(xJoin.getJoinField());
         Method method = Method.valueOf(localParams.get(METHOD, Method.termsFilter.name()));
@@ -116,7 +118,6 @@ public class XJoinQParserPlugin extends QParserPlugin {
           throw new RuntimeException("No xjoin results in request context");
         }
 
-        //FIXME this is where we would do any boolean combinations
         List<Object> joinIds = new ArrayList<>();
         for (Object joinId : results.getJoinIds()) {
           joinIds.add(joinId);
@@ -129,7 +130,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
           String joinStr = joinIds.get(i).toString();
           // logic same as TermQParserPlugin
           if (ft != null) {
-        	ft.readableToIndexed(joinStr, term);
+          ft.readableToIndexed(joinStr, term);
           } else {
             term.copyChars(joinStr);
           }

@@ -1,5 +1,22 @@
 package org.apache.solr.search.xjoin;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,13 +65,18 @@ public class XJoinSearchComponent extends SearchComponent {
     
     try {
       Class<?> factoryClass = Class.forName((String)args.get(XJoinParameters.INIT_RESULTS_FACTORY));
-      factory = (XJoinResultsFactory)factoryClass.newInstance();
+      factory = (XJoinResultsFactory<?>)factoryClass.newInstance();
       factory.init((NamedList)args.get(XJoinParameters.EXTERNAL_PREFIX));
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
     
     joinField = (String)args.get(XJoinParameters.INIT_JOIN_FIELD);
+  }
+  
+  // get the results factory
+  /*package*/ XJoinResultsFactory<?> getResultsFactory() {
+	  return factory;
   }
   
   // get the context tag for XJoin results
@@ -67,26 +89,26 @@ public class XJoinSearchComponent extends SearchComponent {
    */
   @Override
   public void prepare(ResponseBuilder rb) throws IOException {
-      SolrParams params = rb.req.getParams();
-      if (! params.getBool(getName(), false)) {
-        return;
-      }
+    SolrParams params = rb.req.getParams();
+    if (! params.getBool(getName(), false)) {
+      return;
+    }
       
-      XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
-      if (results != null) {
-        return;
-      }
+    XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
+    if (results != null) {
+      return;
+    }
       
-      // generate external process results, by passing 'external' prefixed parameters
-      // from the query string to our factory
-      String prefix = getName() + "." + XJoinParameters.EXTERNAL_PREFIX + ".";
-      ModifiableSolrParams externalParams = new ModifiableSolrParams();
-      for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
-        String name = it.next();
-        if (name.startsWith(prefix)) {
-          externalParams.set(name.substring(prefix.length()), params.get(name));
-        }
+    // generate external process results, by passing 'external' prefixed parameters
+    // from the query string to our factory
+    String prefix = getName() + "." + XJoinParameters.EXTERNAL_PREFIX + ".";
+    ModifiableSolrParams externalParams = new ModifiableSolrParams();
+    for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
+      String name = it.next();
+      if (name.startsWith(prefix)) {
+        externalParams.set(name.substring(prefix.length()), params.get(name));
       }
+    }
     results = factory.getResults(externalParams);
     rb.req.getContext().put(getResultsTag(), results);
   }
