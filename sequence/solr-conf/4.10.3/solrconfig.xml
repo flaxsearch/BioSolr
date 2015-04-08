@@ -1760,7 +1760,7 @@
       <str name="program">ssearch</str>
       <str name="database">pdb</str>
       <str name="stype">protein</str>
-      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/src/test-files/result</str>
+      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/src/test/uk/co/flax/biosolr/pdbe/result</str>
     </lst>
   </searchComponent>
   
