@@ -62,7 +62,7 @@ public class XJoinValueSourceParser extends ValueSourceParser {
     
     Double defaultValue = (Double)args.get(XJoinParameters.INIT_DEFAULT_VALUE);
     if (defaultValue != null) {
-    	this.defaultValue = defaultValue;
+      this.defaultValue = defaultValue;
     }
     
     if (componentName == null && attribute == null) {

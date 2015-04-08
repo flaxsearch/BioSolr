@@ -27,75 +27,75 @@ import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
 public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
 
-	private String string;
-	
-	private String[] values;
-	
-	// all join ids return a result *except* this one!
-	private String missingId;
-	
-	@Override
-	@SuppressWarnings("rawtypes")
-	public void init(NamedList args) {
-		String valuesStr = (String)args.get("values");
-		values = valuesStr.split(",");
-		string = (String)args.get("string");
-		missingId = (String)args.get("missingId");
-	}
-	
-	public String getMissingId() {
-		return missingId;
-	}
-	
-	public String getString() {
-		return string;
-	}
+  private String string;
+  
+  private String[] values;
+  
+  // all join ids return a result *except* this one!
+  private String missingId;
+  
+  @Override
+  @SuppressWarnings("rawtypes")
+  public void init(NamedList args) {
+    String valuesStr = (String)args.get("values");
+    values = valuesStr.split(",");
+    string = (String)args.get("string");
+    missingId = (String)args.get("missingId");
+  }
+  
+  public String getMissingId() {
+    return missingId;
+  }
+  
+  public String getString() {
+    return string;
+  }
 
-	@Override
-	public XJoinResults<String> getResults(SolrParams params) throws IOException {
-		return new Results();
-	}
-	
-	public class Results implements XJoinResults<String> {
+  @Override
+  public XJoinResults<String> getResults(SolrParams params) throws IOException {
+    return new Results();
+  }
+  
+  public class Results implements XJoinResults<String> {
 
-		@Override
-		public Object getResult(String joinId) {
-			if (joinId.equals(missingId)) {
-				return null;
-			}
-			return new Result(joinId, 0.5);
-		}
+    @Override
+    public Object getResult(String joinId) {
+      if (joinId.equals(missingId)) {
+        return null;
+      }
+      return new Result(joinId, 0.5);
+    }
 
-		@Override
-		public Iterable<String> getJoinIds() {
-			Arrays.sort(values);
-			return Arrays.asList(values);
-		}
-		
-		public String getString() {
-			return string;
-		}
-		
-	}
-	
-	public static class Result {
-		
-		private String value;
-		private double score;
-		
-		private Result(String value, double score) {
-			this.value = value;
-			this.score = score;
-		}
-		
-		public String getValue() {
-			return value;
-		}
-		
-		public double getScore() {
-			return score;
-		}
-		
-	}
+    @Override
+    public Iterable<String> getJoinIds() {
+      Arrays.sort(values);
+      return Arrays.asList(values);
+    }
+    
+    public String getString() {
+      return string;
+    }
+    
+  }
+  
+  public static class Result {
+    
+    private String value;
+    private double score;
+    
+    private Result(String value, double score) {
+      this.value = value;
+      this.score = score;
+    }
+    
+    public String getValue() {
+      return value;
+    }
+    
+    public double getScore() {
+      return score;
+    }
+    
+  }
 
 }

@@ -39,7 +39,7 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
 
   static final String componentName = "xjoin";
   static final String parserName = "xjoin";
-	
+
   @Test
   public void test() throws Exception {
     SolrCore core = h.getCore();

@@ -76,7 +76,7 @@ public class XJoinSearchComponent extends SearchComponent {
   
   // get the results factory
   /*package*/ XJoinResultsFactory<?> getResultsFactory() {
-	  return factory;
+    return factory;
   }
   
   // get the context tag for XJoin results
