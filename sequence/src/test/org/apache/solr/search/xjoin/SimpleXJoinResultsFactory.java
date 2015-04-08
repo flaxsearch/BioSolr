@@ -60,7 +60,7 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
 
 		@Override
 		public Object getResult(String joinId) {
-			if (missingId.equals(joinId)) {
+			if (joinId.equals(missingId)) {
 				return null;
 			}
 			return new Result(joinId, 0.5);
