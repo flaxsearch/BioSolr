@@ -44,6 +44,7 @@ public interface OntologySearch extends SearchEngine {
 	 * @param filters any filters to apply.
 	 * @param start the starting position in the results (0-offset).
 	 * @param rows the maximum number of rows to return.
+	 * @param fields the fields required in the results list.
 	 * @return a results list of {@link EFOAnnotation} objects.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */

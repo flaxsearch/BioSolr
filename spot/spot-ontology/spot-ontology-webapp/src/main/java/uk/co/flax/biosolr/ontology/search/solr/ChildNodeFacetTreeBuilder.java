@@ -24,10 +24,25 @@ import uk.co.flax.biosolr.ontology.search.OntologySearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
+/**
+ * <p>
+ * Implementation of the {@link FacetTreeBuilder} that only relies on the
+ * node ID and child node ID fields to build the hierarchical facet tree.
+ * </p>
+ * <p>
+ * This works from the bottom-level up, searching to find records whose
+ * child node list contains the current level's node IDs. The search is
+ * repeated until there are no further child nodes to filter on. Once
+ * a complete list of records is available, the top-level node(s) are found,
+ * and then used as a base to recurse through the remainder of the records,
+ * working out where they fall in the hierarchy.
+ * </p>
+ */
 public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChildNodeFacetTreeBuilder.class);
 	
+	/** The fields required when searching for the nodes to use in the tree. */
 	private static final List<String> FIELD_LIST = Arrays.asList(
 			SolrOntologySearch.URI_FIELD,
 			SolrOntologySearch.CHILD_URI_FIELD,
@@ -57,13 +72,13 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		LOGGER.debug("Found {} top level nodes", topUris.size());
 		
 		// Convert the original facets to a map, keyed by URI
-		Map<String, FacetEntry> entryMap = 
-				entries.stream().collect(Collectors.toMap(FacetEntry::getLabel, Function.identity()));
+		Map<String, Long> facetCounts = 
+				entries.stream().collect(Collectors.toMap(FacetEntry::getLabel, FacetEntry::getCount));
 
 		// Now collate the nodes into level-based tree(s)
 		List<FacetEntry> facetTrees = new ArrayList<>(topUris.size());
 		for (String uri : topUris) {
-			FacetEntry fe = buildAccumulatedEntryTree(0, annotationMap.get(uri), entryMap, annotationMap);
+			FacetEntry fe = buildAccumulatedEntryTree(0, annotationMap.get(uri), facetCounts, annotationMap);
 			facetTrees.add(fe);
 		}
 		
@@ -97,6 +112,12 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		return parentNodes;
 	}
 	
+	/**
+	 * Extract the label values from the facets and return them as a set.
+	 * (Labels are expected to hold the facet IDs.)
+	 * @param entries the facets whose labels are required.
+	 * @return a set containing all of the labels.
+	 */
 	private Set<String> extractIdsFromFacets(List<FacetEntry> entries) {
 		return entries.stream().map(FacetEntry::getLabel).collect(Collectors.toSet());
 	}
@@ -148,6 +169,14 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		return sb.toString();
 	}
 	
+	/**
+	 * Find all of the top-level records in a set of annotations. This is done by ooping
+	 * through the annotations and finding any other annotations in the set which
+	 * contain the current annotation in their child list.
+	 * @param annotations a map of annotation ID to annotation entries to check over.
+	 * @return a set containing the identifiers for all of the top-level
+	 * annotations found.
+	 */
 	private Set<String> findTopLevelNodes(Map<String, OntologyEntryBean> annotations) {
 		Set<String> topLevel = new HashSet<>();
 
@@ -177,22 +206,26 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	 * Recursively build an accumulated facet entry tree.
 	 * @param level current level in the tree (used for debugging/logging).
 	 * @param node the current node.
-	 * @param entryMap the facet entry map.
-	 * @param annotationMap the map of valid annotations (either in the facet map, or parents of
-	 * entries in the facet map).
+	 * @param facetCounts the facet counts, keyed by node ID.
+	 * @param annotationMap the map of annotations (either in the original facet set,
+	 * or parent entries of those entries).
 	 * @return an {@link AccumulatedFacetEntry} containing details for the current node and all
 	 * sub-nodes down to the lowest leaf which has a facet count.
 	 */
 	private AccumulatedFacetEntry buildAccumulatedEntryTree(int level, OntologyEntryBean node,
-			Map<String, FacetEntry> entryMap, Map<String, OntologyEntryBean> annotationMap) {
+			Map<String, Long> facetCounts, Map<String, OntologyEntryBean> annotationMap) {
+		// Build the child hierarchy for this entry
 		SortedSet<AccumulatedFacetEntry> childHierarchy = new TreeSet<>(Collections.reverseOrder());
 		long childTotal = 0;
 		if (node.getChildUris() != null) {
+			// Loop through all the direct child URIs, looking for those which are in the annotation map
 			for (String childUri : node.getChildUris()) {
 				if (annotationMap.containsKey(childUri)) {
+					// Found a child of this node - recurse to build its facet tree
 					LOGGER.trace("[{}] Building subAfe for {}", level, childUri);
 					AccumulatedFacetEntry subAfe = buildAccumulatedEntryTree(level + 1, annotationMap.get(childUri),
-							entryMap, annotationMap);
+							facetCounts, annotationMap);
+					// childTotal is the total facet hits below the current level
 					childTotal += subAfe.getTotalCount();
 					childHierarchy.add(subAfe);
 					LOGGER.trace("[{}] subAfe total: {} - child Total {}, child count {}", level, subAfe.getTotalCount(), childTotal, childHierarchy.size());
@@ -200,20 +233,48 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 			}
 		}
 
-		long count = 0;
-		if (entryMap.containsKey(node.getUri())) {
-			count = entryMap.get(node.getUri()).getCount();
-		}
+		// Get the count and label for this entry
+		long count = getFacetCount(node.getUri(), facetCounts);
+		String label = getLabelForNode(node);
 		
-		String label;
-		if (node.getLabel() == null) {
-			label = node.getShortForm().get(0);
-		} else {
-			label = node.getLabel().get(0);
-		}
-		
+		// Build the accumulated facet entry
 		LOGGER.trace("[{}] Building AFE for {}", level, node.getUri());
 		return new AccumulatedFacetEntry(node.getUri(), label, count, childTotal, childHierarchy);
+	}
+	
+	/**
+	 * Get the count for the facet with the given key.
+	 * @param key the key to look up.
+	 * @param facetCounts the map of facet counts.
+	 * @return the count, or <code>0</code> if the key does not exist in the map.
+	 */
+	private long getFacetCount(String key, Map<String, Long> facetCounts) {
+		long ret = 0;
+		
+		if (facetCounts.containsKey(key)) {
+			ret = facetCounts.get(key);
+		}
+		
+		return ret;
+	}
+	
+	/**
+	 * Get the label for a node.
+	 * @param node the node whose label is required.
+	 * @return the label - either the first value in the label list, or the
+	 * first value in the shortForm list, or the URI if neither of those is
+	 * available.
+	 */
+	private String getLabelForNode(OntologyEntryBean node) {
+		String label = node.getUri();
+		
+		if (node.getLabel() != null && !node.getLabel().isEmpty()) {
+			label = node.getLabel().get(0);
+		} else if (node.getShortForm() != null && !node.getShortForm().isEmpty()) {
+			label = node.getShortForm().get(0);
+		}
+		
+		return label;
 	}
 	
 }
