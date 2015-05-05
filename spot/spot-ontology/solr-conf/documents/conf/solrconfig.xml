@@ -1757,8 +1757,8 @@
     </highlighting>
   </searchComponent>
   
-<!--   <searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet"> -->
-<!--   </searchComponent> -->
+  <searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet">
+  </searchComponent>
 
   <!-- Update Processors
 

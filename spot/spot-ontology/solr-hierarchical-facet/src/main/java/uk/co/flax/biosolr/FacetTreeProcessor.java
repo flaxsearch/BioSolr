@@ -15,21 +15,28 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TermQuery;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.SolrCore;
+import org.apache.solr.handler.admin.CoreAdminHandler;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SimpleFacets;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocIterator;
-import org.apache.solr.search.DocList;
+import org.apache.solr.search.DocListAndSet;
 import org.apache.solr.search.DocSet;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
@@ -41,31 +48,56 @@ public class FacetTreeProcessor extends SimpleFacets {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FacetTreeProcessor.class);
 	
 	public static final String CHILD_FIELD_PARAM = "childField";
+	public static final String COLLECTION_PARAM = "collection";
+	public static final String NODE_FIELD_PARAM = "nodeField";
 
 	public FacetTreeProcessor(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
 		super(req, docs, params, rb);
 	}
 
 	public NamedList<Object> process(String[] facetTrees) throws IOException {
-		if (!rb.doFacets || facetTrees == null) {
+		if (!rb.doFacets || facetTrees == null || facetTrees.length == 0) {
 			return null;
 		}
 
 		NamedList<Object> treeResponse = new NamedList<>();
 		for (String fTree : facetTrees) {
+			String nodeField, childField;
+			
 			try {
 				// NOTE: this sets localParams (SimpleFacets is stateful)
 				this.parseParams(TreeFacetComponent.FACET_TREE, fTree);
-				if (localParams.get(CHILD_FIELD_PARAM) == null) {
+				if (localParams == null) {
+					throw new SyntaxError("Missing facet tree parameters");
+				} else if (localParams.get(CHILD_FIELD_PARAM) == null) {
 					throw new SyntaxError("Missing child field definition in " + fTree);
+				} else if (localParams.get(NODE_FIELD_PARAM) == null) {
+					nodeField = key;
+				} else {
+					nodeField = localParams.get(NODE_FIELD_PARAM);
 				}
+				childField = localParams.get(CHILD_FIELD_PARAM);
 			} catch (SyntaxError e) {
 				throw new SolrException(ErrorCode.BAD_REQUEST, e);
 			}
 			
 			// Verify that the field and child field both exist in the schema
 			SolrIndexSearcher searcher = rb.req.getSearcher();
-			for (String fieldName : Arrays.asList(key, localParams.get(CHILD_FIELD_PARAM))) {
+			if (StringUtils.isNotBlank(localParams.get(COLLECTION_PARAM))) {
+				// Get the SolrCore
+				for (SolrRequestHandler handler : rb.req.getCore().getRequestHandlers().values()) {
+					if (handler instanceof CoreAdminHandler) {
+						SolrCore core = ((CoreAdminHandler) handler).getCoreContainer().getCore(
+								localParams.get(COLLECTION_PARAM));
+
+						searcher = new SolrIndexSearcher(core, "/" + core.getName(), core.getLatestSchema(),
+								core.getSolrConfig().indexConfig, core.getName(), 
+								rb.req.getSearcher().isCachingEnabled(), core.getDirectoryFactory());
+					}
+				}
+			}
+			
+			for (String fieldName : Arrays.asList(nodeField, childField)) {
 				SchemaField sField = searcher.getSchema().getField(fieldName);
 				if (sField == null) {
 					throw new SolrException(ErrorCode.BAD_REQUEST, "\"" + fieldName
@@ -73,32 +105,34 @@ public class FacetTreeProcessor extends SimpleFacets {
 				}
 			}
 			
-			List<TreeFacetField> fTrees = processFacetTree(key, localParams.get(CHILD_FIELD_PARAM));
+			List<TreeFacetField> fTrees = processFacetTree(searcher, key, nodeField, childField);
 			treeResponse.add(key, fTrees);
 		}
 
 		return treeResponse;
 	}
 	
-	private List<TreeFacetField> processFacetTree(String field, String childField) throws IOException {
+	private List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, String facetField, String field, String childField) throws IOException {
 		// Get the initial facet terms for the field
-		NamedList<Integer> fieldFacet = getTermCounts(field);
+		NamedList<Integer> fieldFacet = getTermCounts(facetField);
 		
 		// Convert the term counts to a map (and a set of keys)
 		Map<String, Integer> facetMap = new HashMap<>();
 		Set<String> facetValues = new HashSet<>(fieldFacet.size());
 		for (Iterator<Entry<String, Integer>> it = fieldFacet.iterator(); it.hasNext(); ) {
 			Entry<String, Integer> entry = it.next();
-			facetMap.put(entry.getKey(), entry.getValue());
-			facetValues.add(entry.getKey());
+			if (entry.getValue() > 0) {
+				facetMap.put(entry.getKey(), entry.getValue());
+				facetValues.add(entry.getKey());
+			}
 		}
 		
 		// Get the parent entries
-		Map<String, Set<String>> parentEntries = findParentEntries(facetValues, field, childField);
+		Map<String, Set<String>> parentEntries = findParentEntries(searcher, facetValues, field, childField);
 		
 		// Find the bottom-level nodes, if there are any which haven't been looked up
 		facetValues.removeAll(parentEntries.keySet());
-		parentEntries.putAll(filterEntriesByField(facetValues, field, childField));
+		parentEntries.putAll(filterEntriesByField(searcher, facetValues, field, childField));
 		
 		// Find the top node(s)
 		Set<String> topUris = findTopLevelNodes(parentEntries);
@@ -113,12 +147,14 @@ public class FacetTreeProcessor extends SimpleFacets {
 	}
 
 	/**
-	 * Find all parent nodes for the given set of URIs.
+	 * Find all parent nodes for the given set of items.
 	 * @param facetValues the starting set of URIs.
+	 * @param treeField the item field containing the node value.
+	 * @param filterField the item field containing the child values.
 	 * @return a map of nodes, keyed by their URIs.
 	 * @throws IOException 
 	 */
-	private Map<String, Set<String>> findParentEntries(Collection<String> facetValues, String treeField, String filterField) throws IOException {
+	private Map<String, Set<String>> findParentEntries(SolrIndexSearcher searcher, Collection<String> facetValues, String treeField, String filterField) throws IOException {
 		Map<String, Set<String>> parentEntries = new HashMap<>();
 		
 		Set<String> childrenFound = new HashSet<>();
@@ -126,7 +162,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 		
 		while (childIds.size() > 0) {
 			// Find the direct parents for the current child URIs
-			Map<String, Set<String>> parents = filterEntriesByField(childIds, treeField, filterField);
+			Map<String, Set<String>> parents = filterEntriesByField(searcher, childIds, treeField, filterField);
 			parentEntries.putAll(parents);
 			childrenFound.addAll(childIds);
 			
@@ -141,24 +177,25 @@ public class FacetTreeProcessor extends SimpleFacets {
 	}
 	
 	/**
-	 * Fetch the EFO annotations containing one or more URIs in a particular field.
-	 * @param uris the URIs to check for.
-	 * @param uriField the field to filter against.
-	 * @return a map of URI to ontology entry for the incoming URIs.
+	 * Fetch facets for items containing a specific set of values.
+	 * @param facetValues the incoming values to use as filters.
+	 * @param treeField the item field containing the node value.
+	 * @param filterField the item field containing the child values, which will be used
+	 * to filter against. 
+	 * @return a map of node value to child values for the items.
 	 * @throws IOException 
 	 */
-	private Map<String, Set<String>> filterEntriesByField(Collection<String> facetValues, String treeField, String filterField) throws IOException {
+	private Map<String, Set<String>> filterEntriesByField(SolrIndexSearcher searcher, Collection<String> facetValues, String treeField, String filterField) throws IOException {
 		Map<String, Set<String>> filteredEntries = new HashMap<>();
 
 		if (facetValues.size() > 0) {
 			LOGGER.debug("Looking up {} entries in field {}", facetValues.size(), filterField);
-			Query query = new MatchAllDocsQuery();
+			Query query = new MatchAllDocsQuery(); // buildFilterQuery(filterField, facetValues);
 			Query filter = buildFilterQuery(filterField, facetValues);
 			
-			SolrIndexSearcher searcher = rb.req.getSearcher();
-			DocList docs = searcher.getDocList(query, filter, null, 0, facetValues.size());
+			DocListAndSet docs = searcher.getDocListAndSet(query, filter, Sort.RELEVANCE, 0, facetValues.size());
 			
-			for (DocIterator it = docs.iterator(); it.hasNext(); ) {
+			for (DocIterator it = docs.docList.iterator(); it.hasNext(); ) {
 				int id = it.nextDoc();
 				Document doc = searcher.doc(id);
 				Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
@@ -177,24 +214,18 @@ public class FacetTreeProcessor extends SimpleFacets {
 	 * @return a filter string.
 	 */
 	private Query buildFilterQuery(String field, Collection<String> values) {
-		StringBuilder sb = new StringBuilder("(");
+		BooleanQuery bf = new BooleanQuery();
 		
-		for (Iterator<String> it = values.iterator(); it.hasNext(); ) {
-			String value = it.next();
-			sb.append(value);
-			
-			if (it.hasNext()) {
-				sb.append(" OR ");
-			}
+		for (String value : values) {
+			Term term = new Term(field, value);
+			bf.add(new TermQuery(term), Occur.SHOULD);
 		}
-		
-		sb.append(")");
-		
-		return new TermQuery(new Term(field, sb.toString()));
+
+		return bf;
 	}
 	
 	/**
-	 * Find all of the top-level records in a set of annotations. This is done by ooping
+	 * Find all of the top-level records in a set of annotations. This is done by looping
 	 * through the annotations and finding any other annotations in the set which
 	 * contain the current annotation in their child list.
 	 * @param annotations a map of annotation ID to annotation entries to check over.
