@@ -371,7 +371,7 @@
 	<!-- An alternative geospatial field type new to Solr 4. It supports multiValued and polygon shapes. For more information about this and other 
 		Spatial fields new to Solr 4, see: http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
 	<fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true" distErrPct="0.025" maxDistErr="0.000009"
-		units="degrees" />
+		distanceUnits="degrees" />
 
 	<!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType Parameters: defaultCurrency: Specifies the default currency if 
 		none specified. Defaults to "USD" precisionStep: Specifies the precisionStep for the TrieLong field used for the amount providerClass: Lets you 

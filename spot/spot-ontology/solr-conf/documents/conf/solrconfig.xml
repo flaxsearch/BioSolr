@@ -72,6 +72,7 @@
        The examples below can be used to load some solr-contribs along 
        with their external dependencies.
     -->
+  <!-- 
   <lib dir="../../../contrib/extraction/lib" regex=".*\.jar" />
   <lib dir="../../../dist/" regex="solr-cell-\d.*\.jar" />
 
@@ -83,6 +84,7 @@
 
   <lib dir="../../../contrib/velocity/lib" regex=".*\.jar" />
   <lib dir="../../../dist/" regex="solr-velocity-\d.*\.jar" />
+  -->
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a 
        specific jar file.  This will cause a serious error to be logged 
@@ -1205,8 +1207,10 @@
        Admin Handlers - This will register all the standard admin
        RequestHandlers.  
     -->
+  <!-- 
   <requestHandler name="/admin/" 
                   class="solr.admin.AdminHandlers" />
+    -->
   <!-- This single handler is equivalent to the following... -->
   <!--
      <requestHandler name="/admin/luke"       class="solr.admin.LukeRequestHandler" />
@@ -1752,6 +1756,9 @@
       </boundaryScanner>
     </highlighting>
   </searchComponent>
+  
+<!--   <searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet"> -->
+<!--   </searchComponent> -->
 
   <!-- Update Processors
 
