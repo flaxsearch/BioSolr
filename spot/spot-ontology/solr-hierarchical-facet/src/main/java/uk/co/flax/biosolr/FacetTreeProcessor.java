@@ -106,10 +106,19 @@ public class FacetTreeProcessor extends SimpleFacets {
 			}
 			
 			List<TreeFacetField> fTrees = processFacetTree(searcher, key, nodeField, childField);
-			treeResponse.add(key, fTrees);
+			
+			treeResponse.add(key, convertTreeFacetFields(fTrees));
 		}
 
 		return treeResponse;
+	}
+	
+	private List<NamedList<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
+		List<NamedList<Object>> nlTrees = new ArrayList<>(fTrees.size());
+		for (TreeFacetField tff : fTrees) {
+			nlTrees.add(tff.toNamedList());
+		}
+		return nlTrees;
 	}
 	
 	private List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, String facetField, String field, String childField) throws IOException {
@@ -148,7 +157,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 
 	/**
 	 * Find all parent nodes for the given set of items.
-	 * @param facetValues the starting set of URIs.
+	 * @param facetValues the starting set of node IDs.
 	 * @param treeField the item field containing the node value.
 	 * @param filterField the item field containing the child values.
 	 * @return a map of nodes, keyed by their URIs.
@@ -307,6 +316,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 		
 		if (facetCounts.containsKey(key)) {
 			ret = facetCounts.get(key);
+			LOGGER.trace("Got facet count hit for {}: {}", key, ret);
 		}
 		
 		return ret;
