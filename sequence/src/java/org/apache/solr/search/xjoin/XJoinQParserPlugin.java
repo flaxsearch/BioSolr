@@ -47,17 +47,14 @@ import org.apache.solr.search.SolrConstantScoreQuery;
 import org.apache.solr.search.SyntaxError;
 
 /**
- * QParserPlugin for extracting join ids from the results stored in an XJoin search
- * component.
+ * QParserPlugin for extracting join ids from the results stored in XJoin search
+ * components.
  */
 public class XJoinQParserPlugin extends QParserPlugin {
   
   public static final String NAME = "xjoin";
 
-  /** The separator to use in the underlying suggester */
-  public static final String SEPARATOR = "separator";
-
-  /** Choose the internal algorithm */
+  /** For choosing the internal algorithm */
   private static final String METHOD = "method";
   
   @Override @SuppressWarnings("rawtypes")
@@ -65,6 +62,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     // nothing to do
   }
  
+  // this code is modified from TermsQParserPlugin
   private static enum Method {
     termsFilter {
       @Override
@@ -102,7 +100,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     abstract Filter makeFilter(String fname, Iterator<BytesRef> it);
   }
   
-  // transformer between Object and BytesRef
+  // transformer from Object to BytesRef (using the given FieldType)
   static private Transformer<Object, BytesRef> transformer(final FieldType ft) {
     return new Transformer<Object, BytesRef>() {
       
@@ -133,6 +131,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
   
   static class XJoinQParser extends QParser implements JoinSpec.Iterable {
     
+    // record the join field when retrieving external results
+    // must be the same for all external sources referenced in our query
     private String joinField;
 
     public XJoinQParser(String qstr, SolrParams localParams, SolrParams params,SolrQueryRequest req) {
@@ -146,7 +146,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
       JoinSpec<?> js = JoinSpec.parse(localParams.get(QueryParsing.V));
       Iterator<?> it = js.iterator(this);
       if (joinField == null) {
-        throw new RuntimeException("No XJoin component in query");
+        throw new RuntimeException("No XJoin component referenced by query");
       }
       FieldType ft = req.getSchema().getFieldTypeNoEx(joinField);
       Iterator<BytesRef> bytesRefs = new TransformIterator<Object, BytesRef>(it, transformer(ft));
@@ -159,10 +159,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
       XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
       if (joinField == null) {
         joinField = xJoin.getJoinField();
-      } else {
-        if (! xJoin.getJoinField().equals(joinField)) {
-          throw new RuntimeException("XJoin components used in the same query must have same join field");
-        }
+      } else if (! xJoin.getJoinField().equals(joinField)) {
+        throw new RuntimeException("XJoin components used in the same query must have same join field");
       }
       XJoinResults<T> results = (XJoinResults<T>)req.getContext().get(xJoin.getResultsTag());
       if (results == null) {
