@@ -19,9 +19,9 @@ package org.apache.solr.search.xjoin;
 
 import java.util.Iterator;
 
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.collections4.Transformer;
-import org.apache.commons.collections4.iterators.TransformIterator;
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections.iterators.TransformIterator;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsFilter;
 import org.apache.lucene.search.AutomatonQuery;
@@ -66,6 +66,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
   private static enum Method {
     termsFilter {
       @Override
+      @SuppressWarnings("unchecked")
       Filter makeFilter(String fname, Iterator<BytesRef> it) {
         return new TermsFilter(fname, IteratorUtils.toList(it));
       }
@@ -82,6 +83,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     },
     automaton {
       @Override
+      @SuppressWarnings("unchecked")
       Filter makeFilter(String fname, Iterator<BytesRef> it) {
         Automaton union = Automata.makeStringUnion(IteratorUtils.toList(it));
         return new MultiTermQueryWrapperFilter<AutomatonQuery>(new AutomatonQuery(new Term(fname), union)) {
@@ -92,7 +94,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
       //note: limited to one val per doc
       @Override
       Filter makeFilter(String fname, Iterator<BytesRef> it) {
-        return new FieldCacheTermsFilter(fname, IteratorUtils.toArray(it, BytesRef.class));
+        return new FieldCacheTermsFilter(fname, (BytesRef[])IteratorUtils.toArray(it, BytesRef.class));
       }
     };
 
@@ -101,8 +103,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
   }
   
   // transformer from Object to BytesRef (using the given FieldType)
-  static private Transformer<Object, BytesRef> transformer(final FieldType ft) {
-    return new Transformer<Object, BytesRef>() {
+  static private Transformer transformer(final FieldType ft) {
+    return new Transformer() {
       
       BytesRef term = new BytesRef();
       
@@ -141,6 +143,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Query parse() throws SyntaxError {
       Method method = Method.valueOf(localParams.get(METHOD, Method.termsFilter.name()));
       JoinSpec<?> js = JoinSpec.parse(localParams.get(QueryParsing.V));
@@ -149,7 +152,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
         throw new Exception("No XJoin component referenced by query");
       }
       FieldType ft = req.getSchema().getFieldTypeNoEx(joinField);
-      Iterator<BytesRef> bytesRefs = new TransformIterator<Object, BytesRef>(it, transformer(ft));
+      Iterator<BytesRef> bytesRefs = new TransformIterator(it, transformer(ft));
       return new SolrConstantScoreQuery(method.makeFilter(joinField, bytesRefs));
     }
     

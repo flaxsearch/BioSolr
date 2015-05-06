@@ -29,55 +29,55 @@ import org.junit.Test;
 public class TestJoinSpec {
 
   private JoinSpec.Iterable ranges = new JoinSpec.Iterable() {
-  	@Override
-  	@SuppressWarnings("unchecked")
-  	public Iterator<Integer> iterator(String componentName) {
-  		String[] bits = componentName.split("-");
-  		final int m = new Integer(bits[0]);
-  		final int n = bits.length > 1 ? new Integer(bits[1]) : m;
-  		return new Iterator<Integer>() {
+    @Override
+    @SuppressWarnings("unchecked")
+    public Iterator<Integer> iterator(String componentName) {
+      String[] bits = componentName.split("-");
+      final int m = new Integer(bits[0]);
+      final int n = bits.length > 1 ? new Integer(bits[1]) : m;
+      return new Iterator<Integer>() {
   
-  			int N = m;
-  			
-  			@Override
-  			public boolean hasNext() {
-  				return N <= n;
-  			}
+        int N = m;
+        
+        @Override
+        public boolean hasNext() {
+          return N <= n;
+        }
   
-  			@Override
-  			public Integer next() {
-  				return N++;
-  			}
+        @Override
+        public Integer next() {
+          return N++;
+        }
   
-  			@Override
-  			public void remove() {
-  				throw new UnsupportedOperationException();
-  			}
-  			
-  		};
-  	}
+        @Override
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+        
+      };
+    }
   };
 
   private void assertResult(Integer[] values, String v) {
-	  JoinSpec<Integer> js = JoinSpec.parse(v);
-	  Iterator<Integer> it = js.iterator(ranges);
-	  List<Integer> list = new ArrayList<>();
-	  while (it.hasNext()) {
-		  list.add(it.next());
-	  }
-	  assertEquals(Arrays.asList(values), list);
+    JoinSpec<Integer> js = JoinSpec.parse(v);
+    Iterator<Integer> it = js.iterator(ranges);
+    List<Integer> list = new ArrayList<>();
+    while (it.hasNext()) {
+      list.add(it.next());
+    }
+    assertEquals(Arrays.asList(values), list);
   }
   
   @Test
   public void testUnary() {
-	  Integer[] values = { 1, 2, 3 };
-	  assertResult(values, "1-3");
+    Integer[] values = { 1, 2, 3 };
+    assertResult(values, "1-3");
   }
   
   @Test
   public void test() {
-	  Integer[] values = { 1, 5, 8 };
-	  assertResult(values, "(5-7 XOR 6-8) OR 1");
+    Integer[] values = { 1, 5, 8 };
+    assertResult(values, "(5-7 XOR 6-8) OR 1");
   }
   
 }

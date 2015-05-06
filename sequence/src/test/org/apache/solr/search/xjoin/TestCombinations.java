@@ -26,8 +26,9 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import static org.apache.commons.collections4.IteratorUtils.toList;
+import static org.apache.commons.collections.IteratorUtils.toList;
 
+@SuppressWarnings("unchecked")
 public class TestCombinations extends TestCase {
 
   Iterator<Integer> e, a, aa, b, bb;
