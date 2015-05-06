@@ -20,6 +20,7 @@ package org.apache.solr.search.xjoin;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,40 +34,67 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.search.SyntaxError;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
 
-  static final String componentName = "xjoin";
-  static final String parserName = "xjoin";
+  static final String COMPONENT_NAME = "xjoin";
+  static final String COMPONENT_NAME_2 = "xjoin2";
+  static final String COMPONENT_NAME_3 = "xjoin3";
+  static final String PARSER_NAME = "xjoin";
+  
+  static SolrCore core;
+  static SolrQueryRequest req;
+  static SolrIndexSearcher searcher;
 
-  @Test
-  public void test() throws Exception {
-    SolrCore core = h.getCore();
-
+  private static void initComponent(SolrCore core, Map<Object, Object> context, String componentName) throws IOException {
     XJoinSearchComponent xjsc = (XJoinSearchComponent)core.getSearchComponent(componentName);
     SimpleXJoinResultsFactory xjrf = (SimpleXJoinResultsFactory)xjsc.getResultsFactory();
     XJoinResults<?> results = xjrf.getResults(null);
-    
-    // mock SolrQueryRequest with join results in the context
-    SolrQueryRequest req = mock(SolrQueryRequest.class);
+    context.put(xjsc.getResultsTag(), results);    
+  }
+  
+  private static Query parse(String v) throws SyntaxError {
+    ModifiableSolrParams localParams = new ModifiableSolrParams();
+    localParams.add(QueryParsing.V, v);
+    QParserPlugin qpp = core.getQueryPlugin(PARSER_NAME);
+    QParser qp = qpp.createParser(null, localParams, null, req);
+    return qp.parse();
+  }
+  
+  @BeforeClass
+  public static void initialise() throws Exception {
+    core = h.getCore();
+
+    // set up mock SOLR query request
+    req = mock(SolrQueryRequest.class);
     Map<Object, Object> context = new HashMap<>();
-    context.put(xjsc.getResultsTag(), results);
     when(req.getContext()).thenReturn(context);
     when(req.getCore()).thenReturn(core);
     when(req.getSchema()).thenReturn(core.getLatestSchema());
+
+    // put results for XJoin components in request context
+    initComponent(core, context, COMPONENT_NAME);
+    initComponent(core, context, COMPONENT_NAME_2);
+    initComponent(core, context, COMPONENT_NAME_3);
     
-    ModifiableSolrParams localParams = new ModifiableSolrParams();
-    localParams.add(QueryParsing.V, componentName);
-    
-    QParserPlugin qpp = core.getQueryPlugin(parserName);
-    QParser qp = qpp.createParser(null, localParams, null, req);
-    Query q = qp.parse();
-    
-    SolrIndexSearcher searcher = core.getRegisteredSearcher().get();
-    DocSet docs = searcher.getDocSet(q);
+    // get a search, used by some tests
+    searcher = core.getRegisteredSearcher().get();
+  }
+  
+  @AfterClass
+  public static void destroy() throws Exception {
     searcher.close();
-    
+  }
+  
+  @Test
+  public void testSingleComponent() throws Exception {
+    Query q = parse(COMPONENT_NAME);
+    DocSet docs = searcher.getDocSet(q);
+
     assertEquals(2, docs.size());
     DocIterator it = docs.iterator();
     assertTrue(it.hasNext());
@@ -74,6 +102,23 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     assertTrue(it.hasNext());
     assertEquals(3, it.nextDoc());
     assertFalse(it.hasNext());
+  }
+  
+  @Test
+  public void testBooleanCombination() throws Exception {
+    Query q = parse(COMPONENT_NAME + " AND " + COMPONENT_NAME_2);
+    DocSet docs = searcher.getDocSet(q);
+
+    assertEquals(1, docs.size());
+    DocIterator it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(3, it.nextDoc());
+    assertFalse(it.hasNext());    
+  }
+  
+  @Test(expected=XJoinQParserPlugin.Exception.class)
+  public void testConflictingJoinFields() throws Exception {
+    parse(COMPONENT_NAME + " OR " + COMPONENT_NAME_3);
   }
   
 }

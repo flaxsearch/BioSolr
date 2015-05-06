@@ -146,7 +146,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
       JoinSpec<?> js = JoinSpec.parse(localParams.get(QueryParsing.V));
       Iterator<?> it = js.iterator(this);
       if (joinField == null) {
-        throw new RuntimeException("No XJoin component referenced by query");
+        throw new Exception("No XJoin component referenced by query");
       }
       FieldType ft = req.getSchema().getFieldTypeNoEx(joinField);
       Iterator<BytesRef> bytesRefs = new TransformIterator<Object, BytesRef>(it, transformer(ft));
@@ -160,15 +160,22 @@ public class XJoinQParserPlugin extends QParserPlugin {
       if (joinField == null) {
         joinField = xJoin.getJoinField();
       } else if (! xJoin.getJoinField().equals(joinField)) {
-        throw new RuntimeException("XJoin components used in the same query must have same join field");
+        throw new Exception("XJoin components used in the same query must have same join field");
       }
       XJoinResults<T> results = (XJoinResults<T>)req.getContext().get(xJoin.getResultsTag());
       if (results == null) {
-        throw new RuntimeException("No xjoin results in request context");
+        throw new Exception("No xjoin results in request context");
       }
       return results.getJoinIds().iterator();
     }
     
+  }
+  
+  @SuppressWarnings("serial")
+  static class Exception extends RuntimeException {
+    public Exception(String message) {
+      super(message);
+    }
   }
   
 }
