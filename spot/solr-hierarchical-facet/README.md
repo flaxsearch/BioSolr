@@ -12,7 +12,7 @@ Solr 5.0 code library.
 To build the plugin, navigate to this directory, and execute
 
 ```
-     mvn clean package
+% mvn clean package
 ```
 
 This will generate a jar file in the `target` directory.
@@ -26,8 +26,8 @@ You will also need to modify the `solrconfig.xml` file to configure the
 new plugin. Add the following lines inside the `config` element:
 
 ```
-  &lt;searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet"&gt;
-  &lt;/searchComponent&gt;
+  <searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet">
+  </searchComponent>
 ```
 
 As noted above, this extends and replaces the default Solr `facet` component.
