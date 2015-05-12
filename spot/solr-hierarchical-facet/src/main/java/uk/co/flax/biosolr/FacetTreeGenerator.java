@@ -35,9 +35,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TermQuery;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
@@ -47,7 +45,7 @@ import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocIterator;
-import org.apache.solr.search.DocListAndSet;
+import org.apache.solr.search.DocSet;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
@@ -211,35 +209,22 @@ public class FacetTreeGenerator {
 
 		if (facetValues.size() > 0) {
 			LOGGER.debug("Looking up {} entries in field {}", facetValues.size(), filterField);
-			Query query = new MatchAllDocsQuery(); // buildFilterQuery(filterField, facetValues);
 			Query filter = buildFilterQuery(filterField, facetValues);
 			LOGGER.trace("Filter query: {}", filter);
 			
-			int start = 0;
-			int len = facetValues.size();
-			boolean done = false;
-			
-			while (!done) {
-				DocListAndSet docs = searcher.getDocListAndSet(query, filter, Sort.RELEVANCE, start, len);
-				if (docs.docList.matches() > start + len) {
-					start = len;
-					len = docs.docList.matches() - len;
-				} else {
-					done = true;
-				}
+			DocSet docs = searcher.getDocSet(filter);
 
-				for (DocIterator it = docs.docList.iterator(); it.hasNext(); ) {
-					int id = it.nextDoc();
-					Document doc = searcher.doc(id);
-					Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
-					filteredEntries.put(doc.get(treeField), childIds);
-					LOGGER.trace("Got {} children for node {}", childIds.size(), doc.get(treeField));
-					// If a label field has been specified, get the first available value
-					if (labelField != null) {
-						String[] labelValues = doc.getValues(labelField);
-						if (labelValues.length > 0) {
-							labels.put(doc.get(treeField), labelValues[0]);
-						}
+			for (DocIterator it = docs.iterator(); it.hasNext(); ) {
+				int id = it.nextDoc();
+				Document doc = searcher.doc(id);
+				Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
+				filteredEntries.put(doc.get(treeField), childIds);
+				LOGGER.trace("Got {} children for node {}", childIds.size(), doc.get(treeField));
+				// If a label field has been specified, get the first available value
+				if (labelField != null) {
+					String[] labelValues = doc.getValues(labelField);
+					if (labelValues.length > 0) {
+						labels.put(doc.get(treeField), labelValues[0]);
 					}
 				}
 			}
