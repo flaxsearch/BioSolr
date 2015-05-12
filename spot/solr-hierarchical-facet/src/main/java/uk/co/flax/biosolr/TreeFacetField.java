@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.SortedSet;
 
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 
 public class TreeFacetField implements Comparable<TreeFacetField>, Serializable {
 
@@ -69,9 +70,9 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return ret;
 	}
 
-	public NamedList<Object> toNamedList() {
-		NamedList<Object> nl = new NamedList<>();
-
+	public SimpleOrderedMap<Object> toMap() {
+		SimpleOrderedMap<Object> nl = new SimpleOrderedMap<>();
+		
 		if (label != null) {
 			nl.add(LABEL_KEY, label);
 		}
@@ -81,11 +82,11 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		if (hierarchy != null && hierarchy.size() > 0) {
 			List<NamedList<Object>> hierarchyList = new ArrayList<>(hierarchy.size());
 			for (TreeFacetField tff : hierarchy) {
-				hierarchyList.add(tff.toNamedList());
+				hierarchyList.add(tff.toMap());
 			}
 			nl.add(HIERARCHY_KEY, hierarchyList);
 		}
-
+		
 		return nl;
 	}
 

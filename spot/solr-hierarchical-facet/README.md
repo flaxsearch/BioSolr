@@ -59,24 +59,24 @@ to plan:
       "facet_fields": {
         "uri": [ ... ]
       },
-      "facet_trees": [
-        "uri", [
-          [
-            "value", "http://www.ebi.ac.uk/efo/EFO_0004417",
-            "count", 0,
-            "total", 1,
-            "hierarchy",
+      "facet_trees": {
+        "uri": [
+          {
+            "value": "http://www.ebi.ac.uk/efo/EFO_0004417",
+            "count": 0,
+            "total": 1,
+            "hierarchy":
             [
-              [
-                "value", "http://purl.obolibrary.org/obo/CHEBI_3650",
-                "count", 1,
-                "total", 0
-              ]
+              {
+                "value": "http://purl.obolibrary.org/obo/CHEBI_3650",
+                "count": 1,
+                "total": 0
+              }
             ]
-          ],
+          },
           ...
         ]
-      ]
+      }
     }
   }
 }    

@@ -28,6 +28,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.ResponseBuilder;
@@ -64,12 +65,12 @@ public class FacetTreeProcessor extends SimpleFacets {
 		super(req, docs, params, rb);
 	}
 
-	public NamedList<Object> process(String[] facetTrees) throws IOException {
+	public SimpleOrderedMap<List<SimpleOrderedMap<Object>>> process(String[] facetTrees) throws IOException {
 		if (!rb.doFacets || facetTrees == null || facetTrees.length == 0) {
 			return null;
 		}
 
-		NamedList<Object> treeResponse = new NamedList<>();
+		SimpleOrderedMap<List<SimpleOrderedMap<Object>>> treeResponse = new SimpleOrderedMap<>();
 		for (String fTree : facetTrees) {
 			try {
 				// NOTE: this sets localParams (SimpleFacets is stateful)
@@ -127,10 +128,10 @@ public class FacetTreeProcessor extends SimpleFacets {
 		return treeResponse;
 	}
 
-	private List<NamedList<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
-		List<NamedList<Object>> nlTrees = new ArrayList<>(fTrees.size());
+	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
+		List<SimpleOrderedMap<Object>> nlTrees = new ArrayList<>(fTrees.size());
 		for (TreeFacetField tff : fTrees) {
-			nlTrees.add(tff.toNamedList());
+			nlTrees.add(tff.toMap());
 		}
 		return nlTrees;
 	}
