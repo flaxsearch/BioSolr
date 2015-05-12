@@ -1,3 +1,18 @@
+/**
+ * Copyright (c) 2015 Lemur Consulting Ltd.
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package uk.co.flax.biosolr;
 
 import java.io.Serializable;
@@ -13,27 +28,27 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	private static final long serialVersionUID = 5709339278691781478L;
 
 	private static final String LABEL_KEY = "label";
-	private static final String FIELD_KEY = "value";
+	private static final String VALUE_KEY = "value";
 	private static final String COUNT_KEY = "count";
 	private static final String TOTAL_KEY = "total";
 	private static final String HIERARCHY_KEY = "hierarchy";
 
 	private final String label;
-	private final String field;
+	private final String value;
 	private final long count;
 	private final long childCount;
 	private final SortedSet<TreeFacetField> hierarchy;
 
-	public TreeFacetField(String label, String field, long count, long childCount, SortedSet<TreeFacetField> hierarchy) {
+	public TreeFacetField(String label, String value, long count, long childCount, SortedSet<TreeFacetField> hierarchy) {
 		this.label = label;
-		this.field = field;
+		this.value = value;
 		this.count = count;
 		this.childCount = childCount;
 		this.hierarchy = hierarchy;
 	}
 
-	public String getField() {
-		return field;
+	public String getValue() {
+		return value;
 	}
 
 	public long getCount() {
@@ -63,7 +78,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 			if (ret == 0) {
 				// If the counts are the same, compare the ID as well, to double-check
 				// whether they're actually the same entry
-				ret = getField().compareTo(o.getField());
+				ret = getValue().compareTo(o.getValue());
 			}
 		}
 
@@ -76,9 +91,9 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		if (label != null) {
 			nl.add(LABEL_KEY, label);
 		}
-		nl.add(FIELD_KEY, field);
+		nl.add(VALUE_KEY, value);
 		nl.add(COUNT_KEY, count);
-		nl.add(TOTAL_KEY, childCount);
+		nl.add(TOTAL_KEY, getTotal());
 		if (hierarchy != null && hierarchy.size() > 0) {
 			List<NamedList<Object>> hierarchyList = new ArrayList<>(hierarchy.size());
 			for (TreeFacetField tff : hierarchy) {
@@ -98,7 +113,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (int) (count ^ (count >>> 32));
-		result = prime * result + ((field == null) ? 0 : field.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		result = prime * result + (int) (childCount ^ (childCount >>> 32));
 		return result;
@@ -122,11 +137,11 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		if (count != other.count) {
 			return false;
 		}
-		if (field == null) {
-			if (other.field != null) {
+		if (value == null) {
+			if (other.value != null) {
 				return false;
 			}
-		} else if (!field.equals(other.field)) {
+		} else if (!value.equals(other.value)) {
 			return false;
 		}
 		if (label == null) {
