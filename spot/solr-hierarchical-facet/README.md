@@ -87,7 +87,7 @@ generation:
 
 - `labelField` - specifies a field in the core to use as the label for the
 facet. If the field is an array, the first value will be used.
-- `collection` - specifies that the facets should be generated from another
+- `collection` - specifies that the hierarchy should be generated from another
 collection in the current Solr instance. If, for example, you want to generate the
 facets for a search across document data, but the hierarchical data is in a separate
 collection (an ontology index, perhaps), this parameter allows you to do this.
