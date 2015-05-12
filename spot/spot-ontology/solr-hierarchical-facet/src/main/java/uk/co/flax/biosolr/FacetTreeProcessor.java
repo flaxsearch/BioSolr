@@ -28,18 +28,18 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CoreDescriptor;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.handler.admin.CoreAdminHandler;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SimpleFacets;
 import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocListAndSet;
 import org.apache.solr.search.DocSet;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
+import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +56,8 @@ public class FacetTreeProcessor extends SimpleFacets {
 	private String childField;
 	private String labelField;
 	private Map<String, String> labels = new HashMap<>();
+	
+	private RefCounted<SolrIndexSearcher> searcherRef;
 
 	public FacetTreeProcessor(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
 		super(req, docs, params, rb);
@@ -90,16 +92,11 @@ public class FacetTreeProcessor extends SimpleFacets {
 			SolrIndexSearcher searcher = rb.req.getSearcher();
 			if (StringUtils.isNotBlank(localParams.get(COLLECTION_PARAM))) {
 				// Get the SolrCore
-				for (SolrRequestHandler handler : rb.req.getCore().getRequestHandlers().values()) {
-					if (handler instanceof CoreAdminHandler) {
-						SolrCore core = ((CoreAdminHandler) handler).getCoreContainer().getCore(
-								localParams.get(COLLECTION_PARAM));
-
-						searcher = new SolrIndexSearcher(core, "/" + core.getName(), core.getLatestSchema(),
-								core.getSolrConfig().indexConfig, core.getName(),
-								rb.req.getSearcher().isCachingEnabled(), core.getDirectoryFactory());
-					}
-				}
+				SolrCore currentCore = rb.req.getCore();
+				CoreDescriptor cd = currentCore.getCoreDescriptor();
+				SolrCore reqCore = cd.getCoreContainer().getCore(localParams.get(COLLECTION_PARAM));
+				searcherRef = reqCore.getSearcher();
+				searcher = searcherRef.get();
 			}
 
 			// Check that all of the fields are in the schema
@@ -119,6 +116,9 @@ public class FacetTreeProcessor extends SimpleFacets {
 			}
 
 			List<TreeFacetField> fTrees = processFacetTree(searcher, key, nodeField, childField);
+			if (searcherRef != null) {
+				searcherRef.decref();
+			}
 
 			treeResponse.add(key, convertTreeFacetFields(fTrees));
 		}
@@ -219,20 +219,32 @@ public class FacetTreeProcessor extends SimpleFacets {
 			Query query = new MatchAllDocsQuery(); // buildFilterQuery(filterField, facetValues);
 			Query filter = buildFilterQuery(filterField, facetValues);
 			LOGGER.trace("Filter query: {}", filter);
+			
+			int start = 0;
+			int len = facetValues.size();
+			boolean done = false;
+			
+			while (!done) {
+				DocListAndSet docs = searcher.getDocListAndSet(query, filter, Sort.RELEVANCE, start, len);
+				if (docs.docList.matches() > start + len) {
+					start = len;
+					len = docs.docList.matches() - len;
+				} else {
+					done = true;
+				}
 
-			DocListAndSet docs = searcher.getDocListAndSet(query, filter, Sort.RELEVANCE, 0, facetValues.size());
-
-			for (DocIterator it = docs.docList.iterator(); it.hasNext(); ) {
-				int id = it.nextDoc();
-				Document doc = searcher.doc(id);
-				Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
-				filteredEntries.put(doc.get(treeField), childIds);
-				LOGGER.trace("Got {} children for node {}", childIds.size(), doc.get(treeField));
-				// If a label field has been specified, get the first available value
-				if (labelField != null) {
-					String[] labelValues = doc.getValues(labelField);
-					if (labelValues.length > 0) {
-						labels.put(doc.get(treeField), labelValues[0]);
+				for (DocIterator it = docs.docList.iterator(); it.hasNext(); ) {
+					int id = it.nextDoc();
+					Document doc = searcher.doc(id);
+					Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
+					filteredEntries.put(doc.get(treeField), childIds);
+					LOGGER.trace("Got {} children for node {}", childIds.size(), doc.get(treeField));
+					// If a label field has been specified, get the first available value
+					if (labelField != null) {
+						String[] labelValues = doc.getValues(labelField);
+						if (labelValues.length > 0) {
+							labels.put(doc.get(treeField), labelValues[0]);
+						}
 					}
 				}
 			}
