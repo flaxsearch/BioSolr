@@ -41,10 +41,10 @@ import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.config.loaders.YamlConfigurationLoader;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
 import uk.co.flax.biosolr.ontology.indexer.RelatedItem;
-import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
-import uk.co.flax.biosolr.ontology.loaders.YamlConfigurationLoader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

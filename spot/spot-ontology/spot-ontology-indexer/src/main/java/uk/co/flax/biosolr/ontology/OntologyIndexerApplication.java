@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoader;
+import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
-import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoader;
-import uk.co.flax.biosolr.ontology.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
@@ -44,9 +44,10 @@ public class OntologyIndexerApplication {
 	private final IndexerConfiguration configuration;
 	private final PluginManager pluginManager;
 	
-	public OntologyIndexerApplication(IndexerConfiguration config) {
+	public OntologyIndexerApplication(IndexerConfiguration config) throws Exception {
 		this.configuration = config;
-		this.pluginManager = new PluginManager(config.getPluginTypes());
+		PluginManager.initialisePluginManager(config.getPluginTypes());
+		this.pluginManager = PluginManager.getInstance();
 	}
 	
 	public void run() {
@@ -56,14 +57,6 @@ public class OntologyIndexerApplication {
 			return;
 		} else if (!storageEngine.isReady()) {
 			System.err.println("Storage engine is not ready - aborting!");
-			return;
-		}
-		
-		try {
-			pluginManager.initialisePlugins();
-		} catch (PluginException e) {
-			System.err.println("Exception initialising plugins - aborting!");
-			e.printStackTrace();
 			return;
 		}
 		
@@ -103,6 +96,10 @@ public class OntologyIndexerApplication {
 			indexer.run();
 		} catch (IOException e) {
 			System.err.println("Could not load configuration file " + args[0] + ": " + e.getMessage());
+			System.exit(1);
+		} catch (Exception e) {
+			System.err.println("Error initialising indexer: " + e.getMessage());
+            e.printStackTrace();
 			System.exit(1);
 		}
 	}

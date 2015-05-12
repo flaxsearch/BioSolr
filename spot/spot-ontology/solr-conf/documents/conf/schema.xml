@@ -150,16 +150,6 @@
 	<!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
 	<fieldtype name="binary" class="solr.BinaryField" />
 
-	<!-- Note: These should only be used for compatibility with existing indexes (created with lucene or older Solr versions). Use Trie based fields 
-		instead. As of Solr 3.5 and 4.x, Trie based fields support sortMissingFirst/Last Plain numeric field types that store and index the text value 
-		verbatim (and hence don't correctly support range queries, since the lexicographic ordering isn't equal to the numeric ordering) NOTE: These 
-		field types are deprecated will be removed in Solr 5.0! -->
-	<fieldType name="pint" class="solr.IntField" />
-	<fieldType name="plong" class="solr.LongField" />
-	<fieldType name="pfloat" class="solr.FloatField" />
-	<fieldType name="pdouble" class="solr.DoubleField" />
-	<fieldType name="pdate" class="solr.DateField" sortMissingLast="true" />
-
 	<!-- The "RandomSortField" is not used to store or search any data. You can declare fields of this type it in your schema to generate pseudo-random 
 		orderings of your docs for sorting or function purposes. The ordering is generated based on the field name and the version of the index. As long 
 		as the index version remains unchanged, and the same field name is reused, the ordering of the docs will be consistent. If you want different 
@@ -378,7 +368,7 @@
 	<!-- An alternative geospatial field type new to Solr 4. It supports multiValued and polygon shapes. For more information about this and other 
 		Spatial fields new to Solr 4, see: http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
 	<fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true" distErrPct="0.025" maxDistErr="0.000009"
-		units="degrees" />
+		distanceUnits="degrees" />
 
 	<!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType Parameters: defaultCurrency: Specifies the default currency if 
 		none specified. Defaults to "USD" precisionStep: Specifies the precisionStep for the TrieLong field used for the amount providerClass: Lets you 

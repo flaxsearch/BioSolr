@@ -29,6 +29,8 @@ import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.config.PluginConfiguration;
 
 /**
+ * Singleton class for managing all of the plugins used while indexing the ontology.
+ * 
  * @author Matt Pearce
  */
 public class PluginManager {
@@ -38,22 +40,47 @@ public class PluginManager {
 	private final Map<String, Map<String, PluginConfiguration>> configuration;
 	
 	private final Map<String, Map<String, Plugin>> plugins = new HashMap<>();
+	
+	private static PluginManager pluginManager;
 
-	public PluginManager(Map<String,  Map<String, PluginConfiguration>> configuration) {
+	private PluginManager(Map<String,  Map<String, PluginConfiguration>> configuration) throws PluginInitialisationException {
 		this.configuration = configuration;
+		initialisePlugins();
 	}
 	
-	public void initialisePlugins() throws PluginException {
+	/**
+	 * Initialise the plugin manager.
+	 * @param configuration a map of plugin types, with each value holding plugin name
+	 * to configuration details mappings.
+	 * @throws PluginInitialisationException if the plugins cannot be initialised.
+	 */
+	public static void initialisePluginManager(Map<String,  Map<String, PluginConfiguration>> configuration) throws PluginInitialisationException{
+		if (pluginManager != null) {
+			throw new PluginInitialisationException("Plugin manager has already been initialised.");
+		}
+		
+		pluginManager = new PluginManager(configuration);
+	}
+	
+	/**
+	 * Get the singleton {@link PluginManager} instance.
+	 * @return the plugin manager.
+	 */
+	public static PluginManager getInstance() {
+		return pluginManager;
+	}
+	
+	private void initialisePlugins() throws PluginInitialisationException {
 		try {
 			initialisePlugins(ONTOLOGY_PLUGIN_KEY, configuration.get(ONTOLOGY_PLUGIN_KEY));
 			initialisePlugins(ENTRY_PLUGIN_KEY, configuration.get(ENTRY_PLUGIN_KEY));
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			LOGGER.error("Cannot initialise plugins: {}", e.getMessage());
-			throw new PluginException(e);
+			throw new PluginInitialisationException(e);
 		}
 	}
 	
-	private void initialisePlugins(String pluginType, Map<String, PluginConfiguration> configMap) throws PluginException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+	private void initialisePlugins(String pluginType, Map<String, PluginConfiguration> configMap) throws PluginInitialisationException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		if (configMap == null) {
 			LOGGER.info("No plugins defined for type {}", pluginType);
 		} else {
@@ -64,7 +91,7 @@ public class PluginManager {
 
 				Plugin plugin = (Plugin)Class.forName(config.getPluginClass()).newInstance();
 				if (plugin == null) {
-					throw new PluginException("No " + pluginType + " '" + pluginName + "' plugin available");
+					throw new PluginInitialisationException("No " + pluginType + " '" + pluginName + "' plugin available");
 				}
 
 				plugin.initialise(config.getConfiguration());

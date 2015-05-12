@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.search;
 import java.util.List;
 
 import uk.co.flax.biosolr.ontology.api.EFOAnnotation;
+import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 
 /**
  * Search engine definition for searching the Ontology core.
@@ -35,8 +36,20 @@ public interface OntologySearch extends SearchEngine {
 	 * @return a results list of {@link EFOAnnotation} objects.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<EFOAnnotation> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException;
+	public ResultsList<OntologyEntryBean> searchOntology(String term, List<String> filters, int start, int rows) throws SearchEngineException;
 	
-	public EFOAnnotation findOntologyEntryByUri(String uri) throws SearchEngineException;
+	/**
+	 * Search the ontology core for a term, returning a specific set of fields.
+	 * @param term the term to search.
+	 * @param filters any filters to apply.
+	 * @param start the starting position in the results (0-offset).
+	 * @param rows the maximum number of rows to return.
+	 * @param fields the fields required in the results list.
+	 * @return a results list of {@link EFOAnnotation} objects.
+	 * @throws SearchEngineException if problems occur accessing the search engine.
+	 */
+	public ResultsList<OntologyEntryBean> searchOntology(String term, List<String> filters, int start, int rows, List<String> fields) throws SearchEngineException;
+	
+	public OntologyEntryBean findOntologyEntryByUri(String uri) throws SearchEngineException;
 	
 }

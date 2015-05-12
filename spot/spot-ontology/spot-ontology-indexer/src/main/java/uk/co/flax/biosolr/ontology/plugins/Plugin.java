@@ -36,7 +36,7 @@ public interface Plugin {
 	 * objects.
 	 * @param configuration the configuration details.
 	 */
-	public void initialise(Map<String, Object> configuration) throws PluginException;
+	public void initialise(Map<String, Object> configuration) throws PluginInitialisationException;
 	
 	/**
 	 * Shut down the plugin. This allows for any resources being used to be closed
