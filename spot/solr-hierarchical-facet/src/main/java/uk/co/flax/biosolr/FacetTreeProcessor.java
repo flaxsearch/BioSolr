@@ -1,17 +1,31 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
+import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SimpleFacets;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.DocSet;
 import org.apache.solr.search.SyntaxError;
+import org.apache.solr.util.DefaultSolrThreadFactory;
 
 public class FacetTreeProcessor extends SimpleFacets {
 
@@ -21,42 +35,92 @@ public class FacetTreeProcessor extends SimpleFacets {
 	public static final String NODE_FIELD_PARAM = "nodeField";
 	public static final String LABEL_FIELD_PARAM = "labelField";
 
+	static final Executor directExecutor = new Executor() {
+		@Override
+		public void execute(Runnable r) {
+			r.run();
+		}
+	};
+
+	static final Executor facetExecutor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 
+			10, TimeUnit.SECONDS, // terminate idle threads after 10 sec
+			new SynchronousQueue<Runnable>(), // directly hand off tasks
+			new DefaultSolrThreadFactory("facetExecutor"));
+
 	public FacetTreeProcessor(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
 		super(req, docs, params, rb);
 	}
 
-	public SimpleOrderedMap<List<SimpleOrderedMap<Object>>> process(String[] facetTrees) throws IOException {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public SimpleOrderedMap<NamedList> process(String[] facetTrees) throws IOException {
 		if (!rb.doFacets || facetTrees == null || facetTrees.length == 0) {
 			return null;
 		}
 
-		SimpleOrderedMap<List<SimpleOrderedMap<Object>>> treeResponse = new SimpleOrderedMap<>();
-		for (String fTree : facetTrees) {
-			String nodeField;
-			try {
-				// NOTE: this sets localParams (SimpleFacets is stateful)
-				this.parseParams(LOCAL_PARAM_TYPE, fTree);
-				if (localParams == null) {
-					throw new SyntaxError("Missing facet tree parameters");
-				} else if (localParams.get(CHILD_FIELD_PARAM) == null) {
-					throw new SyntaxError("Missing child field definition in " + fTree);
-				} else if (localParams.get(NODE_FIELD_PARAM) == null) {
-					nodeField = key;
-				} else {
-					nodeField = localParams.get(NODE_FIELD_PARAM);
-				}
-			} catch (SyntaxError e) {
-				throw new SolrException(ErrorCode.BAD_REQUEST, e);
-			}
-			
-			// Construct a generator for the fields we want
-			FacetTreeGenerator generator = new FacetTreeGenerator(localParams.get(COLLECTION_PARAM), nodeField,
-					localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM));
-			// Generate the tree
-			List<SimpleOrderedMap<Object>> trees = generator.generateTree(rb, getTermCounts(key));
+		int maxThreads = req.getParams().getInt(FacetParams.FACET_THREADS, 0);
+		Executor executor = maxThreads == 0 ? directExecutor : facetExecutor;
+		final Semaphore semaphore = new Semaphore((maxThreads <= 0) ? Integer.MAX_VALUE : maxThreads);
+		List<Future<NamedList>> futures = new ArrayList<>(facetTrees.length);
 
-			// Add the generated tree to the response
-			treeResponse.add(key, trees);
+		SimpleOrderedMap<NamedList> treeResponse = new SimpleOrderedMap<>();
+		try {
+			for (String fTree : facetTrees) {
+				String nodeField;
+				try {
+					// NOTE: this sets localParams (SimpleFacets is stateful)
+					this.parseParams(LOCAL_PARAM_TYPE, fTree);
+					if (localParams == null) {
+						throw new SyntaxError("Missing facet tree parameters");
+					} else if (localParams.get(CHILD_FIELD_PARAM) == null) {
+						throw new SyntaxError("Missing child field definition in " + fTree);
+					} else if (localParams.get(NODE_FIELD_PARAM) == null) {
+						nodeField = key;
+					} else {
+						nodeField = localParams.get(NODE_FIELD_PARAM);
+					}
+				} catch (SyntaxError e) {
+					throw new SolrException(ErrorCode.BAD_REQUEST, e);
+				}
+
+				// Construct a generator for the fields we want
+				final FacetTreeGenerator generator = new FacetTreeGenerator(localParams.get(COLLECTION_PARAM),
+						nodeField, localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM));
+				final NamedList<Integer> termCounts = getTermCounts(key);
+				Callable<NamedList> callable = new Callable<NamedList>() {
+					@Override
+					public NamedList call() throws Exception {
+						try {
+							List<SimpleOrderedMap<Object>> tree = generator.generateTree(rb, termCounts);
+							NamedList<List<SimpleOrderedMap<Object>>> nl = new NamedList<>();
+							nl.add(key, tree);
+							return nl;
+						} finally {
+							semaphore.release();
+						}
+					}
+				};
+
+				RunnableFuture<NamedList> runnableFuture = new FutureTask<>(callable);
+				semaphore.acquire();// may block and/or interrupt
+				executor.execute(runnableFuture);// releases semaphore when done
+				futures.add(runnableFuture);
+			}
+
+			// Loop over futures to get the values. The order is the same as
+			// facetFs but shouldn't matter.
+			for (Future<NamedList> future : futures) {
+				treeResponse.addAll(future.get());
+			}
+		} catch (InterruptedException e) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+					"Error while processing facet fields: InterruptedException", e);
+		} catch (ExecutionException ee) {
+			Throwable e = ee.getCause();// unwrap
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error while processing facet fields: "
+					+ e.toString(), e);
 		}
 
 		return treeResponse;

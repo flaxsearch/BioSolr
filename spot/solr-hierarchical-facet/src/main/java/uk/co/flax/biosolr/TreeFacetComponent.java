@@ -1,7 +1,6 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.SolrParams;
@@ -55,7 +54,8 @@ public class TreeFacetComponent extends FacetComponent {
 		// And do the facet tree, if required
 		if (rb.doFacets && rb.req.getParams().getBool(FACET_TREE, false)) {
 			FacetTreeProcessor ftp = new FacetTreeProcessor(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
-			SimpleOrderedMap<List<SimpleOrderedMap<Object>>> ftpResponse = ftp.process(rb.req.getParams().getParams(FACET_TREE_FIELD));
+			@SuppressWarnings("rawtypes")
+			SimpleOrderedMap<NamedList> ftpResponse = ftp.process(rb.req.getParams().getParams(FACET_TREE_FIELD));
 			
 			@SuppressWarnings("unchecked")
 			NamedList<Object> facetCounts = (NamedList<Object>) rb.rsp.getValues().get("facet_counts");

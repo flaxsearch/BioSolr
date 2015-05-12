@@ -3,7 +3,9 @@ package uk.co.flax.biosolr;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SolrQueryRequest;
 import org.junit.Ignore;
@@ -46,6 +48,8 @@ public class FacetTreeProcessorTest {
 		rb.doFacets = true;
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
+		SolrParams params = mock(SolrParams.class);
+		when(req.getParams()).thenReturn(params);
 
 		final String[] facetTrees = new String[] { "{!" + FacetTreeProcessor.LOCAL_PARAM_TYPE + " x=y}uri" };
 		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
