@@ -49,6 +49,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 	public static final String COLLECTION_PARAM = "collection";
 	public static final String NODE_FIELD_PARAM = "nodeField";
 	public static final String LABEL_FIELD_PARAM = "labelField";
+	public static final String LEVELS_PARAM = "levels";
 
 	static final Executor directExecutor = new Executor() {
 		@Override
@@ -99,7 +100,8 @@ public class FacetTreeProcessor extends SimpleFacets {
 
 				// Construct a generator for the fields we want
 				final FacetTreeGenerator generator = new FacetTreeGenerator(localParams.get(COLLECTION_PARAM),
-						nodeField, localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM));
+						nodeField, localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM),
+						localParams.getInt(LEVELS_PARAM, 0));
 				final NamedList<Integer> termCounts = getTermCounts(key);
 				Callable<NamedList> callable = new Callable<NamedList>() {
 					@Override

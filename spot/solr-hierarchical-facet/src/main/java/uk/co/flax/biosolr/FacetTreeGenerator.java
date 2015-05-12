@@ -64,14 +64,16 @@ public class FacetTreeGenerator {
 	private final String nodeField;
 	private final String childField;
 	private final String labelField;
+	private final int maxLevels;
 	
 	private Map<String, String> labels = new HashMap<>();
 	
-	public FacetTreeGenerator(String collection, String nodeField, String childField, String labelField) {
+	public FacetTreeGenerator(String collection, String nodeField, String childField, String labelField, int maxLevels) {
 		this.collection = collection;
 		this.nodeField = nodeField;
 		this.childField = childField;
 		this.labelField = labelField;
+		this.maxLevels = maxLevels;
 	}
 	
 	
@@ -174,7 +176,8 @@ public class FacetTreeGenerator {
 		Set<String> childrenFound = new HashSet<>();
 		Set<String> childIds = new HashSet<>(facetValues);
 
-		while (childIds.size() > 0) {
+		int count = 0;
+		while (childIds.size() > 0 && (maxLevels == 0 || maxLevels >= count)) {
 			// Find the direct parents for the current child URIs
 			Map<String, Set<String>> parents = filterEntriesByField(searcher, childIds, treeField, filterField);
 			parentEntries.putAll(parents);
@@ -185,6 +188,8 @@ public class FacetTreeGenerator {
 			childIds = parents.keySet();
 			// Strip out any nodes we've already looked up
 			childIds.removeAll(childrenFound);
+			
+			count ++;
 		};
 
 		return parentEntries;
