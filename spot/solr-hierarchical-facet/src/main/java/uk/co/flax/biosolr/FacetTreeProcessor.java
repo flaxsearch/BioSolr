@@ -47,6 +47,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FacetTreeProcessor.class);
 
+	public static final String LOCAL_PARAM_TYPE = "ftree";
 	public static final String CHILD_FIELD_PARAM = "childField";
 	public static final String COLLECTION_PARAM = "collection";
 	public static final String NODE_FIELD_PARAM = "nodeField";
@@ -72,7 +73,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 		for (String fTree : facetTrees) {
 			try {
 				// NOTE: this sets localParams (SimpleFacets is stateful)
-				this.parseParams(TreeFacetComponent.FACET_TREE, fTree);
+				this.parseParams(LOCAL_PARAM_TYPE, fTree);
 				if (localParams == null) {
 					throw new SyntaxError("Missing facet tree parameters");
 				} else if (localParams.get(CHILD_FIELD_PARAM) == null) {

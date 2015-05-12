@@ -47,7 +47,7 @@ public class FacetTreeProcessorTest {
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 
-		final String[] facetTrees = new String[] { "{!facetTree x=y}uri" };
+		final String[] facetTrees = new String[] { "{!" + FacetTreeProcessor.LOCAL_PARAM_TYPE + " x=y}uri" };
 		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
 		ftp.process(facetTrees);
 	}
@@ -60,7 +60,7 @@ public class FacetTreeProcessorTest {
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 
-		final String[] facetTrees = new String[] { "{!facetTree " + FacetTreeProcessor.CHILD_FIELD_PARAM + "=child_uris}uri" };
+		final String[] facetTrees = new String[] { "{!" + FacetTreeProcessor.LOCAL_PARAM_TYPE + FacetTreeProcessor.CHILD_FIELD_PARAM + "=child_uris}uri" };
 		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
 		assertNotNull(ftp.process(facetTrees));
 	}
