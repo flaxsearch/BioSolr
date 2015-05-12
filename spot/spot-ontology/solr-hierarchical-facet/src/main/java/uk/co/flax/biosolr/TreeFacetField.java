@@ -53,7 +53,20 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 
 	@Override
 	public int compareTo(TreeFacetField o) {
-		return (int)(count - o.getCount());
+		int ret = 0;
+
+		if (o == null) {
+			ret = 1;
+		} else {
+			ret = (int) (getTotal() - o.getTotal());
+			if (ret == 0) {
+				// If the counts are the same, compare the ID as well, to double-check
+				// whether they're actually the same entry
+				ret = getField().compareTo(o.getField());
+			}
+		}
+
+		return ret;
 	}
 
 	public NamedList<Object> toNamedList() {
