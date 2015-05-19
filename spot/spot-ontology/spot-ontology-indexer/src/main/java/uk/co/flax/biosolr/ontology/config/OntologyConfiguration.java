@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,15 +25,25 @@ public class OntologyConfiguration {
 	
 	private String source;
 	
+	private String namespace;
+	
 	private String accessURI;
 	
-	private String synonymAnnotationURI;
+	private String labelURI;
 	
-	private String definitionAnnotationURI;
+	private List<String> baseURI;
 	
-	private String obsoleteClassURI;
+	private List<String> synonymAnnotationURI;
 	
-	private List<String> ignoreURIs;
+	private List<String> definitionAnnotationURI;
+	
+	private String obsoleteClassURI = "";
+	
+	private List<String> ignoreURIs = new ArrayList<>();
+	
+	private String reasoner;
+	
+	private int batchSize = 1000;
 
 	/**
 	 * @return the accessURI
@@ -51,28 +62,28 @@ public class OntologyConfiguration {
 	/**
 	 * @return the synonymAnnotationURI
 	 */
-	public String getSynonymAnnotationURI() {
+	public List<String> getSynonymAnnotationURI() {
 		return synonymAnnotationURI;
 	}
 
 	/**
 	 * @param synonymAnnotationURI the synonymAnnotationURI to set
 	 */
-	public void setSynonymAnnotationURI(String synonymAnnotationURI) {
+	public void setSynonymAnnotationURI(List<String> synonymAnnotationURI) {
 		this.synonymAnnotationURI = synonymAnnotationURI;
 	}
 
 	/**
 	 * @return the definitionAnnotationURI
 	 */
-	public String getDefinitionAnnotationURI() {
+	public List<String> getDefinitionAnnotationURI() {
 		return definitionAnnotationURI;
 	}
 
 	/**
 	 * @param definitionAnnotationURI the definitionAnnotationURI to set
 	 */
-	public void setDefinitionAnnotationURI(String definitionAnnotationURI) {
+	public void setDefinitionAnnotationURI(List<String> definitionAnnotationURI) {
 		this.definitionAnnotationURI = definitionAnnotationURI;
 	}
 
@@ -116,6 +127,76 @@ public class OntologyConfiguration {
 	 */
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	/**
+	 * @return the reasoner
+	 */
+	public String getReasoner() {
+		return reasoner;
+	}
+
+	/**
+	 * @param reasoner the reasoner to set
+	 */
+	public void setReasoner(String reasoner) {
+		this.reasoner = reasoner;
+	}
+
+	/**
+	 * @return the batchSize
+	 */
+	public int getBatchSize() {
+		return batchSize;
+	}
+
+	/**
+	 * @param batchSize the batchSize to set
+	 */
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+
+	/**
+	 * @return the labelURI
+	 */
+	public String getLabelURI() {
+		return labelURI;
+	}
+
+	/**
+	 * @param labelURI the labelURI to set
+	 */
+	public void setLabelURI(String labelURI) {
+		this.labelURI = labelURI;
+	}
+
+	/**
+	 * @return the namespace
+	 */
+	public String getNamespace() {
+		return namespace;
+	}
+
+	/**
+	 * @param namespace the namespace to set
+	 */
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
+	/**
+	 * @return the baseUris
+	 */
+	public List<String> getBaseURI() {
+		return baseURI;
+	}
+
+	/**
+	 * @param baseUris the baseUris to set
+	 */
+	public void setBaseURI(List<String> baseUris) {
+		this.baseURI = baseUris;
 	}
 	
 }

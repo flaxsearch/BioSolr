@@ -17,7 +17,7 @@ logging:
 
   loggers:
     # Set info logging for Flax code
-    "uk.co.flax": TRACE
+    "uk.co.flax": DEBUG
     
   appenders:
 
@@ -85,8 +85,8 @@ solr:
 jena:
 
   # The URI for the ontology to be read
-  ontologyUri: file:/Users/Matt/Downloads/efo.owl
+  ontologyUri: /home/mlp/Downloads/efo.owl
   
   # The directory containing the TDB database (OPTIONAL)
-  tdbPath: C:/Flax/ebi_data/efo_tdb
+  tdbPath: /home/mlp/flax/tdb
   

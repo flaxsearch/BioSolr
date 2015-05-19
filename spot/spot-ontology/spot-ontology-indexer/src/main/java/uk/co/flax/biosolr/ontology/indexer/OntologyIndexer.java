@@ -28,7 +28,7 @@ package uk.co.flax.biosolr.ontology.indexer;
 public interface OntologyIndexer {
 
 	/**
-	 * Index the ontology with the given source key.
+	 * Index the ontology.
 	 * @throws OntologyIndexingException
 	 */
 	public void indexOntology() throws OntologyIndexingException;

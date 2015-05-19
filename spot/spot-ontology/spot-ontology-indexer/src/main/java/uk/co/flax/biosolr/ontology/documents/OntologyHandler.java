@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -40,13 +41,11 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
-import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.util.ShortFormProvider;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -166,16 +165,17 @@ public class OntologyHandler {
 	}
 	
 	private Collection<String> findAnnotations(IRI iri, OWLAnnotationProperty typeAnnotation) {
-        Set<String> classNames = new HashSet<>();
-
+        Collection<String> classNames = new HashSet<String>();
+    	
         // get all label annotations
-        for (OWLAnnotation labelAnnotation : Searcher.annotations(ontology.getAnnotationAssertionAxioms(iri), typeAnnotation)) {
+        for (OWLAnnotationAssertionAxiom axiom : ontology.getAnnotationAssertionAxioms(iri)) {
+        	OWLAnnotation labelAnnotation = axiom.getAnnotation();
         	OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
         	if (labelAnnotationValue instanceof OWLLiteral) {
         		classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
         	}
         }
-		
+
         return classNames;
 	}
 	
@@ -292,12 +292,11 @@ public class OntologyHandler {
 		
 		Map<String, List<RelatedItem>> restrictions = new HashMap<>();
 		for (OWLObjectSomeValuesFrom val : visitor.getSomeValues()) {
-			OWLPropertyExpression prop = val.getProperty();
 			OWLClassExpression exp = val.getFiller();
 			
 			// Get the shortname of the property expression
 			String shortForm = null;
-			Set<OWLObjectProperty> signatureProps = prop.getObjectPropertiesInSignature();
+			Set<OWLObjectProperty> signatureProps = val.getProperty().getObjectPropertiesInSignature();
 			for (OWLObjectProperty sigProp : signatureProps) {
 				Collection<String> labels = findLabels(sigProp.getIRI());
 				if (labels.size() > 0) {

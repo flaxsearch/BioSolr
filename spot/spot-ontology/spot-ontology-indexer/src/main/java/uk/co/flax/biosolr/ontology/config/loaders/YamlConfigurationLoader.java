@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.loaders;
+package uk.co.flax.biosolr.ontology.config.loaders;
 
 import java.io.FileReader;
 import java.io.IOException;
