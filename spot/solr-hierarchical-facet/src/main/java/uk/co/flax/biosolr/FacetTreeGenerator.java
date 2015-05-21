@@ -76,7 +76,9 @@ public class FacetTreeGenerator {
 	
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
+		// First get the searcher for the required collection
 		RefCounted<SolrIndexSearcher> searcherRef = getSearcherReference(rb);
+		// Make sure all the fields are in the searcher's schema
 		validateFields(searcherRef.get());
 		
 		List<TreeFacetField> fTrees = processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
@@ -86,7 +88,14 @@ public class FacetTreeGenerator {
 		return convertTreeFacetFields(fTrees);
 	}
 	
-	private RefCounted<SolrIndexSearcher> getSearcherReference(ResponseBuilder rb) throws IOException {
+	/**
+	 * Get a reference to the searcher for the required collection. If the collection is
+	 * not the same as the search collection, we assume it is under the same Solr instance.
+	 * @param rb the response builder holding the facets.
+	 * @return a counted reference to the searcher.
+	 * @throws SolrException if the collection cannot be found.
+	 */
+	private RefCounted<SolrIndexSearcher> getSearcherReference(ResponseBuilder rb) throws SolrException {
 		RefCounted<SolrIndexSearcher> searcherRef;
 		
 		SolrCore currentCore = rb.req.getCore();
@@ -105,7 +114,12 @@ public class FacetTreeGenerator {
 		return searcherRef;
 	}
 	
-	private void validateFields(SolrIndexSearcher searcher) throws IOException {
+	/**
+	 * Ensure that all of the required fields exist in the searcher's schema.
+	 * @param searcher the searcher being used to generate the facet trees.
+	 * @throws SolrException if any of the fields do not exist in the schema.
+	 */
+	private void validateFields(SolrIndexSearcher searcher) throws SolrException {
 		// Check that all of the fields are in the schema
 		for (String fieldName : Arrays.asList(nodeField, childField)) {
 			SchemaField sField = searcher.getSchema().getField(fieldName);
@@ -123,6 +137,16 @@ public class FacetTreeGenerator {
 		}
 	}
 	
+	/**
+	 * Process the terms from the incoming facets, and use them to build a list of nodes
+	 * which are then be converted into a hierarchical facet structure. This does multiple
+	 * additional searches to find the parent entries for each of the nodes.
+	 * @param searcher the searcher to use to build the tree.
+	 * @param facetMap the incoming facet values.
+	 * @return a list of TreeFacetFields, each of which is the root of a hierarchical
+	 * node structure.
+	 * @throws IOException
+	 */
 	private List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap) throws IOException {
 		// Extract the facet keys to a volatile set
 		Set<String> facetKeys = new HashSet<>(facetMap.keySet());
@@ -146,6 +170,11 @@ public class FacetTreeGenerator {
 		return tffs;
 	}
 	
+	/**
+	 * Convert a list of facets into a map, keyed by the facet term. 
+	 * @param facetValues the facet values.
+	 * @return a map of term - value for each entry.
+	 */
 	private Map<String, Integer> extractFacetValues(NamedList<Integer> facetValues) {
 		Map<String, Integer> facetMap = new HashMap<>();
 		for (Iterator<Entry<String, Integer>> it = facetValues.iterator(); it.hasNext(); ) {
@@ -157,14 +186,14 @@ public class FacetTreeGenerator {
 		
 		return facetMap;
 	}
-
+	
 	/**
 	 * Find all parent nodes for the given set of items.
 	 * @param searcher the searcher for the collection being used.
 	 * @param facetValues the starting set of node IDs.
 	 * @param treeField the item field containing the node value.
 	 * @param filterField the item field containing the child values.
-	 * @return a map of nodes, keyed by their URIs.
+	 * @return a map of nodes, keyed by their IDs.
 	 * @throws IOException
 	 */
 	private Map<String, Set<String>> findParentEntries(SolrIndexSearcher searcher, Collection<String> facetValues,
@@ -269,14 +298,14 @@ public class FacetTreeGenerator {
 			// URI is in their child list
 			for (Set<String> childId : nodeChildren.values()) {
 				if (childId != null && childId.contains(id)) {
-					// URI is in the child list - not top-level
+					// ID is in the child list - not top-level
 					found = true;
 					break;
 				}
 			}
 
 			if (!found) {
-				// URI Is not in any child lists - must be top-level
+				// ID Is not in any child lists - must be top-level
 				topLevel.add(id);
 			}
 		}
@@ -349,6 +378,12 @@ public class FacetTreeGenerator {
 		return ret;
 	}
 
+	/**
+	 * Convert the tree facet fields into a list of SimpleOrderedMaps, so they can
+	 * be easily serialized by Solr.
+	 * @param fTrees the list of facet tree fields.
+	 * @return a list of equivalent maps.
+	 */
 	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
 		List<SimpleOrderedMap<Object>> nlTrees = new ArrayList<>(fTrees.size());
 		for (TreeFacetField tff : fTrees) {
