@@ -17,19 +17,18 @@ package org.apache.solr.search.xjoin;
  * limitations under the License.
  */
 
+import static org.apache.commons.collections.IteratorUtils.toList;
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 
-import static org.apache.commons.collections.IteratorUtils.toList;
-
 @SuppressWarnings("unchecked")
-public class TestCombinations extends TestCase {
+public class TestCombinations {
 
   Iterator<Integer> e, a, aa, b, bb;
   Integer[] es = { };
