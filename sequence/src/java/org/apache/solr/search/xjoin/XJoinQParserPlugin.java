@@ -127,11 +127,12 @@ public class XJoinQParserPlugin extends QParserPlugin {
    * Like fq={!xjoin}xjoin_component_name OR xjoin_component_name2
    */
   @Override
+  @SuppressWarnings("rawtypes")
   public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
     return new XJoinQParser(qstr, localParams, params, req);
   }
   
-  static class XJoinQParser extends QParser implements JoinSpec.Iterable {
+  static class XJoinQParser<T extends Comparable<T>> extends QParser implements JoinSpec.Iterable {
     
     // record the join field when retrieving external results
     // must be the same for all external sources referenced in our query
@@ -146,8 +147,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
     @SuppressWarnings("unchecked")
     public Query parse() throws SyntaxError {
       Method method = Method.valueOf(localParams.get(METHOD, Method.termsFilter.name()));
-      JoinSpec<?> js = JoinSpec.parse(localParams.get(QueryParsing.V));
-      Iterator<?> it = js.iterator(this);
+      JoinSpec<T> js = JoinSpec.parse(localParams.get(QueryParsing.V));
+      Iterator<T> it = js.iterator(this);
       if (joinField == null) {
         throw new Exception("No XJoin component referenced by query");
       }
@@ -158,7 +159,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> Iterator<T> iterator(String componentName) {
+    public Iterator<T> iterator(String componentName) {
       XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
       if (joinField == null) {
         joinField = xJoin.getJoinField();
