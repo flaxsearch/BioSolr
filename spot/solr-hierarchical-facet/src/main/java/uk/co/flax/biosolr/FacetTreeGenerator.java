@@ -294,7 +294,7 @@ public class FacetTreeGenerator {
 	 * @return a filter string.
 	 */
 	private Query buildFilterQuery(String field, Collection<String> values) {
-		BooleanQuery bf = new BooleanQuery();
+		BooleanQuery bf = new BooleanQuery(true);
 
 		for (String value : values) {
 			Term term = new Term(field, value);
