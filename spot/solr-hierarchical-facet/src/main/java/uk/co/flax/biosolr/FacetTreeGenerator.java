@@ -83,16 +83,24 @@ public class FacetTreeGenerator {
 	
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
+		List<SimpleOrderedMap<Object>> retVal = null;
+		
 		// First get the searcher for the required collection
 		RefCounted<SolrIndexSearcher> searcherRef = getSearcherReference(rb);
-		// Make sure all the fields are in the searcher's schema
-		validateFields(searcherRef.get());
 		
-		List<TreeFacetField> fTrees = processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
+		try {
+			// Make sure all the fields are in the searcher's schema
+			validateFields(searcherRef.get());
+
+			List<TreeFacetField> fTrees = processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
+
+			retVal = convertTreeFacetFields(fTrees);
+		} finally {
+			// Make sure the search ref count is decreased
+			searcherRef.decref();
+		}
 		
-		searcherRef.decref();
-		
-		return convertTreeFacetFields(fTrees);
+		return retVal;
 	}
 	
 	/**
