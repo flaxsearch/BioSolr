@@ -30,7 +30,6 @@ public class TreeFacetComponent extends FacetComponent {
 
 	public static final String FACET_TREE = FacetParams.FACET + ".tree";
 	public static final String FACET_TREE_FIELD = FACET_TREE + ".field";
-	public static final String FACET_TREE_CHILD_FIELD = FACET_TREE + ".childfield";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeFacetComponent.class);
 	
