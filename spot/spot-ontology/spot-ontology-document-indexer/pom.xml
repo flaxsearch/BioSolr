@@ -7,7 +7,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spot-ontology-indexer</artifactId>
+	<artifactId>spot-ontology-document-indexer</artifactId>
 
 	<properties>
 		<mainClass>uk.co.flax.biosolr.ontology.documents.DocumentIndexer</mainClass>

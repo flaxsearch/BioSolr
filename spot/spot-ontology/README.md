@@ -8,9 +8,9 @@ document indexes. Note that the data directories are in the Git ignore file,
 so it should not be possible to accidentally add them to the repository.
 * `spot-ontology-api` contains Java classes common to both the indexers and
 web application.
-* `spot-ontology-indexer` contains the document indexer. This is a fairly basic
-Java application for reading the document data and pushing it into
-Solr.
+* `spot-ontology-document-indexer` contains the document indexer. This is 
+a fairly basic Java application for reading the document data and pushing it 
+into Solr.
 * `spot-ontology-indexer-standalone` is a generic, standalone ontology
 indexer.
 * `spot-ontology-webapp` contains a DropWizard web application, providing
