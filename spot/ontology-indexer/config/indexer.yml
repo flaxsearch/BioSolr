@@ -44,15 +44,6 @@ plugins:
         enabled: true
         tdbPath: C:/Flax/ebi_data/tripleStore
 
-# Database configuration
-database:
-  # Driver details for the database
-  driver: oracle.jdbc.OracleDriver
-  # Database URL, username and password - change as required
-  url: "jdbc:oracle:thin:@host.ebi.ac.uk:1531:spotpro"
-  username: user
-  password: password
-
 # Configuration for the storage engine
 storage:
   # Storage engine type to use

@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,7 +35,7 @@ public class IndexerConfiguration {
 	private StorageConfiguration storage;
 	
 	@JsonProperty("plugins")
-	private Map<String, Map<String, PluginConfiguration>> pluginTypes;
+	private Map<String, Map<String, PluginConfiguration>> pluginTypes = new HashMap<>();
 
 	/**
 	 * @return the ontologySolrUrl

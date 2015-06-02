@@ -22,9 +22,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
-
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+
+import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 /**
  * Factory class to build a reasoner for an ontology, using a

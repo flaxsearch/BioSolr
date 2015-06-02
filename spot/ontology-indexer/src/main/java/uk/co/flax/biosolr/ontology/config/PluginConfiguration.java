@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,7 +33,7 @@ public class PluginConfiguration {
 	@JsonProperty("class")
 	private String pluginClass;
 	
-	private Map<String, Object> configuration;
+	private Map<String, Object> configuration = new HashMap<>();
 
 	/**
 	 * @return the pluginClass
