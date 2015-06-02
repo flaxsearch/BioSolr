@@ -68,7 +68,7 @@ public class DocumentIndexer {
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
 		this.config = readConfig(configFilepath);
 		solrServer = new HttpSolrServer(config.getDocumentsSolrUrl());
-		ontologyHandler = new OntologyHandler(config.getOntologies().get("efo").getAccessURI());
+		ontologyHandler = new OntologyHandler(config.getOntologyUri());
 	}
 
 	private IndexerConfiguration readConfig(String yamlFile) throws IOException {

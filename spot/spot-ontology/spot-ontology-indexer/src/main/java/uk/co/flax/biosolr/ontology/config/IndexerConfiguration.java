@@ -15,9 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Configuration details for Ontology indexer application.
@@ -29,15 +26,10 @@ public class IndexerConfiguration {
 	private String ontologySolrUrl;
 	private String documentsSolrUrl;
 	
-	private Map<String, OntologyConfiguration> ontologies;
+	private String ontologyUri;
 	
 	private DatabaseConfiguration database;
 	
-	private StorageConfiguration storage;
-	
-	@JsonProperty("plugins")
-	private Map<String, Map<String, PluginConfiguration>> pluginTypes;
-
 	/**
 	 * @return the ontologySolrUrl
 	 */
@@ -80,46 +72,12 @@ public class IndexerConfiguration {
 		this.database = database;
 	}
 
-	/**
-	 * @return the ontologies
-	 */
-	public Map<String, OntologyConfiguration> getOntologies() {
-		return ontologies;
+	public String getOntologyUri() {
+		return ontologyUri;
 	}
 
-	/**
-	 * @param ontologies the ontologies to set
-	 */
-	public void setOntologies(Map<String, OntologyConfiguration> ontologies) {
-		this.ontologies = ontologies;
-	}
-
-	/**
-	 * @return the storage
-	 */
-	public StorageConfiguration getStorage() {
-		return storage;
-	}
-
-	/**
-	 * @param storage the storage to set
-	 */
-	public void setStorage(StorageConfiguration storage) {
-		this.storage = storage;
-	}
-
-	/**
-	 * @return the plugin
-	 */
-	public Map<String,  Map<String, PluginConfiguration>> getPluginTypes() {
-		return pluginTypes;
-	}
-
-	/**
-	 * @param plugin the plugin to set
-	 */
-	public void setPluginTypes(Map<String,  Map<String, PluginConfiguration>> plugin) {
-		this.pluginTypes = plugin;
+	public void setOntologyUri(String ontologyUri) {
+		this.ontologyUri = ontologyUri;
 	}
 
 }
