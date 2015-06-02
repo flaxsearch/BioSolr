@@ -43,15 +43,23 @@ public class ReasonerFactory {
 	public ReasonerFactory() {
 	}
 	
+	/**
+	 * Build and return a {@code OWLReasoner} instance for a particular ontology,
+	 * as configured.
+	 * @param config the configuration for the ontology.
+	 * @param ontology the ontology.
+	 * @return the configured {@code OWLReasoner} instance, or the HermiT Reasoner
+	 * if the configuration value is not recognised.
+	 */
 	public OWLReasoner buildReasoner(OntologyConfiguration config, OWLOntology ontology) {
 		String cfgReasoner = config.getReasoner();
 		OWLReasoner reasoner;
 		
-		if (cfgReasoner.equals(HERMIT_REASONER)) {
+		if (HERMIT_REASONER.equalsIgnoreCase(cfgReasoner)) {
 			reasoner = new Reasoner(ontology);
-		} else if (cfgReasoner.equals(ELK_REASONER)) {
+		} else if (ELK_REASONER.equalsIgnoreCase(cfgReasoner)) {
 			reasoner = new ElkReasonerFactory().createReasoner(ontology);
-		} else if (cfgReasoner.equals(PELLET_REASONER)) {
+		} else if (PELLET_REASONER.equalsIgnoreCase(cfgReasoner)) {
 			reasoner = new PelletReasonerFactory().createReasoner(ontology);
 		} else {
 			LOGGER.info("Reasoner {} not recognized - using HermiT", cfgReasoner);
