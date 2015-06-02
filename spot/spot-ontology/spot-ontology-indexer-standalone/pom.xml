@@ -1,10 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>uk.co.flax</groupId>
-	<artifactId>spot-ontology-indexer-standalone</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 
+	<parent>
+		<groupId>uk.co.flax</groupId>
+		<artifactId>spot-ontology</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>spot-ontology-indexer-standalone</artifactId>
 	<name>Ontology Indexer</name>
 	<description>Generic application for indexing ontologies with Solr.</description>
 
