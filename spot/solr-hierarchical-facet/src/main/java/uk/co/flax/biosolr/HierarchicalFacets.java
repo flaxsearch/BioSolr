@@ -42,7 +42,13 @@ import org.apache.solr.search.DocSet;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.DefaultSolrThreadFactory;
 
-public class FacetTreeProcessor extends SimpleFacets {
+/**
+ * Facet generator to process and build one or more hierarchical facet
+ * trees. This deals with the parameter processing and retrieving the
+ * base facet values, before handing over to {@link FacetGenerator}
+ * instances to actually build the facet tree.
+ */
+public class HierarchicalFacets extends SimpleFacets {
 
 	public static final String LOCAL_PARAM_TYPE = "ftree";
 	public static final String CHILD_FIELD_PARAM = "childField";
@@ -63,7 +69,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 			new SynchronousQueue<Runnable>(), // directly hand off tasks
 			new DefaultSolrThreadFactory("facetExecutor"));
 
-	public FacetTreeProcessor(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
+	public HierarchicalFacets(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
 		super(req, docs, params, rb);
 	}
 

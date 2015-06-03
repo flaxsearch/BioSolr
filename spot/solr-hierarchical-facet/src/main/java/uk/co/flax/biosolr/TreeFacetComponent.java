@@ -94,7 +94,7 @@ public class TreeFacetComponent extends FacetComponent {
 
 		// And do the facet tree, if required
 		if (rb.doFacets && rb.req.getParams().getBool(FACET_TREE, false)) {
-			FacetTreeProcessor ftp = new FacetTreeProcessor(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
+			HierarchicalFacets ftp = new HierarchicalFacets(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
 			@SuppressWarnings("rawtypes")
 			SimpleOrderedMap<NamedList> ftpResponse = ftp.process(rb.req.getParams().getParams(FACET_TREE_FIELD));
 			
