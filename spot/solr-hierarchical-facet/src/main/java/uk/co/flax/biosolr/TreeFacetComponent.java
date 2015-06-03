@@ -16,13 +16,21 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
+import org.apache.solr.common.SolrException;
+import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.FacetComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
+import org.apache.solr.search.QueryParsing;
+import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,24 +47,43 @@ public class TreeFacetComponent extends FacetComponent {
 		
 		// Do we need to create a facet tree?
 		if (rb.doFacets && rb.req.getParams().getBool(FACET_TREE, false)) {
-			LOGGER.debug("{} set to true - adding tree fields to facets", FACET_TREE);
-			// Make sure the facet tree field is in the facet field list
-			addTreeFieldsToFacets(rb);
+			try {
+				LOGGER.debug("{} set to true - adding tree fields to facets", FACET_TREE);
+				// Make sure the facet tree field is in the facet field list
+				addTreeFieldsToFacets(rb);
+			} catch (SyntaxError e) {
+				throw new SolrException(ErrorCode.BAD_REQUEST, e);
+			}
 		}
 	}
 	
-	private void addTreeFieldsToFacets(ResponseBuilder rb) {
+	private void addTreeFieldsToFacets(ResponseBuilder rb) throws SyntaxError {
 		String[] ftFields = rb.req.getParams().getParams(FACET_TREE_FIELD);
 		if (ftFields == null || ftFields.length == 0) {
 			LOGGER.warn("No facet tree fields specified - ignoring facet trees");
 		} else {
-			NamedList<Object> params = rb.req.getParams().toNamedList();
-			for (String field : ftFields) {
-				params.add(FacetParams.FACET_FIELD, field);
-				LOGGER.debug("Adding facet tree field {}", field);
-			}
+			// Take a modifiable copy of the incoming params
+			ModifiableSolrParams params = new ModifiableSolrParams(rb.req.getParams());
 
-			rb.req.setParams(SolrParams.toSolrParams(params));
+			// Put the original facet fields (if any) into a Set
+			Set<String> facetFields = new LinkedHashSet<>();
+			if (params.getParams(FacetParams.FACET_FIELD) != null) {
+				facetFields.addAll(Arrays.asList(params.getParams(FacetParams.FACET_FIELD)));
+			}
+			
+			// Add the facet tree fields
+			for (String ftField : ftFields) {
+				// Parse the facet tree field, so we only add the field value,
+				// rather than the whole string (ensure it's unique)
+				SolrParams p = QueryParsing.getLocalParams(ftField, params);
+				facetFields.add(p.get(QueryParsing.V));
+			}
+			
+			// Add the (possibly) new facet fields
+			params.set(FacetParams.FACET_FIELD, facetFields.toArray(new String[facetFields.size()]));
+
+			// Re-set the params in the request
+			rb.req.setParams(params);
 		}
 	}
 

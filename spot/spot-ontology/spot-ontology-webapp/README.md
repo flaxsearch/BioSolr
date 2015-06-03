@@ -12,6 +12,11 @@ The documents index is built using information pulled from the EFO ontology to m
 includes parent and child node labels, as well as those for other types of relationship. These use dynamic fields
 to indicate the type of relationship between the nodes.
 
+The web application now relies on the solr-hierarchical-facet component being built and
+added to the Solr instance. See the solr-hierarchical-facet folder for details of how
+to do this.
+
+
 ### Running the the application
 
 To run the application, use the following command:

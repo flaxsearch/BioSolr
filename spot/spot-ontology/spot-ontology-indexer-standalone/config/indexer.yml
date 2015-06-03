@@ -1,0 +1,58 @@
+
+# Ontology config details
+# URL of the Ontology SOLR endpoint
+ontologySolrUrl: http://localhost:8983/solr/ontology
+# URL of the document SOLR endpoint
+documentsSolrUrl: http://localhost:8983/solr/documents
+
+# Ontologies are referenced by their resource name
+ontologies:
+  efo:
+    # Base access URI - where the ontology should load from
+    accessURI: http://www.ebi.ac.uk/efo/efo.owl
+    
+    # Base URI(s)
+    baseURI: [ "http://www.ebi.ac.uk/efo/EFO_" ]
+    # URI for synonym annotations
+    synonymAnnotationURI: [ "http://www.ebi.ac.uk/efo/alternative_term" ]
+    # URI for definition annotations
+    definitionAnnotationURI: [ "http://www.ebi.ac.uk/efo/definition" ]
+    # URI for obsolete classes
+    obsoleteClassURI: "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
+    # URI for labels
+    labelURI: "http://www.w3.org/2000/01/rdf-schema#label"
+   
+    # URIs of parent classes whose children should be ignored (ie. obsolete classes)
+    ignoreURIs:
+      - "http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"
+      
+    # Which reasoner to user (hermit|elk)
+    reasoner: hermit
+    
+    # Size of batch to index at once (default: 1000)
+    batchSize: 1000
+
+# Plugin configuration - splits into "ontology" and "entry" sections, depending
+# on whether the plugin applies to a whole ontology or individual entries.
+plugins:
+  # ontology-level plugins
+  ontology:
+    # Triple store plugin definition
+    tripleStore:
+      class: "uk.co.flax.biosolr.ontology.plugins.impl.TDBOntologyPlugin"
+      configuration:
+        enabled: true
+        tdbPath: C:/Flax/ebi_data/tripleStore
+
+# Configuration for the storage engine
+storage:
+  # Storage engine type to use
+  engineType: solr
+  
+  # Solr-specific configuration
+  solr:
+    # Base URL for the ontology index
+    baseUrl: http://localhost:8983/solr/ontology
+    
+    # Commit within time when storing items (in ms)
+    commitWithinMs: 60000

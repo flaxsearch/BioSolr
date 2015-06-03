@@ -165,4 +165,57 @@ public class SimpleTreeFacetComponentTest extends SolrTestCaseJ4 {
 	    assertNull(level3.get("hierarchy"));
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testResultsWithOtherFacets() {
+		SolrCore core = h.getCore();
+		
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.add("q", "name:nodeA*");
+		params.add("facet", "true");
+		params.add("facet.tree", "true");
+		params.add("facet.tree.field", "{!ftree childField=child_ids}node_id");
+		params.add("facet.field", "label");
+		params.add("facet.field", "node_id");
+		
+	    SolrQueryResponse rsp = new SolrQueryResponse();
+	    rsp.add("responseHeader", new SimpleOrderedMap<>());
+	    SolrQueryRequest req = new LocalSolrQueryRequest(core, params);
+
+	    SolrRequestHandler handler = core.getRequestHandler(requestHandler);
+	    handler.handleRequest(req, rsp);
+	    req.close();
+	      
+	    assertNull(rsp.getException());
+	    
+	    NamedList results = rsp.getValues();
+	    
+	    NamedList facetFields = (NamedList)((NamedList)(results.get("facet_counts"))).get("facet_fields");
+	    assertNotNull(facetFields);
+	    assertNotNull(facetFields.get("label"));
+	    assertNotNull(facetFields.get("node_id"));
+	    
+	    NamedList facetTree = (NamedList) ((NamedList)(results.get("facet_counts"))).get("facet_trees");
+	    assertNotNull(facetTree);
+	    
+	    // Check the generated hierarchy - should be three levels deep
+	    List<Object> nodes = (List) facetTree.get("node_id");
+	    assertEquals(1, nodes.size());
+	    NamedList level1 = (NamedList) nodes.get(0);
+	    assertEquals("A", level1.get("value"));
+	    assertEquals(1L, level1.get("count"));
+	    assertEquals(6L, level1.get("total"));
+	    List level2Nodes = (List)level1.get("hierarchy");
+	    assertEquals(3, level2Nodes.size());
+	    NamedList level2 = (NamedList)level2Nodes.get(0);
+	    assertEquals(1L, level2.get("count"));
+	    assertEquals(3L, level2.get("total"));
+	    List level3Nodes = (List)level2.get("hierarchy");
+	    assertEquals(2, level3Nodes.size());
+	    NamedList level3 = (NamedList)level3Nodes.get(0);
+	    assertEquals(1L, level3.get("count"));
+	    assertEquals(1L, level3.get("total"));
+	    assertNull(level3.get("hierarchy"));
+	}
+	
 }
