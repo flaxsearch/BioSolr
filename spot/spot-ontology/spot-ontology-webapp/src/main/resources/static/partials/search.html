@@ -50,7 +50,7 @@
             
             <div>
                 <span class="facet-field">Hierarchy</span>
-                <ul class="facet-list" ng-repeat="entry in facets.uri_accumulator">
+                <ul class="facet-list" ng-repeat="entry in facets.efo_uri_hierarchy">
                     <hierarchy entry="entry" click="addFilter(field, value)" top-func="addFilter" />
                 </ul>
             </div>
@@ -92,7 +92,7 @@
 		                    <div ng-repeat="(key, labels) in result.relatedLabels" class="row">
 		                        <div class="col-md-2">{{ formatRelatedType(key) }}</div>
 		                        <div class="col-md-10"><ul class="label-display">
-		                            <li ng-repeat="label in labels">{{ label }}</li>
+		                            <li ng-repeat="label in labels track by $index">{{ label }}</li>
 		                        </ul></div>
 		                    </div>
 		                </div>

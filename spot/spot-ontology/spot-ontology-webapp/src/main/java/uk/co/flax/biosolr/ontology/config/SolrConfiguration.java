@@ -21,6 +21,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Configuration for the Solr search engines.
  * 
@@ -45,6 +47,9 @@ public class SolrConfiguration {
 	private int ontologyTermCount;
 	
 	private List<String> facetFields = new ArrayList<>();
+	
+	@JsonProperty("documentFacetTree")
+	private FacetTreeConfiguration documentFacetTree;
 	
 	public String getOntologyUrl() {
 		return ontologyUrl;
@@ -91,6 +96,10 @@ public class SolrConfiguration {
 	 */
 	public String getOntologyNodeRequestHandler() {
 		return ontologyNodeRequestHandler;
+	}
+
+	public FacetTreeConfiguration getDocumentFacetTree() {
+		return documentFacetTree;
 	}
 
 }

@@ -80,6 +80,19 @@ solr:
   ontologyTermCount: 3
   
   facetFields: [ "facet_labels", "efo_labels_str", "efo_uri" ]
+  
+  # Configuration for the hierarchical facet generator
+  documentFacetTree:
+    # The base field, in the documents collection
+    baseField: efo_uri
+    # The equivalent field, in the ontology collection
+    nodeField: uri
+    # The child ID field
+    childField: child_uris
+    # The label field
+    labelField: label
+    # The ontology collection
+    collection: ontology  
 
 # Apache Jena configuration
 jena:

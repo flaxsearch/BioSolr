@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -31,11 +32,14 @@ import org.apache.solr.client.solrj.response.GroupCommand;
 import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.api.FacetEntry;
+import uk.co.flax.biosolr.ontology.api.HierarchicalFacetEntry;
+import uk.co.flax.biosolr.ontology.config.FacetTreeConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
@@ -99,6 +103,11 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			}
 			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
 			query.addFacetField(config.getFacetFields().toArray(new String[config.getFacetFields().size()]));
+			
+			// Add the facet tree params
+			query.setParam("facet.tree", true);
+			query.setParam("facet.tree.field", buildFacetTreeQueryParameter());
+			
 			LOGGER.debug("Query: {}", query);
 
 			QueryResponse response = server.query(query);
@@ -143,7 +152,64 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			}
 		}
 		
+		// And extract the facet tree, if there is one
+		List<Object> facetTree = findFacetTree(response, EFO_URI_FIELD);
+		if (facetTree != null && !facetTree.isEmpty()) {
+			facets.put(EFO_URI_FIELD + "_hierarchy", extractFacetTreeFromNamedList(facetTree));
+		}
+		
 		return facets;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private List<Object> findFacetTree(QueryResponse response, String field) {
+		NamedList<Object> baseResponse = response.getResponse();
+		NamedList<Object> facetTrees = (NamedList<Object>) baseResponse.findRecursive("facet_counts", "facet_trees");
+		
+		return facetTrees.getAll(field);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private List<FacetEntry> extractFacetTreeFromNamedList(List<Object> facetTree) {
+		List<FacetEntry> entries;
+		if (facetTree == null) {
+			entries = null;
+		} else {
+			entries = new ArrayList<>(facetTree.size());
+
+			for (Object ftList : facetTree) {
+				for (Object ft : (List<Object>)ftList) {
+					NamedList<Object> nl = (NamedList<Object>)ft;
+
+					String label = (String) nl.get("label");
+					String value = (String) nl.get("value");
+					long count = (long) nl.get("count");
+					long total = (long) nl.get("total");
+					List<FacetEntry> hierarchy = extractFacetTreeFromNamedList(nl.getAll("hierarchy"));
+
+					entries.add(new HierarchicalFacetEntry(value, label, count, total, hierarchy));
+				}
+			}
+		}
+		
+		return entries;
+	}
+	
+	private String buildFacetTreeQueryParameter() {
+		FacetTreeConfiguration ftConfig = config.getDocumentFacetTree();
+		
+		StringBuilder ftqParam = new StringBuilder("{!ftree");
+		
+		ftqParam.append(" childField=").append(ftConfig.getChildField());
+		ftqParam.append(" nodeField=").append(ftConfig.getNodeField());
+		ftqParam.append(" collection=").append(ftConfig.getCollection());
+		if (StringUtils.isNotBlank(ftConfig.getLabelField())) {
+			ftqParam.append(" labelField=").append(ftConfig.getLabelField());
+		}
+		
+		ftqParam.append("}").append(ftConfig.getBaseField());
+		
+		return ftqParam.toString();
 	}
 	
 	@Override

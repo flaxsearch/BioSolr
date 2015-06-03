@@ -64,9 +64,9 @@ public class SearchResource {
 
 		try {
 			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields, filters);
-			if (results.getFacets().containsKey(DocumentSearch.URI_FIELD)) {
+			if (!results.getFacets().containsKey(DocumentSearch.URI_FIELD + "_hierarchy")) {
 				List<FacetEntry> accum = facetAccumulator.buildFacetTree(results.getFacets().get(DocumentSearch.URI_FIELD));
-				results.getFacets().put("uri_accumulator", accum);
+				results.getFacets().put(DocumentSearch.URI_FIELD + "_hierarchy", accum);
 			}
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults(), results.getFacets());
 		} catch (SearchEngineException e) {
