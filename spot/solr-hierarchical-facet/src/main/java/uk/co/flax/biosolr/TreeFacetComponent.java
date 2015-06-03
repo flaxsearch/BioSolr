@@ -18,7 +18,7 @@ package uk.co.flax.biosolr;
 import java.io.IOException;
 
 import org.apache.solr.common.params.FacetParams;
-import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.FacetComponent;
@@ -50,13 +50,13 @@ public class TreeFacetComponent extends FacetComponent {
 		if (ftFields == null || ftFields.length == 0) {
 			LOGGER.warn("No facet tree fields specified - ignoring facet trees");
 		} else {
-			NamedList<Object> params = rb.req.getParams().toNamedList();
-			for (String field : ftFields) {
-				params.add(FacetParams.FACET_FIELD, field);
-				LOGGER.debug("Adding facet tree field {}", field);
-			}
+			// Take a modifiable copy of the incoming params
+			ModifiableSolrParams params = new ModifiableSolrParams(rb.req.getParams());
+			// Add the (possibly) new facet fields
+			params.add(FacetParams.FACET_FIELD, ftFields);
 
-			rb.req.setParams(SolrParams.toSolrParams(params));
+			// Re-set the params in the request
+			rb.req.setParams(params);
 		}
 	}
 
