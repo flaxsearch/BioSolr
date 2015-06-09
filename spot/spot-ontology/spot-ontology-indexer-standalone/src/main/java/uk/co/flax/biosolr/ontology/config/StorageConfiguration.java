@@ -15,6 +15,10 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Configuration details for the storage engine.
  * 
@@ -24,7 +28,11 @@ public class StorageConfiguration {
 	
 	private String engineType;
 	
+	@JsonProperty("solr")
 	private SolrConfiguration solr;
+	
+	@JsonProperty("other")
+	private Map<String, StorageEngineConfiguration> other;
 	
 	/**
 	 * @return the storageType
@@ -52,6 +60,14 @@ public class StorageConfiguration {
 	 */
 	public void setSolr(SolrConfiguration solr) {
 		this.solr = solr;
+	}
+
+	public Map<String, StorageEngineConfiguration> getAdditionalEngines() {
+		return other;
+	}
+
+	public void setAdditionalEngines(Map<String, StorageEngineConfiguration> additionalEngines) {
+		this.other = additionalEngines;
 	}
 
 }

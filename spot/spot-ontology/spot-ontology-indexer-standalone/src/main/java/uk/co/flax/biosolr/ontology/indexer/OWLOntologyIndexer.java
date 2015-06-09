@@ -97,8 +97,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 					end = numDocuments;
 				}
 
-				storageEngine.storeOntologyEntries(documents
-						.subList(count, end));
+				storageEngine.storeOntologyEntries(documents.subList(count, end));
 
 				count = end;
 				LOGGER.info("Indexed {} / {} entries", count, numDocuments);
