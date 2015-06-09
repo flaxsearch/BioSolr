@@ -25,6 +25,11 @@ import uk.co.flax.biosolr.ontology.config.StorageEngineConfiguration;
  * Interface defining functionality to store ontology entries in a
  * search engine or other data store.
  * 
+ * <p>
+ * Implementations are expected to provide a no-argument constructor,
+ * so that they can be instantiated easily using reflection.
+ * </p>
+ * 
  * @author Matt Pearce
  */
 public interface StorageEngine {

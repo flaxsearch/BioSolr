@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.ontology.config;
+package uk.co.flax.biosolr.ontology.storage;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 
 /**
- * JavaDoc for StorageEngineConfiguration.
+ * Test implementation of the StorageEngine interface.
  *
  * @author mlp
  */
-public class StorageEngineConfiguration {
+public class TestStorageEngine implements StorageEngine {
 
-	@JsonProperty("class")
-	private String engineClass;
-	
-	private Map<String, Object> configuration = new HashMap<>();
-	
-	public String getEngineClass() {
-		return engineClass;
+	@Override
+	public void setConfiguration(Map<String, Object> configuration) throws StorageEngineException {
 	}
 
-	public void setPluginClass(String pluginClass) {
-		this.engineClass = pluginClass;
+	@Override
+	public void initialise() throws StorageEngineException {
 	}
 
-	public Map<String, Object> getConfiguration() {
-		return configuration;
+	@Override
+	public boolean isReady() {
+		return true;
 	}
 
-	public void setConfiguration(Map<String, Object> configuration) {
-		this.configuration = configuration;
+	@Override
+	public void storeOntologyEntry(OntologyEntryBean entry) throws StorageEngineException {
+	}
+
+	@Override
+	public void storeOntologyEntries(List<OntologyEntryBean> entries) throws StorageEngineException {
 	}
 
 }

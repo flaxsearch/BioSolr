@@ -18,15 +18,18 @@ package uk.co.flax.biosolr.ontology.storage;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.config.StorageConfiguration;
+import uk.co.flax.biosolr.ontology.config.StorageEngineConfiguration;
 import uk.co.flax.biosolr.ontology.storage.solr.SolrStorageEngine;
 
 /**
@@ -37,48 +40,76 @@ import uk.co.flax.biosolr.ontology.storage.solr.SolrStorageEngine;
 public class StorageEngineFactoryTest {
 	
 	@Test
-	public void buildStorageEngine_withNoEngineType() {
+	public void buildStorageEngine_nullEngineType() throws Exception {
 		final String engineType = null;
 		
 		StorageConfiguration config = mock(StorageConfiguration.class);
-		when(config.getEngineType()).thenReturn(engineType);
+		final Map<String, StorageEngineConfiguration> additionalConfig = new HashMap<>();
+		when(config.getAdditionalEngines()).thenReturn(additionalConfig);
 		
-		StorageEngine engine = StorageEngineFactory.buildStorageEngine(config);
+		StorageEngineFactory factory = new StorageEngineFactory(config);
+		
+		StorageEngine engine = factory.buildStorageEngine(engineType);
 		assertNull(engine);
-		
-		verify(config).getEngineType();
 	}
 
 	@Test
-	public void buildStorageEngine_withUnrecognisedEngineType() {
+	public void buildStorageEngine_withUnrecognisedEngineType() throws Exception {
 		final String engineType = "blah";
 		
 		StorageConfiguration config = mock(StorageConfiguration.class);
-		when(config.getEngineType()).thenReturn(engineType);
+		final Map<String, StorageEngineConfiguration> additionalConfig = new HashMap<>();
+		when(config.getAdditionalEngines()).thenReturn(additionalConfig);
 		
-		StorageEngine engine = StorageEngineFactory.buildStorageEngine(config);
+		StorageEngineFactory factory = new StorageEngineFactory(config);
+		
+		StorageEngine engine = factory.buildStorageEngine(engineType);
 		assertNull(engine);
 		
-		verify(config, atLeastOnce()).getEngineType();
+		verify(config).getAdditionalEngines();
 	}
 
 	@Test
-	public void buildStorageEngine_forSolr() {
+	public void buildStorageEngine_forSolr() throws Exception {
 		final String engineType = StorageEngineFactory.SOLR_ENGINE_TYPE;
 		
 		SolrConfiguration solrConfig = mock(SolrConfiguration.class);
 		when(solrConfig.getBaseUrl()).thenReturn("http://localhost:8983/solr");
 		
 		StorageConfiguration config = mock(StorageConfiguration.class);
-		when(config.getEngineType()).thenReturn(engineType);
 		when(config.getSolr()).thenReturn(solrConfig);
 		
-		StorageEngine engine = StorageEngineFactory.buildStorageEngine(config);
+		StorageEngineFactory factory = new StorageEngineFactory(config);
+		
+		StorageEngine engine = factory.buildStorageEngine(engineType);
 		assertNotNull(engine);
 		assertTrue(engine instanceof SolrStorageEngine);
 		
-		verify(config, atLeastOnce()).getEngineType();
 		verify(config).getSolr();
+	}
+
+	@Test
+	public void buildStorageEngine_forNonSolr() throws Exception {
+		final String engineType = "test";
+		final String testEngineClass = "uk.co.flax.biosolr.ontology.storage.TestStorageEngine";
+		
+		StorageConfiguration config = mock(StorageConfiguration.class);
+		Map<String, StorageEngineConfiguration> engineMap = new HashMap<>();
+		StorageEngineConfiguration engineConfig = mock(StorageEngineConfiguration.class);
+		when(engineConfig.getEngineClass()).thenReturn(testEngineClass);
+		when(engineConfig.getConfiguration()).thenReturn(new HashMap<String, Object>());
+		engineMap.put(engineType, engineConfig);
+		when(config.getAdditionalEngines()).thenReturn(engineMap);
+		
+		StorageEngineFactory factory = new StorageEngineFactory(config);
+		
+		StorageEngine engine = factory.buildStorageEngine(engineType);
+		assertNotNull(engine);
+		assertTrue(engine instanceof TestStorageEngine);
+		
+		verify(config).getAdditionalEngines();
+		verify(engineConfig).getEngineClass();
+		verify(engineConfig).getConfiguration();
 	}
 
 }
