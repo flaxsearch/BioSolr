@@ -84,7 +84,7 @@ public class ChildNodeFacetTreeBuilderTest {
 		
 		verify(params).get(HierarchicalFacets.NODE_FIELD_PARAM);
 		verify(params).get(HierarchicalFacets.CHILD_FIELD_PARAM);
-		verify(params).get(HierarchicalFacets.LABEL_FIELD_PARAM);
+		verify(params).get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
 		verify(params).getInt(HierarchicalFacets.LEVELS_PARAM, 0);
 	}
 

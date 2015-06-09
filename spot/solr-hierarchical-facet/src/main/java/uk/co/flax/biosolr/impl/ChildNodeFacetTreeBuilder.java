@@ -36,8 +36,11 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.solr.common.SolrException;
+import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocSet;
 import org.apache.solr.search.QueryParsing;
@@ -78,6 +81,7 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 
 	@Override
 	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
+		LOGGER.trace("Initialising parameters...");
 		if (localParams == null) {
 			throw new SyntaxError("Missing facet tree parameters");
 		}
@@ -101,7 +105,7 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		}
 		
 		//  Initialise the optional fields
-		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM);
+		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
 		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
 		
 		docFields.addAll(Arrays.asList(nodeField, childField));
@@ -113,6 +117,9 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	@Override
 	public List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap)
 			throws IOException {
+		// Check that all of the given fields are in the searcher's schema
+		validateFields(searcher);
+		
 		// Extract the facet keys to a volatile set
 		Set<String> facetKeys = new HashSet<>(facetMap.keySet());
 
@@ -137,6 +144,29 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		return tffs;
 	}
 
+	/**
+	 * Ensure that all of the required fields exist in the searcher's schema.
+	 * @param searcher the searcher being used to generate the facet trees.
+	 * @throws SolrException if any of the fields do not exist in the schema.
+	 */
+	private void validateFields(SolrIndexSearcher searcher) throws SolrException {
+		// Check that all of the fields are in the schema
+		for (String fieldName : Arrays.asList(nodeField, childField)) {
+			SchemaField sField = searcher.getSchema().getField(fieldName);
+			if (sField == null) {
+				throw new SolrException(ErrorCode.BAD_REQUEST, "\"" + fieldName
+						+ "\" is not a valid field name");
+			}
+		}
+		// Check the (optional) label field
+		if (labelField != null) {
+			if (searcher.getSchema().getField(labelField) == null) {
+				throw new SolrException(ErrorCode.BAD_REQUEST, "\"" + labelField
+					+ "\" is not a valid field name");
+			}
+		}
+	}
+	
 	/**
 	 * Find all parent nodes for the given set of items.
 	 * @param searcher the searcher for the collection being used.
