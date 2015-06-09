@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.search.SyntaxError;
 
 /**
  * A processor to build the facet tree from the incoming base
@@ -35,6 +37,14 @@ import org.apache.solr.search.SolrIndexSearcher;
 public interface FacetTreeBuilder {
 	
 	/**
+	 * Initialise the parameters required for the builder implementation.
+	 * @param localParameters the local parameters passed for this facet tree
+	 * build.
+	 * @throws SyntaxError if required parameters are missing.
+	 */
+	void initialiseParameters(SolrParams localParameters) throws SyntaxError;
+
+	/**
 	 * Process the terms from the incoming facets, and use them to build a list of nodes
 	 * which are then be converted into a hierarchical facet structure.
 	 * @param searcher the searcher to use to build the tree.
@@ -45,5 +55,5 @@ public interface FacetTreeBuilder {
 	 * by Solr while querying the collection.
 	 */
 	List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap) throws IOException;
-
+	
 }

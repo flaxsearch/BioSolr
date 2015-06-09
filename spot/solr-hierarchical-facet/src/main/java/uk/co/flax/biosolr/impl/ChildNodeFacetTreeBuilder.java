@@ -36,44 +36,80 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocSet;
+import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexSearcher;
+import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.FacetTreeBuilder;
+import uk.co.flax.biosolr.HierarchicalFacets;
 import uk.co.flax.biosolr.TreeFacetField;
 
 /**
  * Implementation of {@link FacetTreeBuilder} that uses a child node field
  * to build a hierarchical facet tree from the bottom upwards.
+ * 
+ * <p>
+ * Minimum required parameters for this tree builder are the node field,
+ * either passed in local parameters or taken from the key value, and 
+ * the child node field. {@link #initialiseParameters(SolrParams)} will
+ * throw a SyntaxError if these values are not defined.
+ * </p>
  */
 public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChildNodeFacetTreeBuilder.class);
 	
-	private final String nodeField;
-	private final String childField;
-	private final String labelField;
-	private final int maxLevels;
+	private String nodeField;
+	private String childField;
+	private String labelField;
+	private int maxLevels;
 	
-	private final Set<String> docFields;
+	private final Set<String> docFields = new HashSet<>();
 	private final Map<String, String> labels = new HashMap<>();
 	
-	public ChildNodeFacetTreeBuilder(String nodeField, String childField, String labelField, int maxLevels) {
-		this.nodeField = nodeField;
-		this.childField = childField;
-		this.labelField = labelField;
-		this.maxLevels = maxLevels;
+	public ChildNodeFacetTreeBuilder() {
+	}
+
+	@Override
+	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
+		if (localParams == null) {
+			throw new SyntaxError("Missing facet tree parameters");
+		}
 		
-		docFields = new HashSet<String>(Arrays.asList(nodeField, childField));
+		// Initialise the node field - REQUIRED
+		nodeField = localParams.get(HierarchicalFacets.NODE_FIELD_PARAM);
+		if (StringUtils.isBlank(nodeField)) {
+			// Not specified in localParams - use the key value instead
+			nodeField = localParams.get(QueryParsing.V);
+			
+			// If still blank, we have a problem
+			if (StringUtils.isBlank(nodeField)) {
+				throw new SyntaxError("No node field defined in " + localParams);
+			}
+		}
+
+		// Initialise the child field - REQUIRED
+		childField = localParams.get(HierarchicalFacets.CHILD_FIELD_PARAM);
+		if (StringUtils.isBlank(childField)) {
+			throw new SyntaxError("Missing child field definition in " + localParams);
+		}
+		
+		//  Initialise the optional fields
+		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM);
+		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
+		
+		docFields.addAll(Arrays.asList(nodeField, childField));
 		if (labelField != null && StringUtils.isNotBlank(labelField)) {
 			docFields.add(labelField);
 		}
 	}
-
+	
 	@Override
 	public List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap)
 			throws IOException {
