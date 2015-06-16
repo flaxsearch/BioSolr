@@ -47,7 +47,8 @@ iterate upwards through the document tree structure using the child_uris field
 to identify the parents of each leaf node.
 
 The childField local parameter is mandatory - a syntax error will be generated if
-this is not present.
+this is not present. This is strategy dependent - see the [Strategies](#strategies) 
+section below.
 
 The returned results will have the following section, assuming everything has gone
 to plan:
@@ -95,3 +96,18 @@ collection (an ontology index, perhaps), this parameter allows you to do this.
 default to the facet.tree.field value (ie. uri in the example above) - if using
 a separate collection to generate the facets, this should be the equivalent field
 in the other collection.
+
+
+## Strategies
+
+There are a number of strategies which can be used to generate the facet 
+hierarchy tree:
+
+- `childnode`, which uses the child node ID to build the tree upwards from
+the bottom. This requires the `childField` parameter to be set.
+- `parentnode`, which uses a parent node ID to build the tree. This requires
+the `parentField` parameter to be set.
+
+The `strategy` parameter can be used to explicitly state which strategy
+should be used. If not supplied, the plugin will attempt to derive the
+strategy from the parameters.
