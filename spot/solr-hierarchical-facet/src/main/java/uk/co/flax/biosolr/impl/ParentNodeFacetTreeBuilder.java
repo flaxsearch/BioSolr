@@ -49,7 +49,15 @@ import uk.co.flax.biosolr.HierarchicalFacets;
 import uk.co.flax.biosolr.TreeFacetField;
 
 /**
- * JavaDoc for ParentNodeFacetTreeBuilder.
+ * FacetTreeBuilder implementation that uses parent node IDs to build a
+ * tree from the bottom node upwards.
+ * 
+ * <p>
+ * Minimum required parameters for this tree builder are the node field,
+ * either passed in local parameters or taken from the key value, and 
+ * the parent node field. {@link #initialiseParameters(SolrParams)} will
+ * throw a SyntaxError if these values are not defined.
+ * </p>
  *
  * @author mlp
  */
@@ -86,7 +94,7 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	@Override
 	public List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap)
 			throws IOException {
-		checkFieldsInSchema(searcher, getNodeField(), parentField, getLabelField());
+		checkFieldsInSchema(searcher, docFields);
 		
 		// Extract the facet keys to a volatile set
 		Set<String> facetKeys = new HashSet<>(facetMap.keySet());

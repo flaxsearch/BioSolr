@@ -16,6 +16,8 @@
 
 package uk.co.flax.biosolr.impl;
 
+import java.util.Collection;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
@@ -31,7 +33,7 @@ import uk.co.flax.biosolr.FacetTreeBuilder;
 import uk.co.flax.biosolr.HierarchicalFacets;
 
 /**
- * JavaDoc for AbstractNodeFacetTreeBuilder.
+ * Abstract base class for FacetTreeBuilder implementations.
  *
  * @author mlp
  */
@@ -63,7 +65,7 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
 	}
 	
-	protected void checkFieldsInSchema(SolrIndexSearcher searcher, String... fields) throws SolrException {
+	protected void checkFieldsInSchema(SolrIndexSearcher searcher, Collection<String> fields) throws SolrException {
 		IndexSchema schema = searcher.getSchema();
 		for (String field : fields) {
 			SchemaField sField = schema.getField(field);
@@ -80,6 +82,10 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 	
 	protected String getLabelField() {
 		return labelField;
+	}
+	
+	protected boolean hasLabelField() {
+		return StringUtils.isNotBlank(labelField);
 	}
 	
 	protected abstract Logger getLogger();

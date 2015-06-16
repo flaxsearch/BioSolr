@@ -36,14 +36,10 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.solr.common.SolrException;
-import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocSet;
-import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
@@ -64,13 +60,11 @@ import uk.co.flax.biosolr.TreeFacetField;
  * throw a SyntaxError if these values are not defined.
  * </p>
  */
-public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
+public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChildNodeFacetTreeBuilder.class);
 	
-	private String nodeField;
 	private String childField;
-	private String labelField;
 	private int maxLevels;
 	
 	private final Set<String> docFields = new HashSet<>();
@@ -78,25 +72,15 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	
 	public ChildNodeFacetTreeBuilder() {
 	}
+	
+	@Override
+	protected Logger getLogger() {
+		return LOGGER;
+	}
 
 	@Override
 	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
-		LOGGER.trace("Initialising parameters...");
-		if (localParams == null) {
-			throw new SyntaxError("Missing facet tree parameters");
-		}
-		
-		// Initialise the node field - REQUIRED
-		nodeField = localParams.get(HierarchicalFacets.NODE_FIELD_PARAM);
-		if (StringUtils.isBlank(nodeField)) {
-			// Not specified in localParams - use the key value instead
-			nodeField = localParams.get(QueryParsing.V);
-			
-			// If still blank, we have a problem
-			if (StringUtils.isBlank(nodeField)) {
-				throw new SyntaxError("No node field defined in " + localParams);
-			}
-		}
+		super.initialiseParameters(localParams);
 
 		// Initialise the child field - REQUIRED
 		childField = localParams.get(HierarchicalFacets.CHILD_FIELD_PARAM);
@@ -105,12 +89,11 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		}
 		
 		//  Initialise the optional fields
-		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
 		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
 		
-		docFields.addAll(Arrays.asList(nodeField, childField));
-		if (labelField != null && StringUtils.isNotBlank(labelField)) {
-			docFields.add(labelField);
+		docFields.addAll(Arrays.asList(getNodeField(), childField));
+		if (hasLabelField()) {
+			docFields.add(getLabelField());
 		}
 	}
 	
@@ -118,7 +101,7 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	public List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap)
 			throws IOException {
 		// Check that all of the given fields are in the searcher's schema
-		validateFields(searcher);
+		checkFieldsInSchema(searcher, docFields);
 		
 		// Extract the facet keys to a volatile set
 		Set<String> facetKeys = new HashSet<>(facetMap.keySet());
@@ -130,7 +113,7 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		// Find the details for the starting facet terms, if there are any which haven't 
 		// been found already.
 		facetKeys.removeAll(nodeChildren.keySet());
-		nodeChildren.putAll(filterEntriesByField(searcher, facetKeys, nodeField));
+		nodeChildren.putAll(filterEntriesByField(searcher, facetKeys, getNodeField()));
 
 		// Find the top nodes
 		Set<String> topUris = findTopLevelNodes(nodeChildren);
@@ -144,29 +127,6 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 		return tffs;
 	}
 
-	/**
-	 * Ensure that all of the required fields exist in the searcher's schema.
-	 * @param searcher the searcher being used to generate the facet trees.
-	 * @throws SolrException if any of the fields do not exist in the schema.
-	 */
-	private void validateFields(SolrIndexSearcher searcher) throws SolrException {
-		// Check that all of the fields are in the schema
-		for (String fieldName : Arrays.asList(nodeField, childField)) {
-			SchemaField sField = searcher.getSchema().getField(fieldName);
-			if (sField == null) {
-				throw new SolrException(ErrorCode.BAD_REQUEST, "\"" + fieldName
-						+ "\" is not a valid field name");
-			}
-		}
-		// Check the (optional) label field
-		if (labelField != null) {
-			if (searcher.getSchema().getField(labelField) == null) {
-				throw new SolrException(ErrorCode.BAD_REQUEST, "\"" + labelField
-					+ "\" is not a valid field name");
-			}
-		}
-	}
-	
 	/**
 	 * Find all parent nodes for the given set of items.
 	 * @param searcher the searcher for the collection being used.
@@ -222,11 +182,11 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 
 		for (DocIterator it = docs.iterator(); it.hasNext(); ) {
 			Document doc = searcher.doc(it.nextDoc(), docFields);
-			String nodeId = doc.get(nodeField);
+			String nodeId = doc.get(getNodeField());
 			
 			// Get the children for the node, if necessary
 			Set<String> childIds;
-			if (filterField.equals(nodeField)) {
+			if (filterField.equals(getNodeField())) {
 				// Filtering on the node field - child IDs are redundant
 				childIds = Collections.emptySet();
 			} else {
@@ -236,8 +196,8 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 			filteredEntries.put(nodeId, childIds);
 			
 			// If a label field has been specified, get the first available value
-			if (labelField != null && !labels.containsKey(nodeId)) {
-				String[] labelValues = doc.getValues(labelField);
+			if (hasLabelField() && !labels.containsKey(nodeId)) {
+				String[] labelValues = doc.getValues(getLabelField());
 				if (labelValues.length > 0) {
 					labels.put(nodeId, labelValues[0]);
 				} else {
@@ -362,7 +322,7 @@ public class ChildNodeFacetTreeBuilder implements FacetTreeBuilder {
 	}
 	
 	private String getFacetLabel(String id) {
-		if (labelField != null) {
+		if (hasLabelField()) {
 			return labels.get(id);
 		}
 		return null;
