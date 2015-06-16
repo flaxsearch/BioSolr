@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -149,12 +150,12 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		
 		// Now, invert the map, so it's a map of parent->child IDs
 		Map<String, Set<String>> parentChildIds = new HashMap<>();
-		for (String childId : nodeParentIds.keySet()) {
-			for (String parentId : nodeParentIds.get(childId)) {
+		for (Entry<String, Set<String>> entry : nodeParentIds.entrySet()) {
+			for (String parentId : entry.getValue()) {
 				if (!parentChildIds.containsKey(parentId)) {
 					parentChildIds.put(parentId, new HashSet<String>());
 				}
-				parentChildIds.get(parentId).add(childId);
+				parentChildIds.get(parentId).add(entry.getKey());
 			}
 		}
 
