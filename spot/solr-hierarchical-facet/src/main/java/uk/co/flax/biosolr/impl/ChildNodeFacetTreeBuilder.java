@@ -17,7 +17,6 @@
 package uk.co.flax.biosolr.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
@@ -115,15 +115,13 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		nodeChildren.putAll(filterEntriesByField(searcher, facetKeys, getNodeField()));
 
 		// Find the top nodes
-		Set<String> topUris = findTopLevelNodes(nodeChildren);
-		LOGGER.debug("Found {} top level nodes", topUris.size());
+		Set<String> topNodes = findTopLevelNodes(nodeChildren);
+		LOGGER.debug("Found {} top level nodes", topNodes.size());
 
-		List<TreeFacetField> tffs = new ArrayList<>(topUris.size());
-		for (String fieldValue : topUris) {
-			tffs.add(buildAccumulatedEntryTree(0, fieldValue, nodeChildren, facetMap));
-		}
-
-		return tffs;
+		// Convert to a list of TreeFacetFields
+		return topNodes.parallelStream()
+				.map(node -> buildAccumulatedEntryTree(0, node, nodeChildren, facetMap))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -212,11 +210,10 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	 */
 	private Query buildFilterQuery(String field, Collection<String> values) {
 		BooleanQuery bf = new BooleanQuery(true);
-
-		for (String value : values) {
-			Term term = new Term(field, value);
-			bf.add(new TermQuery(term), Occur.SHOULD);
-		}
+		
+		values.stream()
+			.map(v -> new TermQuery(new Term(field, v)))
+			.forEach(tq -> bf.add(tq, Occur.SHOULD));
 
 		return bf;
 	}

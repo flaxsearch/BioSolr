@@ -24,7 +24,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.FacetComponent;
@@ -75,8 +74,7 @@ public class TreeFacetComponent extends FacetComponent {
 			for (String ftField : ftFields) {
 				// Parse the facet tree field, so we only add the field value,
 				// rather than the whole string (ensure it's unique)
-				SolrParams p = QueryParsing.getLocalParams(ftField, params);
-				facetFields.add(p.get(QueryParsing.V));
+				facetFields.add(QueryParsing.getLocalParams(ftField, params).get(QueryParsing.V));
 			}
 			
 			// Add the (possibly) new facet fields

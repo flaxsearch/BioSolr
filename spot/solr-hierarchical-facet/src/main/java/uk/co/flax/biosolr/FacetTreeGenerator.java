@@ -16,12 +16,12 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
@@ -121,11 +121,7 @@ public class FacetTreeGenerator {
 	 * @return a list of equivalent maps.
 	 */
 	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
-		List<SimpleOrderedMap<Object>> nlTrees = new ArrayList<>(fTrees.size());
-		for (TreeFacetField tff : fTrees) {
-			nlTrees.add(tff.toMap());
-		}
-		return nlTrees;
+		return fTrees.stream().map(TreeFacetField::toMap).collect(Collectors.toList());
 	}
 
 }

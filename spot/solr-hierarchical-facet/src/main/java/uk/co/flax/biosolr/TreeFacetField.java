@@ -16,9 +16,9 @@
 package uk.co.flax.biosolr;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
@@ -115,10 +115,8 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		map.add(TOTAL_KEY, getTotal());
 		if (hierarchy != null && hierarchy.size() > 0) {
 			// Recurse through the child nodes, converting each to a map
-			List<NamedList<Object>> hierarchyList = new ArrayList<>(hierarchy.size());
-			for (TreeFacetField tff : hierarchy) {
-				hierarchyList.add(tff.toMap());
-			}
+			List<NamedList<Object>> hierarchyList = 
+					hierarchy.stream().map(TreeFacetField::toMap).collect(Collectors.toList());
 			map.add(HIERARCHY_KEY, hierarchyList);
 		}
 		

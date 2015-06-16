@@ -18,9 +18,9 @@ package uk.co.flax.biosolr.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
@@ -117,36 +117,12 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 	 * @return a set containing the IDs for all of the top-level nodes found.
 	 */
 	protected Set<String> findTopLevelNodes(Map<String, Set<String>> nodeChildren) {
-		Set<String> topLevel = new HashSet<>();
-		
-		// Extract all the child IDs so we only have to iterate through them once
-		Set<String> childIds = extractAllChildIds(nodeChildren.values());
+		// Extract all the child IDs to a set
+		Set<String> childIds = nodeChildren.values().stream().flatMap(c -> c.stream()).collect(Collectors.toSet());
 
 		// Loop through each ID in the map, and check if it is contained in the
 		// children of any other node.
-		for (String id : nodeChildren.keySet()) {
-			if (!childIds.contains(id)) {
-				// Not in the set of child IDs - must be top level
-				topLevel.add(id);
-			}
-		}
-
-		return topLevel;
-	}
-	
-	/**
-	 * Extract all of the entries in the collected child IDs into a single set.
-	 * @param childIds the collection of all child ID sets.
-	 * @return a single set containing all of the child IDs.
-	 */
-	private Set<String> extractAllChildIds(Collection<Set<String>> childIds) {
-		Set<String> ids = new HashSet<>();
-		
-		for (Set<String> children : childIds) {
-			ids.addAll(children);
-		}
-		
-		return ids;
+		return nodeChildren.keySet().stream().filter(id -> !childIds.contains(id)).collect(Collectors.toSet());
 	}
 	
 	protected abstract Logger getLogger();
