@@ -17,8 +17,8 @@ package uk.co.flax.biosolr;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,7 +103,7 @@ public class FacetTreeGenerator {
 	 * @return a map of term - value for each entry.
 	 */
 	private Map<String, Integer> extractFacetValues(NamedList<Integer> facetValues) {
-		Map<String, Integer> facetMap = new HashMap<>();
+		Map<String, Integer> facetMap = new LinkedHashMap<>();
 		for (Iterator<Entry<String, Integer>> it = facetValues.iterator(); it.hasNext(); ) {
 			Entry<String, Integer> entry = it.next();
 			if (entry.getValue() > 0) {

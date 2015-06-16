@@ -21,6 +21,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SyntaxError;
 
 import uk.co.flax.biosolr.impl.ChildNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.impl.ParentNodeFacetTreeBuilder;
 
 /**
  * Factory class to construct an appropriate {@link FacetTreeBuilder}
@@ -31,6 +32,7 @@ import uk.co.flax.biosolr.impl.ChildNodeFacetTreeBuilder;
 public class FacetTreeBuilderFactory {
 	
 	public static final String CHILD_NODE_STRATEGY = "childnode";
+	public static final String PARENT_NODE_STRATEGY = "parentnode";
 	
 	public FacetTreeBuilderFactory() {
 	}
@@ -72,6 +74,8 @@ public class FacetTreeBuilderFactory {
 			// Attempt to derive strategy from given parameters
 			if (StringUtils.isNotBlank(params.get(HierarchicalFacets.CHILD_FIELD_PARAM))) {
 				strategy = CHILD_NODE_STRATEGY;
+			} else if (StringUtils.isNotBlank(params.get(HierarchicalFacets.PARENT_FIELD_PARAM))) {
+				strategy = PARENT_NODE_STRATEGY;
 			}
 		}
 		
@@ -84,6 +88,8 @@ public class FacetTreeBuilderFactory {
 		if (StringUtils.isNotBlank(strategy)) {
 			if (strategy.equals(CHILD_NODE_STRATEGY)) {
 				ftb = new ChildNodeFacetTreeBuilder();
+			} else if (strategy.equals(PARENT_NODE_STRATEGY)) {
+				ftb = new ParentNodeFacetTreeBuilder();
 			}
 		}
 		

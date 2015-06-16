@@ -53,6 +53,7 @@ public class HierarchicalFacets extends SimpleFacets {
 
 	public static final String LOCAL_PARAM_TYPE = "ftree";
 	public static final String CHILD_FIELD_PARAM = "childField";
+	public static final String PARENT_FIELD_PARAM = "parentField";
 	public static final String COLLECTION_PARAM = "collection";
 	public static final String NODE_FIELD_PARAM = "nodeField";
 	public static final String LABEL_FIELD_PARAM = "labelField";

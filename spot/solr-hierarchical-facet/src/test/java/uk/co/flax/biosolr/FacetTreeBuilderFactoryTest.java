@@ -27,6 +27,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
 import uk.co.flax.biosolr.impl.ChildNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.impl.ParentNodeFacetTreeBuilder;
 
 /**
  * Unit tests for the FacetTreeBuilderFactory.
@@ -142,6 +143,75 @@ public class FacetTreeBuilderFactoryTest {
 		
 		verify(params).get(HierarchicalFacets.STRATEGY_PARAM);
 		verify(params, atLeastOnce()).get(HierarchicalFacets.CHILD_FIELD_PARAM);
+		verify(params, atLeastOnce()).get(HierarchicalFacets.NODE_FIELD_PARAM);
+	}
+
+	@Test(expected=org.apache.solr.search.SyntaxError.class)
+	public void constructFTB_parentnodeStrategy_missingParams() throws Exception {
+		final String strategy = FacetTreeBuilderFactory.PARENT_NODE_STRATEGY;
+		final SolrParams params = mock(SolrParams.class);
+		when(params.get(HierarchicalFacets.STRATEGY_PARAM)).thenReturn(strategy);
+		
+		FacetTreeBuilderFactory factory = new FacetTreeBuilderFactory();
+		factory.constructFacetTreeBuilder(params);
+		
+		verify(params).get(HierarchicalFacets.STRATEGY_PARAM);
+	}
+
+	@Test
+	public void constructFTB_parentnodeStrategy() throws Exception {
+		final String strategy = FacetTreeBuilderFactory.PARENT_NODE_STRATEGY;
+		final String parentField = "parent_nodes";
+		final String nodeField = "node_id";
+		final SolrParams params = mock(SolrParams.class);
+		when(params.get(HierarchicalFacets.STRATEGY_PARAM)).thenReturn(strategy);
+		when(params.get(HierarchicalFacets.PARENT_FIELD_PARAM)).thenReturn(parentField);
+		when(params.get(HierarchicalFacets.NODE_FIELD_PARAM)).thenReturn(nodeField);
+		
+		FacetTreeBuilderFactory factory = new FacetTreeBuilderFactory();
+		FacetTreeBuilder ftb = factory.constructFacetTreeBuilder(params);
+		
+		assertNotNull(ftb);
+		assertTrue(ftb instanceof ParentNodeFacetTreeBuilder);
+		
+		verify(params).get(HierarchicalFacets.STRATEGY_PARAM);
+		verify(params, atLeastOnce()).get(HierarchicalFacets.PARENT_FIELD_PARAM);
+		verify(params, atLeastOnce()).get(HierarchicalFacets.NODE_FIELD_PARAM);
+	}
+
+	@Test(expected=org.apache.solr.search.SyntaxError.class)
+	public void constructFTB_derivedParentnodeStrategy_missingParams() throws Exception {
+		final String strategy = null;
+		final String parentField = "parent_nodes";
+		final SolrParams params = mock(SolrParams.class);
+		when(params.get(HierarchicalFacets.STRATEGY_PARAM)).thenReturn(strategy);
+		when(params.get(HierarchicalFacets.PARENT_FIELD_PARAM)).thenReturn(parentField);
+		
+		FacetTreeBuilderFactory factory = new FacetTreeBuilderFactory();
+		factory.constructFacetTreeBuilder(params);
+		
+		verify(params).get(HierarchicalFacets.STRATEGY_PARAM);
+		verify(params, atLeastOnce()).get(HierarchicalFacets.PARENT_FIELD_PARAM);
+	}
+
+	@Test
+	public void constructFTB_derivedParentnodeStrategy() throws Exception {
+		final String strategy = null;
+		final String parentField = "parent_nodes";
+		final String nodeField = "node_id";
+		final SolrParams params = mock(SolrParams.class);
+		when(params.get(HierarchicalFacets.STRATEGY_PARAM)).thenReturn(strategy);
+		when(params.get(HierarchicalFacets.PARENT_FIELD_PARAM)).thenReturn(parentField);
+		when(params.get(HierarchicalFacets.NODE_FIELD_PARAM)).thenReturn(nodeField);
+		
+		FacetTreeBuilderFactory factory = new FacetTreeBuilderFactory();
+		FacetTreeBuilder ftb = factory.constructFacetTreeBuilder(params);
+		
+		assertNotNull(ftb);
+		assertTrue(ftb instanceof ParentNodeFacetTreeBuilder);
+		
+		verify(params).get(HierarchicalFacets.STRATEGY_PARAM);
+		verify(params, atLeastOnce()).get(HierarchicalFacets.PARENT_FIELD_PARAM);
 		verify(params, atLeastOnce()).get(HierarchicalFacets.NODE_FIELD_PARAM);
 	}
 
