@@ -69,7 +69,6 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	private int maxLevels;
 	
 	private final Set<String> docFields = new HashSet<>();
-	private final Map<String, String> labels = new HashMap<>();
 	
 	@Override
 	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
@@ -86,7 +85,7 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
 		
 		docFields.addAll(Arrays.asList(getNodeField(), parentField));
-		if (getLabelField() != null && StringUtils.isNotBlank(getLabelField())) {
+		if (hasLabelField()) {
 			docFields.add(getLabelField());
 		}
 	}
@@ -178,14 +177,9 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 			Set<String> parentIdValues = new HashSet<>(Arrays.asList(doc.getValues(parentField)));
 			parentIds.put(nodeId, parentIdValues);
 			
-			// If a label field has been specified, get the first available value
-			if (getLabelField() != null && !labels.containsKey(nodeId)) {
-				String[] labelValues = doc.getValues(getLabelField());
-				if (labelValues.length > 0) {
-					labels.put(nodeId, labelValues[0]);
-				} else {
-					labels.put(nodeId, null);
-				}
+			// Record the label, if required
+			if (isLabelRequired(nodeId)) {
+				recordLabel(nodeId, doc.getValues(getLabelField()));
 			}
 		}
 		
@@ -289,7 +283,7 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 
 		// Build the accumulated facet entry
 		LOGGER.trace("[{}] Building facet tree for {}", level, fieldValue);
-		return new TreeFacetField(getFacetLabel(fieldValue), fieldValue, getFacetCount(fieldValue, facetCounts), childTotal, childHierarchy);
+		return new TreeFacetField(getLabel(fieldValue), fieldValue, getFacetCount(fieldValue, facetCounts), childTotal, childHierarchy);
 	}
 
 	/**
@@ -305,13 +299,6 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		return 0;
 	}
 	
-	private String getFacetLabel(String id) {
-		if (getLabelField() != null) {
-			return labels.get(id);
-		}
-		return null;
-	}
-
 	@Override
 	protected Logger getLogger() {
 		return LOGGER;

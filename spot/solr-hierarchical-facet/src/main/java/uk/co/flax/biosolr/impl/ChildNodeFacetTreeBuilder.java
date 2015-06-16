@@ -68,7 +68,6 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	private int maxLevels;
 	
 	private final Set<String> docFields = new HashSet<>();
-	private final Map<String, String> labels = new HashMap<>();
 	
 	public ChildNodeFacetTreeBuilder() {
 	}
@@ -195,14 +194,9 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 			}
 			filteredEntries.put(nodeId, childIds);
 			
-			// If a label field has been specified, get the first available value
-			if (hasLabelField() && !labels.containsKey(nodeId)) {
-				String[] labelValues = doc.getValues(getLabelField());
-				if (labelValues.length > 0) {
-					labels.put(nodeId, labelValues[0]);
-				} else {
-					labels.put(nodeId, null);
-				}
+			// Record the label, if required
+			if (isLabelRequired(nodeId)) {
+				recordLabel(nodeId, doc.getValues(getLabelField()));
 			}
 		}
 
@@ -305,7 +299,7 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 
 		// Build the accumulated facet entry
 		LOGGER.trace("[{}] Building facet tree for {}", level, fieldValue);
-		return new TreeFacetField(getFacetLabel(fieldValue), fieldValue, getFacetCount(fieldValue, facetCounts), childTotal, childHierarchy);
+		return new TreeFacetField(getLabel(fieldValue), fieldValue, getFacetCount(fieldValue, facetCounts), childTotal, childHierarchy);
 	}
 
 	/**
@@ -321,11 +315,4 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		return 0;
 	}
 	
-	private String getFacetLabel(String id) {
-		if (hasLabelField()) {
-			return labels.get(id);
-		}
-		return null;
-	}
-
 }

@@ -17,6 +17,8 @@
 package uk.co.flax.biosolr.impl;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
@@ -41,6 +43,8 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 	
 	private String nodeField;
 	private String labelField;
+	
+	private final Map<String, String> nodeLabels = new HashMap<>();
 
 	@Override
 	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
@@ -86,6 +90,23 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 	
 	protected boolean hasLabelField() {
 		return StringUtils.isNotBlank(labelField);
+	}
+	
+	protected boolean isLabelRequired(String nodeId) {
+		return hasLabelField() && !nodeLabels.containsKey(nodeId);
+	}
+	
+	protected void recordLabel(String nodeId, String[] labels) {
+		if (labels.length > 0) {
+			nodeLabels.put(nodeId, labels[0]);
+		} else {
+			// Add a null entry so we don't keep trying to add a label
+			nodeLabels.put(nodeId, null);
+		}
+	}
+	
+	protected String getLabel(String nodeId) {
+		return nodeLabels.get(nodeId);
 	}
 	
 	protected abstract Logger getLogger();
