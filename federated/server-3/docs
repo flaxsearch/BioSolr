@@ -1,0 +1,23 @@
+[
+  {
+    "id": 301,
+    "name": "Cowes",
+    "value": true,
+    "baz": "cat",
+    "letter": "A"
+  },
+  {
+    "id": 302,
+    "name": "Gurnard",
+    "value": false,
+    "baz": "dog",
+    "letter": "B"
+  },
+  {
+    "id": 303,
+    "name": "Gurnard",
+    "value": false,
+    "baz": "dog",
+    "letter": "C"
+  }
+]
