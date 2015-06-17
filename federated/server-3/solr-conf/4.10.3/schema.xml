@@ -121,6 +121,7 @@
 <field name="value" type="boolean" indexed="true" stored="true" multiValued="false" />
 <field name="baz" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="letter" type="string" indexed="true" stored="true" multiValued="false" />
+<field name="z" type="string" indexed="true" stored="true" multiValued="false" />
 
 
 <dynamicField name="*_i"  type="tint"    indexed="true"  stored="true"/>

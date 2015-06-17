@@ -11,13 +11,15 @@
     "name": "Macclesfield",
     "value": 456,
     "bar": "coffee",
-    "letter": "B"
+    "letter": "B",
+    "z": 20
   },
   {
     "id": 203,
     "name": "Cambridge",
     "value": 2000,
     "bar": "oil",
-    "letter": "A"
+    "letter": "A",
+    "z": "not a number"
   }
 ]

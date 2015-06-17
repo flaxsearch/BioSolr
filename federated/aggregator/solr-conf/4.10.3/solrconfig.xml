@@ -924,6 +924,7 @@
   
   <searchComponent name="djoin" class="uk.co.flax.biosolr.DJoinSearchComponent">
     <str name="joinField">name</str>
+    <bool name="ignoreConversionErrors">true</bool>
   </searchComponent>
   
   <requestHandler name="/federated" class="solr.SearchHandler">

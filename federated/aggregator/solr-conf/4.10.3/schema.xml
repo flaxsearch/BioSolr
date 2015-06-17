@@ -109,7 +109,7 @@
    <!-- If you remove this field, you must _also_ disable the update log in solrconfig.xml
       or Solr won't start. _version_ and update log are required for SolrCloud
    --> 
-   <!-- field name="_version_" type="long" indexed="true" stored="true"/ -->
+   <field name="_version_" type="long" indexed="true" stored="true"/>
    
    <!-- points to the root document of a block of nested documents. Required for nested
       document support, may be removed otherwise
@@ -127,6 +127,12 @@
 <field name="baz" type="string" stored="true" />
 
 <field name="value" type="djoin_int" multiValued="true" stored="true" />
+
+<field name="z" type="tint" stored="true" />
+
+<field name="foobar" type="string" multiValued="true" stored="true" />
+<copyField source="foo" dest="foobar" />
+<copyField source="bar" dest="foobar" />
 
 <!-- catch-all field -->
 <dynamicField name="*" type="string" stored="true" multiValued="true" />

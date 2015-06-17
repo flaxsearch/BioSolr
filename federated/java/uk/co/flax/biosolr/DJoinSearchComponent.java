@@ -24,6 +24,7 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
 import org.apache.solr.handler.component.ShardResponse;
+import org.apache.solr.schema.CopyField;
 import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
@@ -37,15 +38,24 @@ public class DJoinSearchComponent extends SearchComponent {
 	public static final String VERSION_FIELD = "_version_";
 	
 	public static final String DJOIN_FIELD = "[" + COMPONENT_NAME + "]";
+
+	public static final String INIT_JOIN_FIELD = "joinField";
+	public static final String INIT_IGNORE_CONVERSION_ERRORS = "ignoreConversionErrors";
 	
 	private String joinField;
+	
+	private boolean ignoreConversionErrors = false;
 	
     @Override
     @SuppressWarnings("rawtypes")
     public void init(NamedList args) {
     	super.init(args);
     
-    	joinField = (String)args.get("joinField");
+    	joinField = (String)args.get(INIT_JOIN_FIELD);
+    	Boolean b = args.getBooleanArg(INIT_IGNORE_CONVERSION_ERRORS);
+    	if (b != null) {
+    		ignoreConversionErrors = b.booleanValue();
+    	}
     }
     
     private static List<String> getFieldList(SolrParams params) {
@@ -151,42 +161,46 @@ public class DJoinSearchComponent extends SearchComponent {
 			SolrDocumentList docs = (SolrDocumentList)group.get("doclist");
 			SolrDocument superDoc = new SolrDocument();
 			for (SolrDocument doc : docs) {
-				String shard = (String)doc.getFieldValue(SHARD_FIELD);
 				for (String fieldName : doc.getFieldNames()) {
 					if (fieldName.equals(SHARD_FIELD) && ! includeShard) {
 						continue;
 					}
 					SchemaField field = schema.getField(fieldName);
-					if (! field.stored()) {
+					if (field == null || ! field.stored()) {
 						continue;
 					}
-					
+
 					Object value = doc.getFieldValue(fieldName);
+					for (CopyField cp : schema.getCopyFieldsList(fieldName)) {
+						addConvertedFieldValue(superDoc, value, cp.getDestination());
+					}
+					
 					if (fieldName.equals(uniqueKeyField)) {
+						// the [djoin] field value is [shard]:[id]:_version_
 						if (includeShardId) {
+							String shard = (String)doc.getFieldValue(SHARD_FIELD);
 							String version = doc.getFieldValue(VERSION_FIELD).toString();
 							addFieldValue(superDoc, shard + ":" + value + ":" + version, null);
 						}
-					} else if (fieldName.equals(VERSION_FIELD)) {
-						// do nothing
-						//FIXME: so, have a configurable list of fields to include in the 'djoin' string?
-						//at the moment this is hard-coded to be [shard]:[id]:[version]
 					} else {
-						//TODO: here we convert values from one type to another, so try a custom field type to
-						//demonstrate custom field conversions
-						FieldType type = field.getType();
-						try {
-							IndexableField indexed = type.createField(field, value, 1.0f);
-							addFieldValue(superDoc, type.toObject(indexed), field);
-						} catch (NumberFormatException e) {
-							//FIXME: only ignore if we are allowed to
-							System.out.println("*** bad number in field " + fieldName + " " + e.getMessage());
-						}
+						addConvertedFieldValue(superDoc, value, field);
 					}
 				}
 			}
 			feds.add(superDoc);
 		}
+	}
+	
+	private void addConvertedFieldValue(SolrDocument superDoc, Object value, SchemaField field) {
+		try {
+			FieldType type = field.getType();
+			IndexableField indexable = type.createField(field, value, 1.0f);
+			addFieldValue(superDoc, type.toObject(indexable), field);
+		} catch (RuntimeException e) {
+			if (! ignoreConversionErrors) {
+				throw e;
+			}
+		}		
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -207,7 +221,6 @@ public class DJoinSearchComponent extends SearchComponent {
 			if (docValue == null) {
 				superDoc.setField(fieldName, value);
 			} else if (! docValue.equals(value)) {
-				//FIXME is this the desired behaviour?
 				throw new RuntimeException("Field not multi-valued: " + fieldName);
 			}
 		}

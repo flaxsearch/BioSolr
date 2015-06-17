@@ -4,13 +4,15 @@
     "name": "Cambridge",
     "value": "green",
     "foo": "cabbage",
-    "letter": "A"
+    "letter": "A",
+    "z": "13"
   },
   {
     "id": 102,
     "name": "Ely",
     "value": "orange",
     "foo": "cucumber",
-    "letter": "B"
+    "letter": "B",
+    "z": "14"
   }
 ]

@@ -4,14 +4,16 @@
     "name": "Cowes",
     "value": true,
     "baz": "cat",
-    "letter": "A"
+    "letter": "A",
+    "z": "30"
   },
   {
     "id": 302,
     "name": "Gurnard",
     "value": false,
     "baz": "dog",
-    "letter": "B"
+    "letter": "B",
+    "z": "31"
   },
   {
     "id": 303,
