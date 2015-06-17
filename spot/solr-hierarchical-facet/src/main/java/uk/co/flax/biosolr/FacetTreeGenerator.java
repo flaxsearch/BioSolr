@@ -64,6 +64,8 @@ public class FacetTreeGenerator {
 	private final String labelField;
 	private final int maxLevels;
 	
+	private final Set<String> docFields;
+	
 	private Map<String, String> labels = new HashMap<>();
 	
 	public FacetTreeGenerator(String collection, String nodeField, String childField, String labelField, int maxLevels) {
@@ -72,21 +74,43 @@ public class FacetTreeGenerator {
 		this.childField = childField;
 		this.labelField = labelField;
 		this.maxLevels = maxLevels;
+		
+		docFields = new HashSet<String>(Arrays.asList(nodeField, childField));
+		if (labelField != null && StringUtils.isNotBlank(labelField)) {
+			docFields.add(labelField);
+		}
 	}
 	
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
+		List<SimpleOrderedMap<Object>> retVal = null;
+		
+		// First get the searcher for the required collection
 		RefCounted<SolrIndexSearcher> searcherRef = getSearcherReference(rb);
-		validateFields(searcherRef.get());
 		
-		List<TreeFacetField> fTrees = processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
+		try {
+			// Make sure all the fields are in the searcher's schema
+			validateFields(searcherRef.get());
+
+			List<TreeFacetField> fTrees = processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
+
+			retVal = convertTreeFacetFields(fTrees);
+		} finally {
+			// Make sure the search ref count is decreased
+			searcherRef.decref();
+		}
 		
-		searcherRef.decref();
-		
-		return convertTreeFacetFields(fTrees);
+		return retVal;
 	}
 	
-	private RefCounted<SolrIndexSearcher> getSearcherReference(ResponseBuilder rb) throws IOException {
+	/**
+	 * Get a reference to the searcher for the required collection. If the collection is
+	 * not the same as the search collection, we assume it is under the same Solr instance.
+	 * @param rb the response builder holding the facets.
+	 * @return a counted reference to the searcher.
+	 * @throws SolrException if the collection cannot be found.
+	 */
+	private RefCounted<SolrIndexSearcher> getSearcherReference(ResponseBuilder rb) throws SolrException {
 		RefCounted<SolrIndexSearcher> searcherRef;
 		
 		SolrCore currentCore = rb.req.getCore();
@@ -105,7 +129,12 @@ public class FacetTreeGenerator {
 		return searcherRef;
 	}
 	
-	private void validateFields(SolrIndexSearcher searcher) throws IOException {
+	/**
+	 * Ensure that all of the required fields exist in the searcher's schema.
+	 * @param searcher the searcher being used to generate the facet trees.
+	 * @throws SolrException if any of the fields do not exist in the schema.
+	 */
+	private void validateFields(SolrIndexSearcher searcher) throws SolrException {
 		// Check that all of the fields are in the schema
 		for (String fieldName : Arrays.asList(nodeField, childField)) {
 			SchemaField sField = searcher.getSchema().getField(fieldName);
@@ -123,29 +152,46 @@ public class FacetTreeGenerator {
 		}
 	}
 	
+	/**
+	 * Process the terms from the incoming facets, and use them to build a list of nodes
+	 * which are then be converted into a hierarchical facet structure. This does multiple
+	 * additional searches to find the parent entries for each of the nodes.
+	 * @param searcher the searcher to use to build the tree.
+	 * @param facetMap the incoming facet values.
+	 * @return a list of TreeFacetFields, each of which is the root of a hierarchical
+	 * node structure.
+	 * @throws IOException
+	 */
 	private List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap) throws IOException {
 		// Extract the facet keys to a volatile set
 		Set<String> facetKeys = new HashSet<>(facetMap.keySet());
 
-		// Get the parent entries
-		Map<String, Set<String>> parentEntries = findParentEntries(searcher, facetKeys, nodeField, childField);
+		// Build a map of parent - child node IDs. This should contain the parents
+		// of all our starting facet terms.
+		Map<String, Set<String>> nodeChildren = findParentEntries(searcher, facetKeys);
 
-		// Find the bottom-level nodes, if there are any which haven't been looked up
-		facetKeys.removeAll(parentEntries.keySet());
-		parentEntries.putAll(filterEntriesByField(searcher, facetKeys, nodeField, nodeField));
+		// Find the details for the starting facet terms, if there are any which haven't 
+		// been found already.
+		facetKeys.removeAll(nodeChildren.keySet());
+		nodeChildren.putAll(filterEntriesByField(searcher, facetKeys, nodeField));
 
-		// Find the top node(s)
-		Set<String> topUris = findTopLevelNodes(parentEntries);
+		// Find the top nodes
+		Set<String> topUris = findTopLevelNodes(nodeChildren);
 		LOGGER.debug("Found {} top level nodes", topUris.size());
 
 		List<TreeFacetField> tffs = new ArrayList<>(topUris.size());
 		for (String fieldValue : topUris) {
-			tffs.add(buildAccumulatedEntryTree(0, fieldValue, parentEntries, facetMap));
+			tffs.add(buildAccumulatedEntryTree(0, fieldValue, nodeChildren, facetMap));
 		}
 
 		return tffs;
 	}
 	
+	/**
+	 * Convert a list of facets into a map, keyed by the facet term. 
+	 * @param facetValues the facet values.
+	 * @return a map of term - value for each entry.
+	 */
 	private Map<String, Integer> extractFacetValues(NamedList<Integer> facetValues) {
 		Map<String, Integer> facetMap = new HashMap<>();
 		for (Iterator<Entry<String, Integer>> it = facetValues.iterator(); it.hasNext(); ) {
@@ -157,18 +203,17 @@ public class FacetTreeGenerator {
 		
 		return facetMap;
 	}
-
+	
 	/**
 	 * Find all parent nodes for the given set of items.
 	 * @param searcher the searcher for the collection being used.
 	 * @param facetValues the starting set of node IDs.
-	 * @param treeField the item field containing the node value.
-	 * @param filterField the item field containing the child values.
-	 * @return a map of nodes, keyed by their URIs.
+	 * @param childField the item field containing the child values.
+	 * @return a map of nodes, keyed by their IDs.
 	 * @throws IOException
 	 */
-	private Map<String, Set<String>> findParentEntries(SolrIndexSearcher searcher, Collection<String> facetValues,
-			String treeField, String filterField) throws IOException {
+	private Map<String, Set<String>> findParentEntries(SolrIndexSearcher searcher, Collection<String> facetValues)
+			throws IOException {
 		Map<String, Set<String>> parentEntries = new HashMap<>();
 
 		Set<String> childrenFound = new HashSet<>();
@@ -176,8 +221,8 @@ public class FacetTreeGenerator {
 
 		int count = 0;
 		while (childIds.size() > 0 && (maxLevels == 0 || maxLevels >= count)) {
-			// Find the direct parents for the current child URIs
-			Map<String, Set<String>> parents = filterEntriesByField(searcher, childIds, treeField, filterField);
+			// Find the direct parents for the current child IDs
+			Map<String, Set<String>> parents = filterEntriesByField(searcher, childIds, childField);
 			parentEntries.putAll(parents);
 			childrenFound.addAll(childIds);
 
@@ -197,35 +242,43 @@ public class FacetTreeGenerator {
 	 * Fetch facets for items containing a specific set of values.
 	 * @param searcher the searcher for the collection being used.
 	 * @param facetValues the incoming values to use as filters.
-	 * @param treeField the item field containing the node value.
 	 * @param filterField the item field containing the child values, which will be used
 	 * to filter against.
 	 * @return a map of node value to child values for the items.
 	 * @throws IOException
 	 */
 	private Map<String, Set<String>> filterEntriesByField(SolrIndexSearcher searcher, Collection<String> facetValues,
-			String treeField, String filterField) throws IOException {
+			String filterField) throws IOException {
 		Map<String, Set<String>> filteredEntries = new HashMap<>();
 
-		if (facetValues.size() > 0) {
-			LOGGER.debug("Looking up {} entries in field {}", facetValues.size(), filterField);
-			Query filter = buildFilterQuery(filterField, facetValues);
-			LOGGER.trace("Filter query: {}", filter);
-			
-			DocSet docs = searcher.getDocSet(filter);
+		LOGGER.debug("Looking up {} entries in field {}", facetValues.size(), filterField);
+		Query filter = buildFilterQuery(filterField, facetValues);
+		LOGGER.trace("Filter query: {}", filter);
 
-			for (DocIterator it = docs.iterator(); it.hasNext(); ) {
-				int id = it.nextDoc();
-				Document doc = searcher.doc(id);
-				Set<String> childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
-				filteredEntries.put(doc.get(treeField), childIds);
-				LOGGER.trace("Got {} children for node {}", childIds.size(), doc.get(treeField));
-				// If a label field has been specified, get the first available value
-				if (labelField != null) {
-					String[] labelValues = doc.getValues(labelField);
-					if (labelValues.length > 0) {
-						labels.put(doc.get(treeField), labelValues[0]);
-					}
+		DocSet docs = searcher.getDocSet(filter);
+
+		for (DocIterator it = docs.iterator(); it.hasNext(); ) {
+			Document doc = searcher.doc(it.nextDoc(), docFields);
+			String nodeId = doc.get(nodeField);
+			
+			// Get the children for the node, if necessary
+			Set<String> childIds;
+			if (filterField.equals(nodeField)) {
+				// Filtering on the node field - child IDs are redundant
+				childIds = Collections.emptySet();
+			} else {
+				childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
+				LOGGER.trace("Got {} children for node {}", childIds.size(), nodeId);
+			}
+			filteredEntries.put(nodeId, childIds);
+			
+			// If a label field has been specified, get the first available value
+			if (labelField != null && !labels.containsKey(nodeId)) {
+				String[] labelValues = doc.getValues(labelField);
+				if (labelValues.length > 0) {
+					labels.put(nodeId, labelValues[0]);
+				} else {
+					labels.put(nodeId, null);
 				}
 			}
 		}
@@ -252,84 +305,84 @@ public class FacetTreeGenerator {
 	}
 
 	/**
-	 * Find all of the top-level records in a set of annotations. This is done by looping
-	 * through the annotations and finding any other annotations in the set which
-	 * contain the current annotation in their child list.
-	 * @param nodeChildren a map of annotation ID to annotation entries to check over.
-	 * @return a set containing the identifiers for all of the top-level
-	 * annotations found.
+	 * Find all of the top-level nodes in a map of parent - child node IDs.
+	 * @param nodeChildren a map of parent - child node IDs..
+	 * @return a set containing the IDs for all of the top-level nodes found.
 	 */
 	private Set<String> findTopLevelNodes(Map<String, Set<String>> nodeChildren) {
 		Set<String> topLevel = new HashSet<>();
+		
+		// Extract all the child IDs so we only have to iterate through them once
+		Set<String> childIds = extractAllChildIds(nodeChildren.values());
 
+		// Loop through each ID in the map, and check if it is contained in the
+		// children of any other node.
 		for (String id : nodeChildren.keySet()) {
-			boolean found = false;
-
-			// Check each annotation in the set to see if this
-			// URI is in their child list
-			for (Set<String> childId : nodeChildren.values()) {
-				if (childId != null && childId.contains(id)) {
-					// URI is in the child list - not top-level
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				// URI Is not in any child lists - must be top-level
+			if (!childIds.contains(id)) {
+				// Not in the set of child IDs - must be top level
 				topLevel.add(id);
 			}
 		}
 
 		return topLevel;
 	}
-
+	
+	/**
+	 * Extract all of the entries in the collected child IDs into a single set.
+	 * @param childIds the collection of all child ID sets.
+	 * @return a single set containing all of the child IDs.
+	 */
+	private Set<String> extractAllChildIds(Collection<Set<String>> childIds) {
+		Set<String> ids = new HashSet<>();
+		
+		for (Set<String> children : childIds) {
+			ids.addAll(children);
+		}
+		
+		return ids;
+	}
+	
 	/**
 	 * Recursively build an accumulated facet entry tree.
 	 * @param level current level in the tree (used for debugging/logging).
 	 * @param fieldValue the current node value.
-	 * @param childValues the children of the current node.
-	 * @param facetCounts the facet counts, keyed by node ID.
-	 * @param annotationMap the map of nodes (either in the original facet set,
+	 * @param hierarchyMap the map of nodes (either in the original facet set,
 	 * or parents of those entries).
-	 * @return an {@link AccumulatedFacetEntry} containing details for the current node and all
+	 * @param facetCounts the facet counts, keyed by node ID.
+	 * @return a {@link TreeFacetField} containing details for the current node and all
 	 * sub-nodes down to the lowest leaf which has a facet count.
 	 */
-	private TreeFacetField buildAccumulatedEntryTree(int level, String fieldValue, Map<String, Set<String>> annotationMap,
+	private TreeFacetField buildAccumulatedEntryTree(int level, String fieldValue, Map<String, Set<String>> hierarchyMap,
 			Map<String, Integer> facetCounts) {
-		// Build the child hierarchy for this entry
+		// Build the child hierarchy for this entry.
+		// We use a reverse-ordered SortedSet so entries are returned in descending
+		// order by their total count.
 		SortedSet<TreeFacetField> childHierarchy = new TreeSet<>(Collections.reverseOrder());
+		
+		// childTotal is the total number of facet hits below this node
 		long childTotal = 0;
-		if (annotationMap.containsKey(fieldValue)) {
-			Set<String> childValues = annotationMap.get(fieldValue);
-
+		if (hierarchyMap.containsKey(fieldValue)) {
 			// Loop through all the direct child URIs, looking for those which are in the annotation map
-			for (String childId : childValues) {
-				if (annotationMap.containsKey(childId) && !childId.equals(fieldValue)) {
+			for (String childId : hierarchyMap.get(fieldValue)) {
+				if (hierarchyMap.containsKey(childId) && !childId.equals(fieldValue)) {
 					// Found a child of this node - recurse to build its facet tree
-					LOGGER.trace("[{}] Building subAfe for {}, with {} children", level, childId, annotationMap.get(childId).size());
-					TreeFacetField subAfe = buildAccumulatedEntryTree(level + 1, childId, annotationMap, facetCounts);
-					if (childHierarchy.add(subAfe)) {
-						// childTotal is the total facet hits below the current level
-						childTotal += subAfe.getTotal();
+					LOGGER.trace("[{}] Building child tree for {}, with {} children", level, childId, hierarchyMap.get(childId).size());
+					TreeFacetField childTree = buildAccumulatedEntryTree(level + 1, childId, hierarchyMap, facetCounts);
+					
+					// Only add to the total count if this node isn't already in the child hierarchy
+					if (childHierarchy.add(childTree)) {
+						childTotal += childTree.getTotal();
 					}
-					LOGGER.trace("[{}] subAfe total: {} - child Total {}, child count {}", level, subAfe.getTotal(), childTotal, childHierarchy.size());
+					LOGGER.trace("[{}] child tree total: {} - child Total {}, child count {}", level, childTree.getTotal(), childTotal, childHierarchy.size());
 				} else {
 					LOGGER.trace("[{}] no node entry for {}->{}", level, fieldValue, childId);
 				}
 			}
 		}
 
-		// Get the count and label for this entry
-		long count = getFacetCount(fieldValue, facetCounts);
-		String label = null;
-		if (labelField != null) {
-			label = labels.get(fieldValue);
-		}
-
 		// Build the accumulated facet entry
-		LOGGER.trace("[{}] Building AFE for {}", level, fieldValue);
-		return new TreeFacetField(label, fieldValue, count, childTotal, childHierarchy);
+		LOGGER.trace("[{}] Building facet tree for {}", level, fieldValue);
+		return new TreeFacetField(getFacetLabel(fieldValue), fieldValue, getFacetCount(fieldValue, facetCounts), childTotal, childHierarchy);
 	}
 
 	/**
@@ -339,16 +392,25 @@ public class FacetTreeGenerator {
 	 * @return the count, or <code>0</code> if the key does not exist in the map.
 	 */
 	private long getFacetCount(String key, Map<String, Integer> facetCounts) {
-		long ret = 0;
-
 		if (facetCounts.containsKey(key)) {
-			ret = facetCounts.get(key);
-			LOGGER.trace("Got facet count hit for {}: {}", key, ret);
+			return facetCounts.get(key);
 		}
-
-		return ret;
+		return 0;
+	}
+	
+	private String getFacetLabel(String id) {
+		if (labelField != null) {
+			return labels.get(id);
+		}
+		return null;
 	}
 
+	/**
+	 * Convert the tree facet fields into a list of SimpleOrderedMaps, so they can
+	 * be easily serialized by Solr.
+	 * @param fTrees the list of facet tree fields.
+	 * @return a list of equivalent maps.
+	 */
 	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
 		List<SimpleOrderedMap<Object>> nlTrees = new ArrayList<>(fTrees.size());
 		for (TreeFacetField tff : fTrees) {

@@ -98,7 +98,8 @@ public class FacetTreeProcessor extends SimpleFacets {
 					throw new SolrException(ErrorCode.BAD_REQUEST, e);
 				}
 
-				// Construct a generator for the fields we want
+				// Construct generators for the hierarchical facets fields.
+				// Is there ever likely to be more than one?
 				final FacetTreeGenerator generator = new FacetTreeGenerator(localParams.get(COLLECTION_PARAM),
 						nodeField, localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM),
 						localParams.getInt(LEVELS_PARAM, 0));
@@ -124,19 +125,19 @@ public class FacetTreeProcessor extends SimpleFacets {
 			}
 
 			// Loop over futures to get the values. The order is the same as
-			// facetFs but shouldn't matter.
+			// facetTrees but shouldn't matter.
 			for (Future<NamedList> future : futures) {
 				treeResponse.addAll(future.get());
 			}
 		} catch (InterruptedException e) {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
-					"Error while processing facet fields: InterruptedException", e);
+					"Error while processing facet tree fields: InterruptedException", e);
 		} catch (ExecutionException ee) {
 			Throwable e = ee.getCause();// unwrap
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error while processing facet fields: "
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "Error while processing facet tree fields: "
 					+ e.toString(), e);
 		}
 

@@ -1,0 +1,6 @@
+{ "id": "1", "node_id": "A", "child_ids": [ "AA", "AB", "AC" ], "name": "NodeA", "label": "nodeA" }
+{ "id": "2", "node_id": "AA", "child_ids": [ "AAA", "AAB" ], "name": "NodeAA", "label": "nodeAA" }
+{ "id": "3", "node_id": "AAA", "child_ids": [ ], "name": "NodeAAA", "label": "nodeAAA" }
+{ "id": "4", "node_id": "AAB", "child_ids": [ ], "name": "NodeAAB", "label": "nodeAAB" }
+{ "id": "5", "node_id": "AB", "child_ids": [ ], "name": "NodeAB", "label": "nodeAB" }
+{ "id": "6", "node_id": "AC", "child_ids": [ ], "name": "NodeAC", "label": "nodeAC" }

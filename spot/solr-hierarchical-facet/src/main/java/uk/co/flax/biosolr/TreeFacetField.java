@@ -18,11 +18,17 @@ package uk.co.flax.biosolr;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedSet;
+import java.util.Set;
 
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
+/**
+ * POJO representing an entry in the hierarchical facet tree.
+ *
+ * <p>Implements Comparable, so that entries in the tree may be ordered by their
+ * value count.</p>
+ */
 public class TreeFacetField implements Comparable<TreeFacetField>, Serializable {
 
 	private static final long serialVersionUID = 5709339278691781478L;
@@ -37,9 +43,18 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	private final String value;
 	private final long count;
 	private final long childCount;
-	private final SortedSet<TreeFacetField> hierarchy;
+	private final Set<TreeFacetField> hierarchy;
 
-	public TreeFacetField(String label, String value, long count, long childCount, SortedSet<TreeFacetField> hierarchy) {
+	/**
+	 * Construct a new TreeFacetField node.
+	 * @param label the label for the node (optional).
+	 * @param value the facet value.
+	 * @param count the actual facet count for this node.
+	 * @param childCount the total count for facets which are children of this
+	 * node.
+	 * @param hierarchy the set of nodes which comprise the children of this node.
+	 */
+	public TreeFacetField(String label, String value, long count, long childCount, Set<TreeFacetField> hierarchy) {
 		this.label = label;
 		this.value = value;
 		this.count = count;
@@ -63,7 +78,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return count + childCount;
 	}
 
-	public SortedSet<TreeFacetField> getHierarchy() {
+	public Set<TreeFacetField> getHierarchy() {
 		return hierarchy;
 	}
 
@@ -85,24 +100,29 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return ret;
 	}
 
+	/**
+	 * Convert this object to a SimpleOrderedMap, making it easier to serialize.
+	 * @return the equivalent SimpleOrderedMap for this object.
+	 */
 	public SimpleOrderedMap<Object> toMap() {
-		SimpleOrderedMap<Object> nl = new SimpleOrderedMap<>();
+		SimpleOrderedMap<Object> map = new SimpleOrderedMap<>();
 		
 		if (label != null) {
-			nl.add(LABEL_KEY, label);
+			map.add(LABEL_KEY, label);
 		}
-		nl.add(VALUE_KEY, value);
-		nl.add(COUNT_KEY, count);
-		nl.add(TOTAL_KEY, getTotal());
+		map.add(VALUE_KEY, value);
+		map.add(COUNT_KEY, count);
+		map.add(TOTAL_KEY, getTotal());
 		if (hierarchy != null && hierarchy.size() > 0) {
+			// Recurse through the child nodes, converting each to a map
 			List<NamedList<Object>> hierarchyList = new ArrayList<>(hierarchy.size());
 			for (TreeFacetField tff : hierarchy) {
 				hierarchyList.add(tff.toMap());
 			}
-			nl.add(HIERARCHY_KEY, hierarchyList);
+			map.add(HIERARCHY_KEY, hierarchyList);
 		}
 		
-		return nl;
+		return map;
 	}
 
 	/* (non-Javadoc)

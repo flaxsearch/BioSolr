@@ -12,6 +12,7 @@
 		<module>spot-ontology-api</module>
 		<module>spot-ontology-indexer</module>
 		<module>spot-ontology-webapp</module>
+		<module>spot-ontology-indexer-plugins</module>
 	</modules>
 
 	<properties>

@@ -14,6 +14,7 @@
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<solr.version>5.0.0</solr.version>
 	</properties>
 	
 	<build>
@@ -36,7 +37,13 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>5.0.0</version>
+			<version>${solr.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-test-framework</artifactId>
+			<version>${solr.version}</version>
+			<scope>test</scope>
 		</dependency>
 		
 		<dependency>
@@ -50,6 +57,16 @@
 			<artifactId>mockito-core</artifactId>
 			<version>1.10.8</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.7.12</version>
 		</dependency>
 	</dependencies>
 </project>
