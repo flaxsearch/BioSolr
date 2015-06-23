@@ -1,5 +1,7 @@
 <li>
-	<a ng-click="click({ field: 'efo_uri', value: entry.value })">{{entry.label}}</a> ({{entry.count}} / {{entry.total}})
+	<a ng-if="entry.count > 0" ng-click="click({ field: 'efo_uri', value: entry.value })">{{entry.label}}</a>
+	<span ng-if="entry.count == 0">{{entry.label}}</span> 
+	({{entry.count}} / {{entry.total}})
 	
 	<ul ng-repeat="subEntry in entry.hierarchy" class="facet-list">
 		<hierarchy entry="subEntry" data-click="topFunc(field, value)" top-func="topFunc" />
