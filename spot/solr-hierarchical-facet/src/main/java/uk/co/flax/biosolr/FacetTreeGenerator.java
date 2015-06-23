@@ -16,6 +16,8 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,10 +46,12 @@ public class FacetTreeGenerator {
 	
 	private final FacetTreeBuilder treeBuilder;
 	private final String collection;
+	private final boolean pruneTrees;
 	
-	public FacetTreeGenerator(FacetTreeBuilder treeBuilder, String collection) {
+	public FacetTreeGenerator(FacetTreeBuilder treeBuilder, String collection, boolean prune) {
 		this.treeBuilder = treeBuilder;
 		this.collection = collection;
+		this.pruneTrees = prune;
 	}
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
@@ -60,6 +64,11 @@ public class FacetTreeGenerator {
 			// Build the facet tree(s)
 			List<TreeFacetField> fTrees = treeBuilder.processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
 			LOGGER.debug("Extracted {} facet trees", fTrees.size());
+			
+			if (pruneTrees) {
+				// Prune the trees
+				fTrees = pruneTrees(fTrees);
+			}
 
 			// Convert the trees into a SimpleOrderedMap
 			retVal = convertTreeFacetFields(fTrees);
@@ -113,6 +122,38 @@ public class FacetTreeGenerator {
 		
 		return facetMap;
 	}
+	
+	private List<TreeFacetField> pruneTrees(Collection<TreeFacetField> unprunedTrees) {
+		List<TreeFacetField> pruned = new ArrayList<>(unprunedTrees.size());
+		
+		for (TreeFacetField tff : unprunedTrees) {
+			if (tff.getCount() > 0) {
+				pruned.add(tff);
+			} else if (checkChildCounts(tff)) {
+				pruned.add(tff);
+			} else if (tff.hasChildren()) {
+				pruned.addAll(pruneTrees(tff.getHierarchy()));
+			}
+		}
+		
+		return pruned;
+	}
+	
+	private boolean checkChildCounts(TreeFacetField tree) {
+		boolean ret = false;
+		
+		if (tree.hasChildren()) {
+			for (TreeFacetField tff : tree.getHierarchy()) {
+				if (tff.getCount() > 0) {
+					ret = true;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
 	
 	/**
 	 * Convert the tree facet fields into a list of SimpleOrderedMaps, so they can

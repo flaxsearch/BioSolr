@@ -82,6 +82,10 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return hierarchy;
 	}
 
+	public boolean hasChildren() {
+		return hierarchy != null && hierarchy.size() > 0;
+	}
+
 	@Override
 	public int compareTo(TreeFacetField o) {
 		int ret = 0;
@@ -122,7 +126,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		
 		return map;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

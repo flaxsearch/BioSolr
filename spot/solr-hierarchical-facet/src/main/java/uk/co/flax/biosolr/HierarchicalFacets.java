@@ -59,6 +59,7 @@ public class HierarchicalFacets extends SimpleFacets {
 	public static final String LABEL_FIELD_PARAM = "labelField";
 	public static final String LEVELS_PARAM = "levels";
 	public static final String STRATEGY_PARAM = "strategy";
+	public static final String PRUNE_PARAM = "prune";
 
 	static final Executor directExecutor = new Executor() {
 		@Override
@@ -97,7 +98,9 @@ public class HierarchicalFacets extends SimpleFacets {
 					FacetTreeBuilder treeBuilder = treeBuilderFactory.constructFacetTreeBuilder(localParams);
 					final String localKey = localParams.get(QueryParsing.V);
 					
-					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, localParams.get(COLLECTION_PARAM, null));
+					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, 
+							localParams.get(COLLECTION_PARAM, null),
+							localParams.getBool(PRUNE_PARAM, false));
 					final NamedList<Integer> termCounts = getTermCounts(localKey);
 					Callable<NamedList> callable = new Callable<NamedList>() {
 						@Override
