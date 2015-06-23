@@ -16,7 +16,6 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -65,12 +64,12 @@ public class FacetTreeGenerator {
 		
 		try {
 			// Build the facet tree(s)
-			List<TreeFacetField> fTrees = treeBuilder.processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
+			Collection<TreeFacetField> fTrees = treeBuilder.processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
 			LOGGER.debug("Extracted {} facet trees", fTrees.size());
 			
 			if (pruneTrees) {
 				// Prune the trees
-				fTrees = pruneTrees(fTrees);
+				fTrees = prune(fTrees);
 			}
 
 			// Convert the trees into a SimpleOrderedMap
@@ -126,22 +125,72 @@ public class FacetTreeGenerator {
 		return facetMap;
 	}
 	
-	private List<TreeFacetField> pruneTrees(Collection<TreeFacetField> unprunedTrees) {
+	private Collection<TreeFacetField> prune(Collection<TreeFacetField> unpruned) {
+		// Prune the trees
+		Collection<TreeFacetField> pruned = stripNonRelevantTrees(unpruned);
+		
+		// Now loop through the top-level nodes, making sure none of the entries
+		// are included in another entry's children
+		pruned = deduplicateTrees(pruned);
+		
+		return pruned;
+	}
+	
+	private Collection<TreeFacetField> deduplicateTrees(Collection<TreeFacetField> trees) {
+		return trees.stream().filter(t -> !isFacetInChildren(t, 0, trees)).collect(Collectors.toList());
+	}
+	
+	private boolean isFacetInChildren(TreeFacetField facet, int level, Collection<TreeFacetField> trees) {
+		boolean retVal = false;
+		
+		if (trees != null) {
+			for (TreeFacetField tree : trees) {
+				if ((level != 0 && tree.equals(facet)) || (isFacetInChildren(facet, level + 1, tree.getHierarchy()))) {
+					retVal = true;
+					break;
+				}
+			}
+		}
+		
+		return retVal;
+	}
+	
+	/**
+	 * Prune a collection of facet trees, in order to remove nodes which are
+	 * unlikely to be relevant. "Relevant" is defined here to be either
+	 * entries with direct hits, or entries with a pre-defined number of
+	 * child nodes with direct hits. This can remove several top-level
+	 * layers from the tree which don't have direct hits.
+	 * @param unprunedTrees the trees which need pruning.
+	 * @return a sorted list of pruned trees.
+	 */
+	private Collection<TreeFacetField> stripNonRelevantTrees(Collection<TreeFacetField> unprunedTrees) {
+		// Use a sorted set so the trees come out in count-descending order
 		Set<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
 		
 		for (TreeFacetField tff : unprunedTrees) {
 			if (tff.getCount() > 0) {
+				// Relevant  - entry has direct hits
 				pruned.add(tff);
 			} else if (checkChildCounts(tff)) {
+				// Relevant - entry has a number of children with direct hits
 				pruned.add(tff);
 			} else if (tff.hasChildren()) {
-				pruned.addAll(pruneTrees(tff.getHierarchy()));
+				// Not relevant at this level - recurse through children
+				pruned.addAll(stripNonRelevantTrees(tff.getHierarchy()));
 			}
 		}
 		
-		return new ArrayList<TreeFacetField>(pruned);
+		return pruned;
 	}
 	
+	/**
+	 * Check whether the given tree has enough children with direct hits to 
+	 * be included in the pruned tree.
+	 * @param tree the facet tree.
+	 * @return <code>true</code> if the tree has enough children to be 
+	 * included.
+	 */
 	private boolean checkChildCounts(TreeFacetField tree) {
 		int hitCount = 0;
 		
@@ -163,7 +212,7 @@ public class FacetTreeGenerator {
 	 * @param fTrees the list of facet tree fields.
 	 * @return a list of equivalent maps.
 	 */
-	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(List<TreeFacetField> fTrees) {
+	private List<SimpleOrderedMap<Object>> convertTreeFacetFields(Collection<TreeFacetField> fTrees) {
 		return fTrees.stream().map(TreeFacetField::toMap).collect(Collectors.toList());
 	}
 
