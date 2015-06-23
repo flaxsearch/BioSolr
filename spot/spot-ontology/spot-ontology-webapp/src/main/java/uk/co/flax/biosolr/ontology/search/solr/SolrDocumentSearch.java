@@ -206,6 +206,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		if (StringUtils.isNotBlank(ftConfig.getLabelField())) {
 			ftqParam.append(" labelField=").append(ftConfig.getLabelField());
 		}
+		ftqParam.append(" prune=true");
 		
 		ftqParam.append("}").append(ftConfig.getBaseField());
 		
