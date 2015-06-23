@@ -43,7 +43,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	private final String label;
 	private final String value;
 	private final long count;
-	private final long childCount;
+	private long childCount;
 	private final Set<TreeFacetField> hierarchy;
 
 	/**
@@ -85,6 +85,19 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 
 	public boolean hasChildren() {
 		return hierarchy != null && hierarchy.size() > 0;
+	}
+	
+	public void recalculateChildCount() {
+		long cCount = 0;
+		
+		if (hasChildren()) {
+			for (TreeFacetField childNode : hierarchy) {
+				childNode.recalculateChildCount();
+				cCount += childNode.getChildCount();
+			}
+		}
+		
+		this.childCount = cCount;
 	}
 
 	@Override
