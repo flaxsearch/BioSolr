@@ -4,7 +4,7 @@
 		<span ng-click="isOpen = !isOpen" ng-show="isOpen" class="glyphicon glyphicon-collapse-down"></span>
 	</span>
 
-	<a ng-if="entry.count > 0" ng-click="click({ field: 'efo_uri', value: entry.value })">{{entry.label}}</a>
+	<a ng-if="entry.count > 0" ng-click="click({ field: 'efo_uri', value: entry.uri })">{{entry.label}}</a>
 	<span ng-show="entry.count == 0">{{entry.label}}</span> 
 	({{entry.count}} / {{entry.total}})
 	
