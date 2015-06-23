@@ -63,3 +63,11 @@ ul.facet-list {
     border: 2px solid #b8cacb;
     border-radius: 4px;
 }
+
+span.expand-collapse {
+	cursor: pointer;
+}
+
+a {
+	cursor: pointer;
+}
