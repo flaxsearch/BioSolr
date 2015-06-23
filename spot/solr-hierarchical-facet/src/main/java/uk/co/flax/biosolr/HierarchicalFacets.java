@@ -43,6 +43,8 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.DefaultSolrThreadFactory;
 
+import uk.co.flax.biosolr.pruning.PrunerFactory;
+
 /**
  * Facet generator to process and build one or more hierarchical facet
  * trees. This deals with the parameter processing and retrieving the
@@ -91,6 +93,7 @@ public class HierarchicalFacets extends SimpleFacets {
 		SimpleOrderedMap<NamedList> treeResponse = new SimpleOrderedMap<>();
 		try {
 			FacetTreeBuilderFactory treeBuilderFactory = new FacetTreeBuilderFactory();
+			PrunerFactory prunerFactory = new PrunerFactory();
 			
 			for (String fTree : facetTrees) {
 				try {
@@ -100,7 +103,7 @@ public class HierarchicalFacets extends SimpleFacets {
 					
 					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, 
 							localParams.get(COLLECTION_PARAM, null),
-							localParams.getBool(PRUNE_PARAM, false));
+							prunerFactory.constructPruner(localParams));
 					final NamedList<Integer> termCounts = getTermCounts(localKey);
 					Callable<NamedList> callable = new Callable<NamedList>() {
 						@Override

@@ -17,14 +17,11 @@ package uk.co.flax.biosolr;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +36,8 @@ import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.co.flax.biosolr.pruning.Pruner;
+
 /**
  * Class to generate a facet tree.
  */
@@ -48,12 +47,12 @@ public class FacetTreeGenerator {
 	
 	private final FacetTreeBuilder treeBuilder;
 	private final String collection;
-	private final boolean pruneTrees;
+	private final Pruner pruner;
 	
-	public FacetTreeGenerator(FacetTreeBuilder treeBuilder, String collection, boolean prune) {
+	public FacetTreeGenerator(FacetTreeBuilder treeBuilder, String collection, Pruner pruner) {
 		this.treeBuilder = treeBuilder;
 		this.collection = collection;
-		this.pruneTrees = prune;
+		this.pruner = pruner;
 	}
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
@@ -67,9 +66,9 @@ public class FacetTreeGenerator {
 			Collection<TreeFacetField> fTrees = treeBuilder.processFacetTree(searcherRef.get(), extractFacetValues(facetValues));
 			LOGGER.debug("Extracted {} facet trees", fTrees.size());
 			
-			if (pruneTrees) {
+			if (pruner != null) {
 				// Prune the trees
-				fTrees = prune(fTrees);
+				fTrees = pruner.prune(fTrees);
 			}
 
 			// Convert the trees into a SimpleOrderedMap
@@ -125,87 +124,7 @@ public class FacetTreeGenerator {
 		return facetMap;
 	}
 	
-	private Collection<TreeFacetField> prune(Collection<TreeFacetField> unpruned) {
-		// Prune the trees
-		Collection<TreeFacetField> pruned = stripNonRelevantTrees(unpruned);
-		
-		// Now loop through the top-level nodes, making sure none of the entries
-		// are included in another entry's children
-		pruned = deduplicateTrees(pruned);
-		
-		return pruned;
-	}
-	
-	private Collection<TreeFacetField> deduplicateTrees(Collection<TreeFacetField> trees) {
-		return trees.stream().filter(t -> !isFacetInChildren(t, 0, trees)).collect(Collectors.toList());
-	}
-	
-	private boolean isFacetInChildren(TreeFacetField facet, int level, Collection<TreeFacetField> trees) {
-		boolean retVal = false;
-		
-		if (trees != null) {
-			for (TreeFacetField tree : trees) {
-				if ((level != 0 && tree.equals(facet)) || (isFacetInChildren(facet, level + 1, tree.getHierarchy()))) {
-					retVal = true;
-					break;
-				}
-			}
-		}
-		
-		return retVal;
-	}
-	
-	/**
-	 * Prune a collection of facet trees, in order to remove nodes which are
-	 * unlikely to be relevant. "Relevant" is defined here to be either
-	 * entries with direct hits, or entries with a pre-defined number of
-	 * child nodes with direct hits. This can remove several top-level
-	 * layers from the tree which don't have direct hits.
-	 * @param unprunedTrees the trees which need pruning.
-	 * @return a sorted list of pruned trees.
-	 */
-	private Collection<TreeFacetField> stripNonRelevantTrees(Collection<TreeFacetField> unprunedTrees) {
-		// Use a sorted set so the trees come out in count-descending order
-		Set<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
-		
-		for (TreeFacetField tff : unprunedTrees) {
-			if (tff.getCount() > 0) {
-				// Relevant  - entry has direct hits
-				pruned.add(tff);
-			} else if (checkChildCounts(tff)) {
-				// Relevant - entry has a number of children with direct hits
-				pruned.add(tff);
-			} else if (tff.hasChildren()) {
-				// Not relevant at this level - recurse through children
-				pruned.addAll(stripNonRelevantTrees(tff.getHierarchy()));
-			}
-		}
-		
-		return pruned;
-	}
-	
-	/**
-	 * Check whether the given tree has enough children with direct hits to 
-	 * be included in the pruned tree.
-	 * @param tree the facet tree.
-	 * @return <code>true</code> if the tree has enough children to be 
-	 * included.
-	 */
-	private boolean checkChildCounts(TreeFacetField tree) {
-		int hitCount = 0;
-		
-		if (tree.hasChildren()) {
-			for (TreeFacetField tff : tree.getHierarchy()) {
-				if (tff.getCount() > 0) {
-					hitCount ++;
-				}
-			}
-		}
-		
-		return hitCount > 3;
-	}
-	
-	
+
 	/**
 	 * Convert the tree facet fields into a list of SimpleOrderedMaps, so they can
 	 * be easily serialized by Solr.
