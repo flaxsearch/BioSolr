@@ -4,9 +4,11 @@
 		<span ng-click="isOpen = !isOpen" ng-show="isOpen" class="glyphicon glyphicon-collapse-down"></span>
 	</span>
 
-	<a ng-if="entry.count > 0" ng-click="click({ field: 'efo_uri', value: entry.uri })">{{entry.label}}</a>
-	<span ng-show="entry.count == 0">{{entry.label}}</span> 
-	({{entry.count}} / {{entry.total}})
+	<span ng-class="{ 'not-expandable': noHierarchy }">
+		<a ng-if="entry.count > 0" ng-click="click({ field: 'efo_uri', value: entry.uri })">{{entry.label}}</a>
+		<span ng-show="entry.count == 0">{{entry.label}}</span> 
+		({{entry.count}} / {{entry.total}})
+	</span>
 	
 	<ul ng-show="isOpen" ng-repeat="subEntry in entry.hierarchy" class="facet-list">
 		<hierarchy entry="subEntry" data-click="topFunc(field, value)" top-func="topFunc" />

@@ -164,6 +164,7 @@ ontologyApp
         		// Set whether or not the menu is open, and if the entry has a hierarchy
         		scope.isOpen = false;
         		scope.hasHierarchy = scope.entry && scope.entry.hierarchy && scope.entry.hierarchy.length > 0;
+        		scope.noHierarchy = !scope.hasHierarchy;
         	});
         }
     };
