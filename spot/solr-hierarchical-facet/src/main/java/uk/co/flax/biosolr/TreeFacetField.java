@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
@@ -181,6 +182,16 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(value);
+		if (StringUtils.isNotBlank(label)) {
+			sb.append(" [").append(label).append("]");
+		}
+		sb.append(" ").append(count).append("/").append(getTotal());
+		return sb.toString();
 	}
 
 }
