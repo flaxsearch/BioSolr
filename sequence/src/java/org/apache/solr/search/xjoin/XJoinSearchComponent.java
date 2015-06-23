@@ -35,9 +35,7 @@ import org.apache.solr.search.DocIterator;
  * in both the first and last component lists.
  * 
  * In prepare(), it obtains external process results (based on parameters in the SOLR query
- * URL), and (optionally) places a list of join ids in a query parameter. The join id list
- * should be used as the value to a terms query parser to create the main query or a query
- * filter.
+ * URL) and places them into the request context.
  * 
  * In process(), it appends (selectable) attributes of the external process results to the
  * query results.

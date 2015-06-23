@@ -1,0 +1,25 @@
+[
+  {
+    "id": 201,
+    "name": "Congleton",
+    "value": 123,
+    "bar": "tea",
+    "letter": "A"
+  },
+  {
+    "id": 202,
+    "name": "Macclesfield",
+    "value": 456,
+    "bar": "coffee",
+    "letter": "B",
+    "z": 20
+  },
+  {
+    "id": 203,
+    "name": "Cambridge",
+    "value": 2000,
+    "bar": "oil",
+    "letter": "A",
+    "z": "not a number"
+  }
+]

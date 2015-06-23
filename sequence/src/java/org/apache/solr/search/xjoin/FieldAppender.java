@@ -38,17 +38,17 @@ public class FieldAppender {
    */
   public FieldAppender(String fl) {
     this();
-      for (String field : fl.split("[, ]")) {
-        field = field.trim();
-        if (field.length() == 0) {
-          continue;
-        }
-        if ("*".equals(field)) {
-          fieldNames = null;
-          return;
-        }
-        fieldNames.add(field);
+    for (String field : fl.split("[, ]")) {
+      field = field.trim();
+      if (field.length() == 0) {
+        continue;
       }
+      if ("*".equals(field)) {
+        fieldNames = null;
+        return;
+      }
+      fieldNames.add(field);
+    }
   }
 
   /**
