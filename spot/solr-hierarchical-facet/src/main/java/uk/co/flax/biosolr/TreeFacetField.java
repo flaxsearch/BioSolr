@@ -95,9 +95,13 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		} else {
 			ret = (int) (getTotal() - o.getTotal());
 			if (ret == 0) {
-				// If the counts are the same, compare the ID as well, to double-check
-				// whether they're actually the same entry
-				ret = getValue().compareTo(o.getValue());
+				// If the totals are the same, compare the count as well.
+				ret = (int) (count - o.count);
+				if (ret == 0) {
+					// If the counts are also the same, compare the ID as well, to double-check
+					// whether they're actually the same entry
+					ret = getValue().compareTo(o.getValue());
+				}
 			}
 		}
 

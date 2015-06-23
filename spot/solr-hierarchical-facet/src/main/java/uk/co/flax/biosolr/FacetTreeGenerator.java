@@ -18,11 +18,14 @@ package uk.co.flax.biosolr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -124,7 +127,7 @@ public class FacetTreeGenerator {
 	}
 	
 	private List<TreeFacetField> pruneTrees(Collection<TreeFacetField> unprunedTrees) {
-		List<TreeFacetField> pruned = new ArrayList<>(unprunedTrees.size());
+		Set<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
 		
 		for (TreeFacetField tff : unprunedTrees) {
 			if (tff.getCount() > 0) {
@@ -136,22 +139,21 @@ public class FacetTreeGenerator {
 			}
 		}
 		
-		return pruned;
+		return new ArrayList<TreeFacetField>(pruned);
 	}
 	
 	private boolean checkChildCounts(TreeFacetField tree) {
-		boolean ret = false;
+		int hitCount = 0;
 		
 		if (tree.hasChildren()) {
 			for (TreeFacetField tff : tree.getHierarchy()) {
 				if (tff.getCount() > 0) {
-					ret = true;
-					break;
+					hitCount ++;
 				}
 			}
 		}
 		
-		return ret;
+		return hitCount > 3;
 	}
 	
 	
