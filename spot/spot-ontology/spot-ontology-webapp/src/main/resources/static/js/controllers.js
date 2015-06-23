@@ -160,9 +160,11 @@ ontologyApp
         },
         templateUrl: 'partials/hierarchy.html',
         compile: function(element) {
-            // Use the compile function from the RecursionHelper,
-            // And return the linking function(s) which it returns
-            return RecursionHelper.compile(element);
+        	return RecursionHelper.compile(element, function(scope) {
+        		// Set whether or not the menu is open, and if the entry has a hierarchy
+        		scope.isOpen = false;
+        		scope.hasHierarchy = scope.entry && scope.entry.hierarchy && scope.entry.hierarchy.length > 0;
+        	});
         }
     };
 })

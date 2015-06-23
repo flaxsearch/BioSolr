@@ -15,7 +15,7 @@
     <div>{{ error }}</div>
 </div></div>
 
-<div ng-show="results">
+<div ng-if="results">
     <div class="row results_header"><div class="col-md-10">
         Showing records {{ start }}-{{ end }} of {{ total }} results.
         <span ng-show="filtersApplied()" class="applied-filters"><br />
