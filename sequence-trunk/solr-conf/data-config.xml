@@ -1,0 +1,1024 @@
+<dataConfig>
+	<!-- dataSource name="pdbeload" type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//ora-pdbevm-003.ebi.ac.uk:1531/apitst" user="pdberead" password="pdberead55" / -->
+	<dataSource name="pdbeload" type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//pan.ebi.ac.uk:1521/main_stg" user="pdberead" password="pdberead55" />
+
+	<!-- dataSource name="pdbeload" type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//ora-pdbevm-002.ebi.ac.uk:1541/mainstg2" user="pdberead" password="pdberead55" / -->
+
+	<!-- dataSource name="pdbexplore" type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//leda.ebi.ac.uk:1521/pdbeprod" user="search_explore" password="search_explore55" / -->
+	<!-- dataSource name="pdbsifts" type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//leda.ebi.ac.uk:1521/pdbeprod" user="sifts_admin" password="sifts_admin55" / -->
+	<!-- dataSource name="pdbsifts"  type="JdbcDataSource" driver="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@//pan.ebi.ac.uk:1521/main_stg" user="pdberead" password="pdberead55"/ -->
+
+
+<script>
+<![CDATA[
+function overallQuality(row){
+ var model_quality = parseFloat(row.get("MODEL_QUALITY"));
+ var data_quality = parseFloat(row.get("DATA_QUALITY"));
+ var res = parseFloat(row.get("RES"));
+
+if (!(model_quality >=0 )){
+ model_quality = -100;
+}
+
+if ( !(data_quality >= 0)){
+ data_quality = -100;
+}
+
+ row.put("overall_quality",Math.round(((model_quality+data_quality)-(30*res))/2));
+ row.put("inv_overall_quality",Math.round(100-(((model_quality+data_quality)-(30*res))/2)));
+
+
+return row;
+}
+
+function SelectGenusSuperKingdom(row){
+ var rank = row.get("RANK");
+ var os = row.get("ORGANISM_SYNONYMS");
+if (rank == "genus"){
+  row.put("genus",os);
+}
+else if (rank == "superkingdom"){
+  row.put("superkingdom",os);
+}
+return row;
+}
+
+function SelectExpressionGenusSuperKingdom(row){
+ var rank = row.get("RANK");
+ var os = row.get("EXPRESSION_HOST_SYNONYMS");
+if (rank == "genus"){
+  row.put("expression_host_genus",os);
+}
+else if (rank == "superkingdom"){
+  row.put("expression_host_superkingdom",os);
+}
+return row;
+}
+
+
+function setChimeraFlag(row){
+     	var count = parseInt(row.get("UNP_COUNT"));
+     	if (count>1){
+     	row.put("chimera","y");
+     	}
+     	return row;
+}
+
+
+function ReplaceMethodDB(row){
+var mapMethod = new Array();
+    mapMethod["x-ray diffraction"] = "X-ray diffraction";
+    mapMethod["X-RAY DIFFRACTION"] = "X-ray diffraction";
+    mapMethod["SINGLE-CRYSTAL X-RAY DIFFRACTION"] = "X-ray diffraction";
+    mapMethod["X-RAY DIFFRACTION, MOLECULAR REPLACEMENT"] = "X-ray diffraction";
+    mapMethod["SYNCHROTRON X-RAY DIFFRACTION"] = "X-ray diffraction";
+    mapMethod["X-RAY DIFFRACTION, X-RAY DIFFRACTION"] ="X-ray diffraction";
+    
+    mapMethod["THEORETICAL MODEL"] = "Theoretical Model";
+    mapMethod["Theoretical model"] = "Theoretical Model";
+    
+    mapMethod["solution nmr"] = "Solution NMR";
+    mapMethod["SOLUTION NMR"] = "Solution NMR";
+    mapMethod["NMR, 20 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR"] = "Solution NMR";
+    mapMethod["NMR, 11 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 16 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 18 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 17 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 22 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 40 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 13 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 5 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, MINIMIZED AVERAGE STRUCTURE"] = "Solution NMR";
+    mapMethod["N/A NMR"] = "Solution NMR";
+    mapMethod["NMR, 1 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 14 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 20 STRUCTURES NMR"] = "Solution NMR";
+    mapMethod["NMR, 24 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 28 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 4 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 7 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 8 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 10 STRUCTURES.NMR"] = "Solution NMR";
+    mapMethod["NMR, 19 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 23 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 26 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 27 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 29 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 32 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 35 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 36 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 6 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, MINIMISED AVERAGE STRUCTURE"] = "Solution NMR";
+    mapMethod["NMR, Minimized Average Structure"] = "Solution NMR";
+    mapMethod["NMR, Minimized average structure"] = "Solution NMR";
+    mapMethod["SOLUTION NMR NMR"] = "Solution NMR";
+    mapMethod["solution NMR"] = "Solution NMR";
+    mapMethod["NMR, 10 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 15 STRUCTURES"] = "Solution NMR";
+    mapMethod["SOLUTION.NMR"] = "Solution NMR";
+    mapMethod["NMR, 25 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 12 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 21 STRUCTURES"] = "Solution NMR";
+    mapMethod["NMR, 30 STRUCTURES"] = "Solution NMR";
+    mapMethod["SOLUTION NMR.NMR"] = "Solution NMR";
+    mapMethod["THEORETICAL NMR"] = "Solution NMR";
+    mapMethod["NMR, minimized average structure"] = "Solution NMR";
+    mapMethod["solution.NMR"] = "Solution NMR";
+    mapMethod["20 STRUCTURES.NMR"] = "Solution NMR";
+
+    mapMethod["electron microscopy"] = "Electron Microscopy";
+    mapMethod["ELECTRON MICROSCOPY"] = "Electron Microscopy";
+    mapMethod["CRYO-ELECTRON MICROSCOPY"] = "Electron Microscopy";
+    
+    mapMethod["solid-state nmr"] = "Solid-state NMR";
+    mapMethod["SOLID-STATE.NMR"] = "Solid-state NMR";
+    mapMethod["SOLID-STATE NMR"] = "Solid-state NMR";
+    
+    mapMethod["hybrid"] = "Hybrid";
+    
+    mapMethod["neutron diffraction"] = "Neutron Diffraction";
+    mapMethod["NEUTRON DIFFRACTION"] = "Neutron Diffraction";
+    
+    mapMethod["fiber diffraction"] = "Fiber diffraction";
+    mapMethod["FIBER DIFFRACTION"] = "Fiber diffraction";
+    
+    mapMethod["solution scattering"] = "X-ray solution scattering";
+    mapMethod["SOLUTION SCATTERING"] = "X-ray solution scattering";
+    mapMethod["X-ray solution scattering"] = "X-ray solution scattering";
+    
+    mapMethod["theoretical model"] = "Theoretical Model";
+    mapMethod["Theoretical Model"] = "Theoretical Model";
+    mapMethod["Theoretical MODEL"] = "Theoretical model";
+    
+    mapMethod["electron crystallography"] = "Electron crystallography";
+    mapMethod["ELECTRON CRYSTALLOGRAPHY"] = "Electron crystallography";
+    
+    mapMethod["powder diffraction"] = "X-ray powder diffraction";
+    mapMethod["POWDER DIFFRACTION"] = "X-ray powder diffraction";
+    mapMethod["X-RAY POWDER DIFFRACTION"] = "X-ray powder diffraction";
+    
+    mapMethod["infrared spectroscopy"] = "Infrared spectroscopy";
+    mapMethod["INFRARED SPECTROSCOPY"] = "Infrared spectroscopy";
+
+    mapMethod["EPR"]= "Electron paramagnetic resonance (EPR) spectroscopy";
+
+
+    
+    mapMethod["OTHER"] = "Other";
+ 
+    mapMethod["fluorescence transfer"] = "Fluorescence transfer";
+    mapMethod["FLUORESCENCE TRANSFER"] = "Fluorescence transfer";
+
+   var methodName = row.get("EXPERIMENTAL_METHOD");
+
+ if (methodName !== null && mapMethod[methodName] == undefined){
+   var newmethodName = methodName.replace(", +", "");
+  var methodNameList = newmethodName.split(", +"); 
+
+   var valueArray = new java.util.ArrayList();
+var j = 0;
+for (var i=0;i<methodNameList.length;i++){
+    var methodName = methodNameList[i];
+    if (mapMethod[methodName] !== undefined){
+     var value = mapMethod[methodName];
+     valueArray.add(j, value);
+     j++;
+    }
+    else{
+      valueArray.add(j,methodName);
+      j++;
+    }
+  }
+  if (valueArray.size() >1){
+  valueArray.add(j,"Hybrid");
+  }
+  row.put("EXPERIMENTAL_METHOD", valueArray);
+
+}
+else{
+row.put("EXPERIMENTAL_METHOD", mapMethod[methodName]);
+}
+
+
+
+var authorName = row.get("ENTRY_AUTHORS");
+
+ var authorArray = new java.util.ArrayList();
+var rawParts = authorName.split(", ");
+    for (var i = 0, len = rawParts.length, part; i < len; i=i+2) {
+        
+        authorArray.add(rawParts[i] + " "+rawParts[i+1]);
+    }
+
+
+
+//authorArray = authorName.split(/,/);
+row.put("ENTRY_AUTHORS", authorArray);
+row.put("ALL_AUTHORS", authorArray);
+
+
+
+  return row;
+  }
+]]>
+</script>
+
+
+
+
+	<document name="PDBEntity">
+
+   
+
+
+
+		<entity  name="PDBEntity"   dataSource="pdbeload" transformer="TemplateTransformer"
+			query="select distinct entry_id||'_'||id as entry_entity, entry_id as pdb_id, id as entity_id, formula_weight as entity_weight, mutation from entity where polymer_type in ('P','R', 'D', 'S') and regexp_like (entry_id, '^.[a-d]..')">
+
+
+
+			<!-- entry level information -->
+			<entity  name="PDBEntryCache"   dataSource="pdbeload" 
+				query="select a.id, a.pdb_rev_date_original as deposition_date,
+                       			extract(year from  a.pdb_rev_date_original) as deposition_year,
+		       			a.first_rev_date as release_date,
+		      			 extract(year from  a.first_rev_date) as release_year,
+		       			a.pdb_rev_date as revision_date,
+		      			 extract(year from  a.pdb_rev_date) as revision_year,
+		       			a.status_code as status,
+		       			a.deposit_site as deposition_site,
+		       			a.process_site as processing_site,
+                   			a.title,
+					a.resolution,
+					nvl (a.resolution, 1000) as pivot_resolution,
+					a.r_factor as r_factor,
+					a.r_factor_free as r_free,
+					a.number_polymers as number_of_polymers,
+					a.number_boundmols as number_of_bound_molecules,
+					(nvl (a.number_residues,a.number_boundmols) - a.number_boundmols) as number_of_polymer_residues,
+                                        b.space_group_name as spacegroup,
+                                        extract(year from  c.pub_date) as citation_year,
+                                        c.doi as citation_doi, 
+                                        c.pubmed_id,
+		       			c.journal_name as journal, 
+		       			c.articletitle as citation_title, 
+					c.volume as journal_volume, 
+					c.pagination as journal_page , 
+					d.structure_solution_software, 
+                                        d.refinement_software, 
+                                        d.int_data_reduction_software as data_reduction_software, 
+                                        d.data_scal_reduction_software as data_scaling_software
+                                        from entry a, symmetry b, (select f.entry_id, e.* from citation f, pubmed e where f.id = 0 and e.pubmed_id = f.database_id_pubmed) c,
+                                        computing d
+                                        where a.id = b.entry_id(+)
+                                        and a.id = c.entry_id(+)
+                                        and a.id = d.entry_id(+) 
+					and a.id= '${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<!-- number of polymer entities -->
+		       <entity name="PDBPolymerEntities" dataSource="pdbeload"
+			query="select count(1) as number_of_polymer_entities from entity where  polymer_type in ('P','R', 'D', 'S') and  entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+
+			<!-- number of bound entities -->
+		       <entity name="PDBBoundEntities" dataSource="pdbeload"
+			query="select count(1) as number_of_bound_entities from entity where  polymer_type not in ('P','R', 'D', 'S','W') and  entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+
+			<!-- number of protein chains -->
+		       <entity name="PDBProteinChains" dataSource="pdbeload"
+			query="select count(b.id) as number_of_protein_chains
+				from entity_poly a, struct_asym b
+				where a.entry_id = b.entry_id and a.entity_id = b.entity_id and a.entry_id = '${PDBEntity.PDB_ID}'
+				and a.type = 'polypeptide(L)'
+				group by b.entry_id">
+		      </entity>
+
+
+			<!-- number of D-protein chains -->
+		       <entity name="PDBDProteinChains" dataSource="pdbeload"
+			query="select count(b.id) as number_of_D_protein_chains
+				from entity_poly a, struct_asym b
+				where a.entry_id = b.entry_id and a.entity_id = b.entity_id and a.entry_id = '${PDBEntity.PDB_ID}'
+				and a.type = 'polypeptide(D)'
+				group by b.entry_id">
+		      </entity>
+
+
+
+			<!-- number of RNA chains -->
+		       <entity name="PDBRNAChains" dataSource="pdbeload"
+			query="select count(b.id) as number_of_RNA_chains
+				from entity_poly a, struct_asym b
+				where a.entry_id = b.entry_id and a.entity_id = b.entity_id and a.entry_id = '${PDBEntity.PDB_ID}'
+				and a.type = 'polyribonucleotide'
+				group by b.entry_id">
+		      </entity>
+
+
+			<!-- number of DNA chains -->
+		       <entity name="PDBDNAChains" dataSource="pdbeload"
+			query="select count(b.id) as number_of_DNA_chains
+				from entity_poly a, struct_asym b
+				where a.entry_id = b.entry_id and a.entity_id = b.entity_id and a.entry_id = '${PDBEntity.PDB_ID}'
+				and a.type = 'polydeoxyribonucleotide'
+				group by b.entry_id">
+		      </entity>
+
+
+			<!-- number of DNA-RNA chains -->
+		       <entity name="PDBDNA-RNAChains" dataSource="pdbeload"
+			query="select count(b.id) as number_of_D_RNA_hybrid_chains
+				from entity_poly a, struct_asym b
+				where a.entry_id = b.entry_id and a.entity_id = b.entity_id and a.entry_id = '${PDBEntity.PDB_ID}'
+				and a.type = 'polydeoxyribonucleotide/polyribonucleotide hybrid'
+				group by b.entry_id">
+		      </entity>
+
+
+			<!-- max observed residues in one chain -->
+		       <entity name="Max-observed-chains" dataSource="pdbeload"
+			query="select round(max(number_residues*observed_ratio)) as  max_observed_residues
+				from struct_asym where entity_id= '${PDBEntity.ENTITY_ID}' and
+				 entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+			<!--  BMRB mapping -->
+		       <entity name="PDBCrystallisationReservoir" dataSource="pdbeload"
+			query="select db_id as bmrb_id from  database_related where db_name = 'BMRB' and entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+			<!--  EMDB mapping -->
+		       <entity name="PDBCrystallisationReservoir" dataSource="pdbeload"
+			query="select db_id as emdb_id from  database_related where db_name = 'EMDB' and entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+			<!--  SBKB mapping -->
+		       <entity name="PDBCrystallisationReservoir" dataSource="pdbeload"
+			query="select db_id as psi_id from  database_related where db_name = 'TargetDB' and entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+			<!-- crystallisation reservoir -->
+		       <entity name="PDBCrystallisationReservoir" dataSource="pdbeload"
+			query="select chem as crystallisation_reservoir from crystallisation_cond where solution_type = 'reservoir' and entry = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+		       <entity name="PDBCrystallisationReservoir" dataSource="pdbeload"
+			query="select ph as crystallisation_ph from crystallisation_cond where solution_type = 'reservoir' and ph != 'None' and entry = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+		       <entity name="PDBToBePublished" dataSource="pdbeload"
+			query="select title as citation_title, journal_abbrev as journal from citation where id=0 and journal_abbrev='To be published' and entry_id = '${PDBEntity.PDB_ID}'">
+		      </entity>
+
+		       <entity name="PDBEntryExpMethod" dataSource="pdbeload"
+			query="select method as experimental_method from exptl where entry_id ='${PDBEntity.PDB_ID}'
+                               union all select 'Hybrid' as experimental_method from dual where (select count(1) from exptl where entry_id ='${PDBEntity.PDB_ID}') >1">
+		      </entity>
+
+		       <!-- entity name="PDBEntrySpaceGroup" dataSource="pdbeload"
+			query="select space_group_name as spacegroup from symmetry where entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity -->
+
+		       <entity name="PDBEntryExpDataAvailable" dataSource="pdbeload"
+			query="select CASE 
+   				 when struct_fact is not null then  'y'
+    				when nmr_constraints is not null then 'y'
+     				when chemical_shifts is not null then  'y'
+     				END as experiment_data_available 
+  				from pdb_status where entry ='${PDBEntity.PDB_ID}' ">
+		      </entity>
+
+			<entity name="PDBEntryAuthor" dataSource="pdbeload"
+			query="select distinct name as entry_authors
+                        from audit_author
+                        where entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+			<entity name="PDBAllAuthor" dataSource="pdbeload"
+			query="select distinct REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(name,'\.',''),',',''),'^\s+','') as all_authors from audit_author where entry_id = '${PDBEntity.PDB_ID}'
+				union
+				select distinct last_name ||' '|| initials as all_authors from pubmed_authors a, citation b  where b.id = 0 and a.pubmed_id = b.database_id_pubmed 
+				and b.entry_id = '${PDBEntity.PDB_ID}'
+				union
+				select distinct REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(name,'\.',''),',',''),'^\s+','') as all_authors from citation_author where citation_id = 0 and entry_id ='${PDBEntity.PDB_ID}'"/>
+
+
+
+
+			<entity name="PDBEntryValQuality" dataSource="pdbeload" transformer="script:overallQuality"
+				query="select nvl (geometry_quality,0) as model_quality, nvl(data_quality,0) as data_quality, nvl (b.resolution, 10) as res
+                        		from val_entry a, entry b
+                        		where a.entry_id (+) = b.id and b.id ='${PDBEntity.PDB_ID}'">
+				<field column="oveall_quality" name="overall_quality"/>
+				<field column="inv_overall_quality" name="inv_overall_quality"/>
+		      	</entity>
+
+			<!-- entity name="PDBEntryCitationJrnl" dataSource="pdbeload" 
+			query="select journal_abbrev as journal, journal_volume, page_first as journal_first_page , page_last as journal_last_page
+                        from citation
+                        where id = 0 and entry_id ='${PDBEntity.PDB_ID}'">
+                        </entity>
+
+
+			<entity name="PDBEntryCitationYear" dataSource="pdbeload"
+			query="select year as citation_year
+                        from citation
+                        where id = 0 and entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity>
+
+			<entity name="PDBEntryCitationdoi" dataSource="pdbeload"
+			query="select database_id_doi as citation_doi, database_id_pubmed as pubmed_id
+                        from citation
+                        where id = 0 and entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity -->
+
+			<entity name="PDBEntryCitationAuthor" dataSource="pdbeload"
+			query="select name as citation_authors
+                        from citation_author
+                        where citation_id = 0 and entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+			<entity name="PDBEntryPubmedAuthor" dataSource="pdbeload"
+			query="select a.last_name||' '||a.initials as pubmed_authors
+                        from pubmed_authors a, citation b
+                        where b.database_id_pubmed = a.pubmed_id and b.id = 0 and entry_id ='${PDBEntity.PDB_ID}'">
+		      </entity>
+
+
+
+			<entity name="DiffractionDetector" dataSource="pdbeload"
+			 query="select type as detector_type, detector as detector from diffrn_detector where diffrn_id='1' and entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+
+			<entity name="DiffractionDetector" dataSource="pdbeload"
+			 query="select source as beam_source_name, type as diffraction_source_type,synchrotron_beamline, synchrotron_site from diffrn_source where diffrn_id='1' and entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<!-- entity name="Computing" dataSource="pdbeload"
+			 query="select structure_solution_software, refinement_software, int_data_reduction_software as data_reduction_software, data_scal_reduction_software as data_scaling_software
+				from computing where  entry_id ='${PDBEntity.PDB_ID}'">
+			</entity -->
+
+			<entity name="DiffrnRadiation" dataSource="pdbeload"
+			 query="select diffrn_protocol as diffraction_protocol from diffrn_radiation where entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<entity name="StrDetrminationMethod" dataSource="pdbeload"
+			 query="select method_to_determine_struct as structure_detrmination_method from refine where entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<entity name="PhasingMethod" dataSource="pdbeload"
+			 query="select method as phasing_method from phasing where entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<entity name="SG" dataSource="pdbeload"
+			 query="select center_initial as SG_center_name, full_name as SG_full_name from sg_project where  entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+			<entity name="NMRSpectrometer" dataSource="pdbeload"
+			 query="select model as nmr_spectrometer_model, manufacturer as nmr_spectrometer_manufacturer, field_strength as nmr_field_strength from nmr_spectrometer where entry_id ='${PDBEntity.PDB_ID}'">
+			</entity>
+
+
+			<!-- Entity level information -->
+
+			<!-- entity name="PDBEntityBestName" dataSource="pdbeload"
+			 query="SELECT LTRIM(MAX(SYS_CONNECT_BY_PATH(name,' | '))
+     					KEEP (DENSE_RANK LAST ORDER BY curr),' | ') AS best_molecule_name
+				FROM   (SELECT entry_id,entity_id,
+             					name,
+             					ROW_NUMBER() OVER (PARTITION BY entry_id, entity_id ORDER BY entry_id, entity_id) AS curr,
+             					ROW_NUMBER() OVER (PARTITION BY entry_id, entity_id ORDER BY entry_id, entity_id) -1 AS prev
+      					FROM   entity_best_name where  entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}')
+				GROUP BY entry_id, entity_id
+				CONNECT BY prev = PRIOR curr AND entry_id = PRIOR entry_id AND entity_id = PRIOR entity_id
+				START WITH curr = 1">
+			</entity -->
+
+			<entity name="PDBEntityBestName" dataSource="pdbeload"
+			 query="SELECT 	name as molecule_name, name as all_molecule_names from  entity_best_name where  entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+
+
+
+			<!-- removed sequence for now until we can decide how to use this -->
+			<entity  name="PDBEntitySequence"   dataSource="pdbeload"  transformer="ClobTransformer"
+				query="select seq_one_letter_code_can 
+		       			from entity_poly where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+				<field column="SEQ_ONE_LETTER_CODE_CAN" name="MOLECULE_SEQUENCE" clob="true" />
+			</entity>
+		
+
+			<entity  name="PDBEntityEngineered"   dataSource="pdbeload" 
+				query="select tax_id,  NVL(tax_id, -1) as tax_query, organism_scientific as organism_scientific_name,
+					 CASE
+					  WHEN type='gen' then 'Engineered'
+					  WHEN type ='nat' then 'Natural'
+					  WHEN type = 'syn'then 'Synthetic'
+					 end as sample_preparation_method
+		       			from entity_src where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+
+				<entity  name="TaxSynonyms"   dataSource="pdbeload" 
+					query="select name as organism_synonyms from tax_name where 
+						name_class not in ('authority','tyep material')
+						and tax_id = ${PDBEntityEngineered.TAX_QUERY}"/>
+
+
+				 <entity name="TaxonomyTree" dataSource="pdbeload"  transformer="script:SelectGenusSuperKingdom"
+					query="SELECT rank, ncbi_scientific as organism_synonyms 
+						FROM taxonomy_solr_lineage where query_tax_id = ${PDBEntityEngineered.TAX_QUERY}">
+				<field column="genus" name="genus"/>
+				<field column="superkingdom" name="superkingdom"/>
+		      	</entity>
+
+
+			</entity>
+
+			<!-- entity  name="PDBEntityEngineered"   dataSource="pdbeload" 
+				query="select 'Engineered' as sample_preparation_method
+		       			from entity_src_gen where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+			<entity  name="PDBEntityNatural"   dataSource="pdbeload" 
+				query="select 'Natural' as sample_preparation_method
+		       			from entity_src_nat where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+			<entity  name="PDBEntitySynthetic"   dataSource="pdbeload" 
+				query="select 'Synthetic' as sample_preparation_method
+		       			from pdbx_entity_src_syn where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity -->
+
+
+			<entity  name="PDBEntityType"   dataSource="pdbeload" 
+				query="select nstd_monomer as modified_residue_flag, 
+     				  	 CASE 
+       					  WHEN type = 'polyribonucleotide' then 'RNA'
+       					  WHEN type = 'polypeptide(L)' then 'Protein'
+       					  WHEN type = 'polydeoxyribonucleotide' then 'DNA'
+       					  WHEN type = 'polypeptide(D)' then 'D-Protein'
+       					  WHEN type = 'polydeoxyribonucleotide/polyribonucleotide hybrid' then 'DNA/RNA hybrid'
+       					  WHEN type = 'polysaccharide(D)' then 'Polysaccharide(D)'
+       					  WHEN type = 'polysaccharide(L)' then 'Polysaccharide(L)'
+       					 end as molecule_type
+      					from entity_poly where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+			<entity  name="PDBNumMol"   dataSource="pdbeload" 
+				query="select count(1) as number_of_copies
+		       			from struct_asym where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+			<entity  name="PDBStructAsym"   dataSource="pdbeload" 
+				query="select id as struct_asym_id
+		       			from struct_asym where entity_id= '${PDBEntity.ENTITY_ID}' and entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+			<!-- entity name="PDBEntityTaxonomy" dataSource="pdbeload"
+				query="select distinct tax_id, organism_scientific as organism_scientific_name
+                        	from entity_src
+                        	where tax_id is not null and  entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		   		
+
+
+
+                  	<entity name="TaxonomyTree" dataSource="pdbeload"  transformer="script:SelectGenusSuperKingdom"
+				query="SELECT distinct t5.rank, t4.name as organism_synonyms 
+					FROM taxy_web node, taxy_web parent,  taxy_name t4, taxy_node t5 
+					WHERE t4.tax_id = t5.tax_id and t5.rank in ('genus', 'phylum','order','family','superkingdom')and 
+					node.tree_left BETWEEN parent.tree_left AND parent.tree_right AND 
+					node.tax_id = ${PDBEntityTaxonomy.TAX_ID} 
+					and parent.parent_id is not null and parent.tax_id = t4.tax_id and 
+					name_class = 'scientific name'">
+				<field column="genus" name="genus"/>
+				<field column="superkingdom" name="superkingdom"/>
+		      	</entity>
+
+                   
+
+	
+		    
+			</entity -->	
+			
+			<!-- expression system information -->
+
+			<entity name="PDBEntityExpressionTaxonomy" dataSource="pdbeload"
+				query="select distinct host_org_tax_id as expression_host_tax_id , host_org_scientific_name as expression_host_sci_name, gene_src_cell_line as cell_line, 
+					gene_src_atcc as atcc, plasmid_name, host_org_strain as expression_host_strain
+                        		from entity_src_gen
+                        		where host_org_tax_id is not null and  entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+
+				<entity  name="TaxSynonyms"   dataSource="pdbeload" 
+					query="select name as expression_host_synonyms from tax_name where name_class not in ('authority','type material') and tax_id = ${PDBEntityExpressionTaxonomy.EXPRESSION_HOST_TAX_ID}"/>
+
+	                  	<!-- entity name="TaxonomyTree" dataSource="pdbeload"   transformer="script:SelectExpressionGenusSuperKingdom"
+					query="SELECT distinct t5.rank, t4.name as expression_host_synonyms 
+						FROM taxy_web node, taxy_web parent,  taxy_name t4, taxy_node t5 
+						WHERE t4.tax_id = t5.tax_id and t5.rank in ('genus', 'phylum','order','family',
+						'superkingdom') and node.tree_left BETWEEN parent.tree_left AND parent.tree_right 
+						AND node.tax_id = ${PDBEntityExpressionTaxonomy.EXPRESSION_HOST_TAX_ID} 
+						and parent.parent_id is not null and parent.tax_id = t4.tax_id and 
+						name_class = 'scientific name'">
+		      		</entity -->
+
+			</entity>
+
+
+			<!-- compound related information -->
+			<entity name="PDBEntryChemComp" dataSource="pdbeload" 
+				query="select distinct a.chem_comp_id as compound_id, a.chem_comp_id || ' : ' || a.identifier as compound_name,c.FORMULA_WEIGHT as compound_weight from chem_identifier a, entry_comp b, chem_comp c 
+					where a.chem_comp_id = b.chem_comp_id and a.chem_comp_id = c.id and a.type='NAME' and b.entry_id = '${PDBEntity.PDB_ID}'" />
+                     
+			<entity name="PDBEntryChemCompSynonym" dataSource="pdbeload" 
+				query="select distinct a.chem_comp_id || ' : ' || a.identifier as compound_synonym from chem_identifier a, entry_comp b, chem_comp c 
+					where a.chem_comp_id = b.chem_comp_id and a.chem_comp_id = c.id and a.type='NAME_SYNONYM' and b.entry_id = '${PDBEntity.PDB_ID}'" />
+                     
+			<entity name="PDBEntryChemCompSystematicName" dataSource="pdbeload" 
+				query="select distinct a.chem_comp_id || ' : ' || a.identifier as compound_systematic_name from chem_identifier a, entry_comp b where
+					a.chem_comp_id = b.chem_comp_id and a.TYPE ='SYSTEMATIC NAME' and b.entry_id = '${PDBEntity.PDB_ID}'" />
+
+
+
+
+		                        	
+			<entity name="PDBEntityMutationType" dataSource="pdbeload"
+				query="select distinct type as mutation_type from  entry_entity_xref_diff_type where entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		     
+		       		
+		       	</entity>   
+		
+			<entity name="PDBEntityMicroHet" dataSource="pdbeload"
+				query="select 'y' as microheterogeneity from entity_microhet where entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		     
+		       		
+		       	</entity>   
+                		    
+                    	<entity name="PDBEntityPfam" dataSource="pdbeload"
+				query="select distinct  a.accession as pfam_accession, b.name as pfam_name, clan_name as pfam_clan_name, description as pfam_description
+				 from entity_pfam a, pfam_clan_data b where a.accession = b.pfam_accession and a.entry_id ='${PDBEntity.PDB_ID}' and a.entity_id = '${PDBEntity.ENTITY_ID}'">
+		     
+		       		
+		       	</entity>   
+                        
+               		 <entity name="PDBEntityInterPro" dataSource="pdbeload"
+                        	query="select distinct interpro_accession, interpro_name 
+                        		from entity_interpro  where entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		       	</entity>   
+                        
+                        
+                        <entity name="PDBEntityCATH" dataSource="pdbeload"
+				query="select distinct a.accession as cath_code, b.class as cath_class, b.arch as cath_architecture, b.topol as cath_topology, b.homol as cath_homologous_superfamily
+		        		from entity_cath a, cath_domain b  where a.accession = b.cathcode and a.entry_id ='${PDBEntity.PDB_ID}' and a.entity_id = '${PDBEntity.ENTITY_ID}'">
+		    	</entity>      	
+
+			<!-- entity name="PDBEntityEC" dataSource="pdbeload"
+				query="select distinct ec as ec_number
+		         		from pdb_ec where entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+			       
+                               <entity name="PDBEntityECName" dataSource="pdbeload" 
+					query="select distinct accepted_name as enzyme_name, systematic_name as enzyme_systematic_name
+		        	 		from enzyme_data   where EC_NUM = 'EC '||'${PDBEntityEC.EC_NUMBER}'">
+
+		      	       </entity>
+			       <entity name="PDBEntityECHierarchy" dataSource="pdbeload" 
+					query="select parent.accepted_name as ec_hierarchy_name 
+						FROM enzyme_data node, enzyme_data parent  
+						WHERE node.left_id BETWEEN parent.left_id AND parent.right_id  AND node.ec_num = 'EC '||'${PDBEntityEC.EC_NUMBER}' and parent.depth >0 ORDER BY parent.left_id" >
+		    		</entity>
+
+		      	</entity -->  
+			<entity name="PDBEntityEC" dataSource="pdbeload"
+				query="select distinct a.ec as ec_number, b.accepted_name as enzyme_name, b.systematic_name as enzyme_systematic_name
+					from pdb_ec a, enzyme_data b
+					where b.ec_num = 'EC '||a.ec and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+                               
+			       <entity name="PDBEntityECHierarchy" dataSource="pdbeload" 
+					query="select parent.accepted_name as ec_hierarchy_name 
+						FROM enzyme_data node, enzyme_data parent  
+						WHERE node.left_id BETWEEN parent.left_id AND parent.right_id  AND node.ec_num = 'EC '||'${PDBEntityEC.EC_NUMBER}' and parent.depth >0 ORDER BY parent.left_id" >
+		    		</entity>
+
+		      	</entity>  
+
+
+
+		      	
+		      	
+		      	<entity name="PDBEntityGOBioProcess" dataSource="pdbeload"
+				query="select distinct go_id, go_name as biological_process from  entity_go
+					where go_category = 'Biological_process' and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		      	</entity>
+
+                      	<entity name="PDBEntityGOMolFunction" dataSource="pdbeload"
+				query="select distinct go_id, go_name as biological_function from  entity_go
+					where go_category = 'Molecular_function' and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		 	</entity>
+
+                      	<entity name="PDBEntityGOCellularComponent" dataSource="pdbeload"
+				query="select distinct go_id, go_name as biological_cell_component from  entity_go
+					where go_category = 'Cellular_component' and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		     	</entity>
+				     	
+				     	
+				     	
+				     	
+				     	
+				     	
+		     	<entity name="PDBEntitySCOPData" dataSource="pdbeload"
+				query="select distinct scop_class, scop_fold, scop_superfamily, scop_family 
+					from entity_scop where entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+		     	</entity>
+				     	
+				     	
+				     	
+		     	<entity name="PDBEntityUNP" dataSource="pdbeload" 
+				query="select distinct accession as uniprot_accession, name as uniprot_id from sifts_xref_segment   
+					where  accession is not null and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+			
+			
+				     	<entity name="PDBchimera" dataSource="pdbeload" transformer="script:setChimeraFlag"
+						query="select count(distinct accession) as unp_count from sifts_xref_segment   
+							where  accession is not null and entry_id ='${PDBEntity.PDB_ID}' and entity_id = '${PDBEntity.ENTITY_ID}'">
+				
+					     	 <field column="chimera"/>
+					</entity>
+
+					<entity name="PDBEntityGene" dataSource="pdbeload"
+			 			query="select distinct gene_name as gene_name from sptr_gene_name where  accession = '${PDBEntityUNP.UNIPROT_ACCESSION}'"><!-- and name_type='1' -->
+					</entity>	
+	
+				
+	
+					<entity name="PDBEntityHomologus" dataSource="pdbeload"
+						 query="select entry_id||'_'||homologus_pdb_entity_id as homologus_pdb_entity_id
+						from entity_homologene where accession = '${PDBEntityUNP.UNIPROT_ACCESSION}'">
+		       			</entity>	
+ 	
+ 			               	<entity name="PDBEntityMolSynonym" dataSource="pdbeload"
+						 query="select distinct text as molecule_synonym, text as all_molecule_names from sptr_protein_name where  accession = '${PDBEntityUNP.UNIPROT_ACCESSION}'">
+		       			</entity>	
+				
+
+
+					<entity name="PDBEntityCoverage" dataSource="pdbeload"
+						query="select   cast(round(nvl(a.coverage,0),2) as numeric(3,2)) as uniprot_coverage
+							from coverage a, struct_asym b
+							where b.entry_id = a.entry_id(+) and b.AUTH_ASYM_ID = a.auth_asym_id(+)
+							and b.entry_id ='${PDBEntity.PDB_ID}' and b.entity_id = '${PDBEntity.ENTITY_ID}'">
+					</entity>
+
+				
+			</entity>
+
+
+			<!-- prd information -->
+
+
+			<entity name="PDBPrdInformation" dataSource="pdbeload"
+				query="select class as prd_class, type as prd_type, molecule_name as prd_name from prd_molecule_features a, prd_molecule b 
+					where a.entry_id = b.entry_id and a.prd_id = b.prd_id and b.entry_id = '${PDBEntity.PDB_ID}' and b.entity_id = '${PDBEntity.ENTITY_ID}'">
+		     	</entity>
+		
+
+			<!-- interacting ligands based on struct_site and struct_site_gen tables -->
+  			<entity name="PDBInteractingLigand" dataSource="pdbeload"
+				 	query="select distinct a.chem_comp_id ||' : '||c.identifier as interacting_ligands, a.entry_id||'_'||a.chem_comp_id||'_'||a.entity_id as entry_lig_entity  
+						from struct_site a, struct_site_gen b, chem_identifier c
+						where a.entry_id = b.entry_id and a.id = b.site_id and a.chem_comp_id != 'HOH' 
+						and a.chem_comp_id=c.chem_comp_id and c.type='NAME'
+						and b.entry_id= '${PDBEntity.PDB_ID}' and b.entity_id = '${PDBEntity.ENTITY_ID}'"/>
+
+
+			<!-- assembly information -->
+	
+			<entity name="PreferedPDBAssemblyId" dataSource="pdbeload"
+				query="select distinct a.id as prefered_assembly_id 
+					from pdb_assembly a
+					where prefered='True' and  a.entry_id= '${PDBEntity.PDB_ID}'"/>
+			<entity name="PDBAssemblyId" dataSource="pdbeload"
+				query="select distinct a.id as assembly_id, a.type as assembly_form, a.name as assembly_type, a.composition as assembly_composition 
+					from pdb_assembly a, pdb_assembly_entities b 
+					where a.entry_id = b.entry_id and a.id = b.assembly_id and b.entry_id= '${PDBEntity.PDB_ID}' and b.entity_id = '${PDBEntity.ENTITY_ID}'">
+			
+				
+
+				
+
+					<!-- following query use to load all chem_comps in an assembly as interacting ligands -->
+  					<!-- entity name="PDBAssemblyInteractingLigand" dataSource="pdbeload"
+				 	query="select distinct c.chem_comp_id ||' : '||d.identifier as interacting_ligands
+						from pdb_assembly_entities a, entity b, entry_comp c,chem_identifier d 
+						where  a.assembly_id = '${PDBAssemblyId.ASSEMBLY_ID}' and a.entry_id= '${PDBEntity.PDB_ID}' and a.entity_id != '${PDBEntity.ENTITY_ID}' 
+						    and a.entry_id = b.entry_id and a.entry_id = c.entry_id and a.entity_type = 'non-polymer' and c.chem_comp_id=d.chem_comp_id 
+						    and d.type='NAME' and a.entity_id = b.id and b.chem_comp_list = c.chem_comp_id "/ -->
+
+
+					<!-- interacting polymers in the given assembly that contains the entity -->
+  					<entity name="PDBAssemblyInteractingMol" dataSource="pdbeload"
+				 	query="select distinct entry_id as interacting_entry_id, entity_id as interacting_entity_id from pdb_assembly_entities
+						where entity_type = 'polymer' and assembly_id = '${PDBAssemblyId.ASSEMBLY_ID}' and entry_id= '${PDBEntity.PDB_ID}' 
+						and entity_id != '${PDBEntity.ENTITY_ID}'">
+						
+					
+						<entity name="PDBAssemblyInteractingMolName" dataSource="pdbeload"
+				 			query="SELECT  name  AS interacting_molecules FROM    entity_best_name 
+									where  entity_id= '${PDBAssemblyInteractingMol.INTERACTING_ENTITY_ID}' 
+										and entry_id = '${PDBAssemblyInteractingMol.INTERACTING_ENTRY_ID}'"/>
+
+		     				<entity name="PDBInteractingUNP" dataSource="pdbeload" 
+							query="select distinct accession as interacting_uniprot_accession, name as interacting_uniprot_id from sifts_xref_segment   
+								where  accession is not null and entity_id= '${PDBAssemblyInteractingMol.INTERACTING_ENTITY_ID}' 
+										and entry_id = '${PDBAssemblyInteractingMol.INTERACTING_ENTRY_ID}'">
+						</entity>
+
+					
+					</entity>
+										
+		     	</entity>
+
+
+
+
+			<!-- other polymeric entities in the assemblies that has a given entity -->
+
+
+
+
+			<entity name="NucleicAcidConfFeature" dataSource="pdbeload"
+			 		query="select na_conf_feature as na_conf_features from na_struct_conf where entry_id = '${PDBEntity.PDB_ID}'">
+			</entity>
+
+
+
+
+			<entity name="ObsoletesEntry" dataSource="pdbeload"
+			 		query="SELECT entry as obsoletes
+   						FROM pdb_obsolete
+   						START WITH successors = '${PDBEntity.PDB_ID}'
+   						CONNECT BY PRIOR entry = successors">
+			</entity>
+
+
+
+
+
+
+
+
+		</entity>
+
+
+	<!-- entity  name="PDBPreRelEntity"   dataSource="pdbeload"  transformer="TemplateTransformer"
+			query="select entry||'_'||entity as entry_entity, entry as pdb_id, entity as entity_id, sequence  from pre_sequence">
+				<field column="SEQUENCE" name="MOLECULE_SEQUENCE" clob="true" />
+		
+
+			<entity  name="PDBEntry"   dataSource="pdbeload" transformer="script:ReplaceMethodDB"
+				query="select exp_method as experimental_method,
+                       			initial_deposition_date as deposition_date,
+					extract(year from  initial_deposition_date) as deposition_year,
+                       			date_last_revision as revision_date,
+                       			extract(year from  date_last_revision) as revision_year,
+                       			status_code as status,
+                       			deposit_site as deposition_site,
+                       			process_site as processing_site,
+                      			title,
+                                         REGEXP_REPLACE(  REGEXP_REPLACE( REGEXP_REPLACE(author_list,'\.',''),'^\s+',''),'\s+$','') as entry_authors
+                       			from pdb_status where entry= '${PDBPreRelEntity.PDB_ID}'">
+
+			</entity>	
+	</entity>
+
+	<entity  name="PDBPreRelEntity1"   dataSource="pdbeload" transformer="script:ReplaceMethodDB"
+			query="select entry||'_1' as entry_entity, entry as pdb_id, exp_method as experimental_method, 
+                       			initial_deposition_date as deposition_date,
+					extract(year from  initial_deposition_date) as deposition_year,
+                       			date_last_revision as revision_date,
+                       			extract(year from  date_last_revision) as revision_year,
+                       			status_code as status,
+                       			deposit_site as deposition_site,
+                       			process_site as processing_site,
+                      			title,
+                                          REGEXP_REPLACE(  REGEXP_REPLACE( REGEXP_REPLACE(author_list,'\.',''),'^\s+',''),'\s+$','') as entry_authors
+                       			from pdb_status  where status_code not in ('REL','OBS') and entry not in (select distinct entry from pre_sequence)">
+	
+	</entity>     
+	<entity  name="PDBPreRelOBSEntity1"   dataSource="pdbeload" transformer="script:ReplaceMethodDB"
+			query="select entry||'_1' as entry_entity, entry as pdb_id, exp_method as experimental_method, 
+                       			initial_deposition_date as deposition_date,
+					extract(year from  initial_deposition_date) as deposition_year,
+                       			date_last_revision as revision_date,
+                       			extract(year from  date_last_revision) as revision_year,
+                       			status_code as status,
+                       			deposit_site as deposition_site,
+                       			process_site as processing_site,
+                      			title,
+                                          REGEXP_REPLACE(  REGEXP_REPLACE( REGEXP_REPLACE(author_list,'\.',''),'^\s+',''),'\s+$','') as entry_authors
+                       			from pdb_status  where status_code = 'OBS' and entry not in (select distinct entry from pre_sequence)">
+		
+		<entity  name="PDBsupersededBy"   dataSource="pdbeload"
+			query="select successors as superseded_by from (SELECT ROWNUM as latest, successors
+  				 FROM pdb_obsolete
+   				START WITH entry = '${PDBPreRelOBSEntity1.PDB_ID}' 
+   				CONNECT BY PRIOR successors = entry
+				order by latest desc ) a where rownum = 1" />
+
+
+	
+	</entity -->     
+
+
+
+
+               
+	</document>
+</dataConfig>
+
+
+<!-- query that gets the type of entity in a given assembly -
+select distinct a.entry_id, a.struct_assembly_id, b.entity_id, c.description, c.polymer_type, d.name, d.form from struct_assembly_cmpnt a, struct_asym b, entity c, struct_assembly d
+where a.ENTRY_ID = b.ENTRY_ID and a.STRUCT_ASYM_ID = b.ID and b.entry_id = c.entry_id and b.entity_id = c.id and c.POLYMER_TYPE != 'W' and a.entry_id = c.entry_id and a.ENTRY_ID = d.ENTRY_ID
+and b.entry_id = d.entry_id and c.entry_id = d.entry_id and a.struct_assembly_id = d.id
+order by a.entry_id, a.struct_assembly_id
+
+
+
+select distinct a.entry_id, a.struct_assembly_id, b.entity_id, c.description, REPLACE(REPLACE(REPLACE(REPLACE(c.polymer_type,'P','Protein'),'R','RNA'),'D','DNA'),'S','Polysachharide'), d.name, d.form 
+from struct_assembly_cmpnt a, struct_asym b, entity c, struct_assembly d
+where a.ENTRY_ID = b.ENTRY_ID and a.STRUCT_ASYM_ID = b.ID and b.entry_id = c.entry_id and b.entity_id = c.id and c.POLYMER_TYPE != 'W' 
+and a.entry_id = c.entry_id and a.ENTRY_ID = d.ENTRY_ID
+and b.entry_id = d.entry_id and c.entry_id = d.entry_id and a.struct_assembly_id = d.id
+order by a.entry_id, a.struct_assembly_id
+
+
+
+
+select distinct a.entry_id, a.struct_assembly_id, b.entity_id, c.description, c.polymer_type, d.name, d.form, c.chem_comp_list,
+REPLACE(REPLACE(REPLACE(REPLACE(e.type,'polyribonucleotide hybrid','RNA'),'polypeptide(L)','Protein'),'polydeoxyribonucleotide','DNA'),'polypeptide(D)','D-Protein') 
+from struct_assembly_cmpnt a, struct_asym b, entity c, struct_assembly d, entity_poly e
+where a.ENTRY_ID = b.ENTRY_ID and a.STRUCT_ASYM_ID = b.ID and b.entry_id = c.entry_id and b.entity_id = c.id  and c.description != 'water' 
+and a.entry_id = c.entry_id and a.ENTRY_ID = d.ENTRY_ID
+and b.entry_id = d.entry_id and c.entry_id = d.entry_id and a.struct_assembly_id = d.id
+and  e.entry_id (+) = c.entry_id and e.entity_id (+)=c.id 
+order by a.entry_id, a.struct_assembly_id
+
+select distinct components from ( select distinct a.entry_id, a.struct_assembly_id, b.entity_id, 
+								c.description, c.polymer_type, d.name, d.form, c.chem_comp_list,
+								REPLACE(REPLACE(REPLACE(REPLACE(e.type,'polyribonucleotide hybrid','RNA'),'polypeptide(L)','Protein'),
+								'polydeoxyribonucleotide','DNA'),'polypeptide(D)','D-Protein') as components
+								from struct_assembly_cmpnt a, struct_asym b, entity c, struct_assembly d, entity_poly e
+								where a.ENTRY_ID = b.ENTRY_ID and a.STRUCT_ASYM_ID = b.ID and b.entry_id = c.entry_id and b.entity_id = c.id  
+								and c.description != 'water' and a.entry_id = c.entry_id and a.ENTRY_ID = d.ENTRY_ID and b.entry_id = d.entry_id 
+								and c.entry_id = d.entry_id and a.struct_assembly_id = d.id and  e.entry_id (+) = c.entry_id and e.entity_id (+)=c.id
+								) where entry_id= '2r5z' and struct_assembly_id='1' and entity_id != '1' and components is not null
+
+
+
+select entry_id, entity_id, name from entity_best_name
+union
+select entry_id, id, description as name from entity where polymer_type in ('P','R', 'D', 'S')
+and (entry_id, id) not in (select entry_id, entity_id from entity_best_name)
+
+
+
+select entity_id, components from ( select distinct a.entry_id, a.struct_assembly_id, b.entity_id, 
+								c.description, c.polymer_type, d.name, d.form, c.chem_comp_list,
+								REPLACE(REPLACE(REPLACE(REPLACE(e.type,'polyribonucleotide hybrid','RNA'),'polypeptide(L)','Protein'),
+								'polydeoxyribonucleotide','DNA'),'polypeptide(D)','D-Protein') as components
+								from struct_assembly_cmpnt a, struct_asym b, entity c, struct_assembly d, entity_poly e
+								where a.ENTRY_ID = b.ENTRY_ID and a.STRUCT_ASYM_ID = b.ID and b.entry_id = c.entry_id and b.entity_id = c.id  
+								and c.description != 'water' and a.entry_id = c.entry_id and a.ENTRY_ID = d.ENTRY_ID and b.entry_id = d.entry_id 
+								and c.entry_id = d.entry_id and a.struct_assembly_id = d.id and  e.entry_id (+) = c.entry_id and e.entity_id (+)=c.id
+								order by a.entry_id, a.struct_assembly_id)
+                    where entry_id ='100d' and struct_assembly_id ='1' and components is not null
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->
