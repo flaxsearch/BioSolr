@@ -18,6 +18,7 @@ package uk.co.flax.biosolr;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +45,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	private final String value;
 	private final long count;
 	private long childCount;
-	private final Set<TreeFacetField> hierarchy;
+	private final SortedSet<TreeFacetField> hierarchy;
 
 	/**
 	 * Construct a new TreeFacetField node.
@@ -55,7 +56,7 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	 * node.
 	 * @param hierarchy the set of nodes which comprise the children of this node.
 	 */
-	public TreeFacetField(String label, String value, long count, long childCount, Set<TreeFacetField> hierarchy) {
+	public TreeFacetField(String label, String value, long count, long childCount, SortedSet<TreeFacetField> hierarchy) {
 		this.label = label;
 		this.value = value;
 		this.count = count;
@@ -87,17 +88,17 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return hierarchy != null && hierarchy.size() > 0;
 	}
 	
-	public void recalculateChildCount() {
-		long cCount = 0;
+	public long recalculateChildCount() {
+		// Reset the child count
+		childCount = 0;
 		
 		if (hasChildren()) {
 			for (TreeFacetField childNode : hierarchy) {
-				childNode.recalculateChildCount();
-				cCount += childNode.getChildCount();
+				childCount += childNode.recalculateChildCount();
 			}
 		}
 		
-		this.childCount = cCount;
+		return getTotal();
 	}
 
 	@Override
@@ -191,9 +192,6 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		} else if (!label.equals(other.label)) {
 			return false;
 		}
-		if (childCount != other.childCount) {
-			return false;
-		}
 		return true;
 	}
 	
@@ -206,5 +204,5 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		sb.append(" ").append(count).append("/").append(getTotal());
 		return sb.toString();
 	}
-
+	
 }
