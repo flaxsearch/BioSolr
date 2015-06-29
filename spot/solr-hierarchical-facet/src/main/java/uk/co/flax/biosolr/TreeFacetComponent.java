@@ -40,6 +40,12 @@ public class TreeFacetComponent extends FacetComponent {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeFacetComponent.class);
 	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void init(NamedList args) {
+		super.init(args);
+	}
+	
 	@Override
 	public void prepare(ResponseBuilder rb) throws IOException {
 		super.prepare(rb);

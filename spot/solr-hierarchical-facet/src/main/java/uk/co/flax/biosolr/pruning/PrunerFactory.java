@@ -16,7 +16,9 @@
 
 package uk.co.flax.biosolr.pruning;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.search.SyntaxError;
 
 import uk.co.flax.biosolr.HierarchicalFacets;
 
@@ -28,11 +30,24 @@ import uk.co.flax.biosolr.HierarchicalFacets;
  */
 public class PrunerFactory {
 	
-	public Pruner constructPruner(SolrParams params) {
+	public static final String SIMPLE_PRUNER_VALUE = "simple";
+	public static final String DATAPOINTS_PRUNER_VALUE = "datapoint";
+	
+	public Pruner constructPruner(SolrParams params) throws SyntaxError {
 		Pruner pruner = null;
 		
-		if (params.getBool(HierarchicalFacets.PRUNE_PARAM, false)) {
-			pruner = new SimplePruner();
+		String prunerParam = params.get(HierarchicalFacets.PRUNE_PARAM);
+		
+		if (StringUtils.isNotBlank(prunerParam)) {
+			if (SIMPLE_PRUNER_VALUE.equals(prunerParam)) {
+				pruner = new SimplePruner();
+			} else if (DATAPOINTS_PRUNER_VALUE.equals(prunerParam)) {
+				int dp = params.getInt(HierarchicalFacets.DATAPOINTS_PARAM, 0);
+				if (dp <= 0) {
+					throw new SyntaxError("Datapoints parameter invalid");
+				}
+				pruner = new DatapointPruner(dp);
+			}
 		}
 		
 		return pruner;

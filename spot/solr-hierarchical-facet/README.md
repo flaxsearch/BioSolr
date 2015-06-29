@@ -111,3 +111,26 @@ the `parentField` parameter to be set.
 The `strategy` parameter can be used to explicitly state which strategy
 should be used. If not supplied, the plugin will attempt to derive the
 strategy from the parameters.
+
+
+## Pruning
+
+By default the returned tree will contain all entries from the facets up to
+the top of the hierarchy tree. It is very likely that the upper levels of
+the tree will contain nodes which are not required for display - they are
+much too general and will require a lot of drilling down before getting to
+any relevant nodes. For this reason, there are some pruning strategies
+available to trim the hierarchy tree and reduce the number of redundant
+nodes.
+
+The `prune` parameter can be used to specify how the tree should be
+pruned, using one of the following values:
+
+- `simple` will reduce the tree to nodes which either have hits themselves,
+or which have three or more child nodes with hits.
+- `datapoint` will reduce the tree to a given number of data points,
+with the remaining nodes held under an "Other" node entry. The "Other" entry
+is pruned using the `simple` strategy, so is also reduced to significant
+nodes. The number of data points required should be passed using the
+`datapoints` parameter - eg. `prune=datapoint datapoints=6`
+.

@@ -62,6 +62,7 @@ public class HierarchicalFacets extends SimpleFacets {
 	public static final String LEVELS_PARAM = "levels";
 	public static final String STRATEGY_PARAM = "strategy";
 	public static final String PRUNE_PARAM = "prune";
+	public static final String DATAPOINTS_PARAM = "datapoints";
 
 	static final Executor directExecutor = new Executor() {
 		@Override
