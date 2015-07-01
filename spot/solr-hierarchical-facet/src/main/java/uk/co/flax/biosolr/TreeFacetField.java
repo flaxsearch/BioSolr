@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +32,7 @@ import org.apache.solr.common.util.SimpleOrderedMap;
  * <p>Implements Comparable, so that entries in the tree may be ordered by their
  * value count.</p>
  */
-public class TreeFacetField implements Comparable<TreeFacetField>, Serializable {
+public class TreeFacetField implements Comparable<TreeFacetField>, Serializable, Cloneable {
 
 	private static final long serialVersionUID = 5709339278691781478L;
 
@@ -62,6 +63,10 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		this.count = count;
 		this.childCount = childCount;
 		this.hierarchy = hierarchy;
+	}
+	
+	public String getLabel() {
+		return label;
 	}
 
 	public String getValue() {
@@ -203,6 +208,26 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		}
 		sb.append(" ").append(count).append("/").append(getTotal());
 		return sb.toString();
+	}
+	
+	@Override
+	public TreeFacetField clone() {
+		// Recursively clone the hierarchy
+		return new TreeFacetField(label, value, count, childCount, cloneHierarchy(this.hierarchy));
+	}
+	
+	private SortedSet<TreeFacetField> cloneHierarchy(SortedSet<TreeFacetField> orig) {
+		SortedSet<TreeFacetField> cloned = null;
+		
+		if (orig != null) {
+			cloned = new TreeSet<>(orig.comparator());
+			
+			for (TreeFacetField tff : orig) {
+				cloned.add(tff.clone());
+			}
+		}
+		
+		return cloned;
 	}
 	
 }

@@ -42,23 +42,25 @@ public class DatapointPruner implements Pruner {
 
 	@Override
 	public Collection<TreeFacetField> prune(Collection<TreeFacetField> unprunedTrees) {
-		Collection<TreeFacetField> prunedTrees = 
-				new TreeSet<>(Comparator.comparingLong(TreeFacetField::getCount).reversed());
-		Collection<TreeFacetField> incoming = new LinkedList<>(unprunedTrees);
-		
+		Collection<TreeFacetField> prunedTrees = new TreeSet<>(Comparator.comparingLong(TreeFacetField::getCount)
+				.thenComparing(TreeFacetField::getValue).reversed());
+		// Clone the unpruned collection - we need it again later
+		Collection<TreeFacetField> incoming = unprunedTrees.stream().map(TreeFacetField::clone).collect(Collectors.toList());
+
 		long total = getNodeTotal(incoming);
 		int itCount = 1;
+		int prevCount = Integer.MAX_VALUE;
 		
 		while (prunedTrees.size() < datapoints && !incoming.isEmpty()) {
-			int minCount = Math.round((total / datapoints) / itCount);
-			if (minCount == 0 && Math.round((total / datapoints) / (itCount -1)) > 1) {
-				// Iterated too far - unlikely to find anything useful
+			int minCount = getThreshold(itCount, prevCount, total);
+			if (minCount <= 0) {
 				break;
 			}
 			
 			prunedTrees.addAll(getNodesWithCount(incoming, minCount));
 			
 			itCount ++;
+			prevCount = minCount;
 		}
 		
 		/* Trim the pruned trees list to the number of datapoints.
@@ -70,16 +72,38 @@ public class DatapointPruner implements Pruner {
 			prunedTrees = prunedTrees.stream().limit(datapoints).collect(Collectors.toList());
 		}
 		
-		// Rebuild the incoming node set...
+		// Rebuild the incoming node set - no need to clone...
 		incoming = new LinkedList<>(unprunedTrees);
 		// ...and strip the nodes already extracted to the pruned list
 		trimIncomingNodes(incoming, prunedTrees, 0);
 		
 		// Build the "other" node
 		TreeFacetField otherNode = buildOtherNode(incoming);
-		prunedTrees.add(otherNode);
+		if (otherNode.getTotal() > 0) {
+			prunedTrees.add(otherNode);
+		}
 		
 		return prunedTrees;
+	}
+	
+	private int getThreshold(int iteration, int previous, long total) {
+		int min = Math.round((total / datapoints) / iteration);
+		// Avoid looping over and over with the same minCount
+		if (min >= previous) {
+			min = previous - 1;
+		}
+		
+		if (min == 0) {
+			if (iteration == 1) {
+				// First iteration - set minCount to 1
+				min = 1;
+			} else {
+				// Iterated more than once, unlikely to find anything useful
+				min = 0;
+			}
+		}
+		
+		return min;
 	}
 	
 	/**
@@ -177,7 +201,7 @@ public class DatapointPruner implements Pruner {
 		SortedSet<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
 		pruned.addAll(new SimplePruner().prune(otherNodes));
 		
-		TreeFacetField other = new TreeFacetField("Other", "", 0, 0, pruned);
+		TreeFacetField other = new TreeFacetField("More", "", 0, 0, pruned);
 		other.recalculateChildCount();
 		
 		return other;
