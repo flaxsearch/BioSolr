@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.api.FacetEntry;
+import uk.co.flax.biosolr.ontology.api.FacetStyle;
 import uk.co.flax.biosolr.ontology.api.HierarchicalFacetEntry;
 import uk.co.flax.biosolr.ontology.config.FacetTreeConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
@@ -86,7 +87,8 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 	}
 
 	@Override
-	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields, List<String> filters) throws SearchEngineException {
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields,
+			List<String> filters, FacetStyle facetStyle) throws SearchEngineException {
 		ResultsList<Document> results = null;
 
 		try {
@@ -104,9 +106,11 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
 			query.addFacetField(config.getFacetFields().toArray(new String[config.getFacetFields().size()]));
 			
-			// Add the facet tree params
-			query.setParam("facet.tree", true);
-			query.setParam("facet.tree.field", buildFacetTreeQueryParameter());
+			if (facetStyle != FacetStyle.NONE) {
+				// Add the facet tree params
+				query.setParam("facet.tree", true);
+				query.setParam("facet.tree.field", buildFacetTreeQueryParameter(facetStyle));
+			}
 			
 			LOGGER.debug("Query: {}", query);
 
@@ -130,7 +134,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 				total = response.getResults().getNumFound();
 			}
 			
-			results = new ResultsList<>(docs, start, (start / rows), total, extractFacets(response));
+			results = new ResultsList<>(docs, start, (start / rows), total, extractFacets(response, facetStyle));
 		} catch (SolrServerException e) {
 			throw new SearchEngineException(e);
 		}
@@ -138,7 +142,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		return results;
 	}
 	
-	private Map<String, List<FacetEntry>> extractFacets(QueryResponse response) {
+	private Map<String, List<FacetEntry>> extractFacets(QueryResponse response, FacetStyle facetStyle) {
 		Map<String, List<FacetEntry>> facets = new HashMap<>();
 		
 		for (String name : config.getFacetFields()) {
@@ -153,9 +157,11 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		}
 		
 		// And extract the facet tree, if there is one
-		List<Object> facetTree = findFacetTree(response, EFO_URI_FIELD);
-		if (facetTree != null && !facetTree.isEmpty()) {
-			facets.put(EFO_URI_FIELD + "_hierarchy", extractFacetTreeFromNamedList(facetTree));
+		if (facetStyle != FacetStyle.NONE) {
+			List<Object> facetTree = findFacetTree(response, EFO_URI_FIELD);
+			if (facetTree != null && !facetTree.isEmpty()) {
+				facets.put(EFO_URI_FIELD + "_hierarchy", extractFacetTreeFromNamedList(facetTree));
+			}
 		}
 		
 		return facets;
@@ -166,7 +172,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		NamedList<Object> baseResponse = response.getResponse();
 		NamedList<Object> facetTrees = (NamedList<Object>) baseResponse.findRecursive("facet_counts", "facet_trees");
 		
-		return facetTrees.getAll(field);
+		return facetTrees == null ? null : facetTrees.getAll(field);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -195,7 +201,7 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		return entries;
 	}
 	
-	private String buildFacetTreeQueryParameter() {
+	private String buildFacetTreeQueryParameter(FacetStyle style) {
 		FacetTreeConfiguration ftConfig = config.getDocumentFacetTree();
 		
 		StringBuilder ftqParam = new StringBuilder("{!ftree");
@@ -206,7 +212,13 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 		if (StringUtils.isNotBlank(ftConfig.getLabelField())) {
 			ftqParam.append(" labelField=").append(ftConfig.getLabelField());
 		}
-		ftqParam.append(" prune=simple");
+		
+		// Handle the pruning parameters, if required
+		if (style == FacetStyle.SIMPLE_PRUNE) {
+			ftqParam.append(" prune=simple");
+		} else if (style == FacetStyle.DATAPOINT_PRUNE) {
+			ftqParam.append(" prune=datapoint datapoints=").append(ftConfig.getDatapoints());
+		}
 		
 		ftqParam.append("}").append(ftConfig.getBaseField());
 		

@@ -13,6 +13,7 @@ ontologyApp
 		});
 		
 		$scope.additionalFields = [];
+		$scope.selectedFacetStyle = $scope.facetStyle = "NONE";
 		// Kludge so we can use checklist-model for the parent/child label checkboxes
 		$scope.efo_child_labels = 'efo_child_labels';
 		$scope.efo_parent_labels = 'efo_parent_labels';
@@ -26,13 +27,23 @@ ontologyApp
 	
 	$scope.changePage = function() {
 		var start = 10 * ($scope.currentPage - 1);
-		var params = { q: $scope.query, additionalFields: $scope.additionalFields, start: start }
+		var params = { 
+			q: $scope.query, 
+			additionalFields: $scope.additionalFields, 
+			start: start,
+			appliedFilters: $scope.appliedFilters,
+			facetStyle: $scope.facetStyle
+		}
 		self.updateModel(params);
 	}
 	
 	// Event handler to catch search form submit
 	$scope.search = function() {
-		var params = { q: $scope.query, additionalFields: $scope.additionalFields };
+		var params = { 
+			q: $scope.query, 
+			additionalFields: $scope.additionalFields,
+			facetStyle: $scope.facetStyle
+		};
 		// Clear filters
 		$scope.fq = undefined;
 		$scope.appliedFilters = undefined;
@@ -49,7 +60,12 @@ ontologyApp
 			$scope.appliedFilters = [{ field: term}];
 		}
 		
-		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
+		var params = { 
+			q: $scope.query, 
+			additionalFields: $scope.additionalFields, 
+			fq: $scope.fq,
+			facetStyle: $scope.facetStyle
+		};
 		self.updateModel(params);
 	}
 	
@@ -60,7 +76,12 @@ ontologyApp
 			}
 		}
 		
-		var params = { q: $scope.query, additionalFields: $scope.additionalFields, fq: $scope.fq };
+		var params = { 
+			q: $scope.query, 
+			additionalFields: $scope.additionalFields, 
+			fq: $scope.fq,
+			facetStyle: $scope.facetStyle
+		};
 		self.updateModel(params);
 	}
 	
@@ -124,9 +145,9 @@ ontologyApp
 	}
 	
 	$scope.showTopLevelFacets = function() {
-		var ret = true;
+		var ret = $scope.facetStyle == 'NONE';
 		
-		if ($scope.fq && $scope.fq.length > 0) {
+		if (ret && $scope.fq && $scope.fq.length > 0) {
 			for (var i = 0; i < $scope.fq.length; i ++) {
 				if ($scope.fq[i].split(':')[0] == 'facet_labels') {
 					ret = false;
@@ -144,6 +165,17 @@ ontologyApp
 	
 	$scope.filtersApplied = function() {
 		return $scope.fq && $scope.fq.length > 0;
+	}
+	
+	$scope.updateFacetStyle = function(fs) {
+		$scope.facetStyle = fs;
+		var params = { 
+			q: $scope.query, 
+			additionalFields: $scope.additionalFields, 
+			fq: $scope.fq,
+			facetStyle: $scope.facetStyle
+		};
+		self.updateModel(params);
 	}
 	
 	// Initialise the page

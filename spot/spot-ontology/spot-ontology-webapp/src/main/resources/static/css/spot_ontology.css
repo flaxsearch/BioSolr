@@ -75,3 +75,7 @@ span.not-expandable {
 a {
 	cursor: pointer;
 }
+
+.facet-options {
+	font-size: 12px;
+}

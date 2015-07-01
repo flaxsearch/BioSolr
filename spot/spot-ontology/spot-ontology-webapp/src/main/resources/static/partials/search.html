@@ -29,26 +29,36 @@
     <div class="row">
         <div class="col-md-3">
             <span class="facet-header">Facets</span>
-            <!-- 
-            <div ng-show="showTopLevelFacets()">
-                <span class="facet-field">{{getFacetLabel('facet_labels')}}</span>
-                <ul class="facet-list">
-                    <li ng-repeat="facet in facets.facet_labels">
-                        <a ng-click="addFilter('facet_labels', facet.label)">{{facet.label}}</a> ({{facet.count}})
-                    </li>
-                </ul>
-            </div>
-            <div ng-show="showSecondLevelFacets()">
-                <span class="facet-field">{{getFacetLabel('efo_labels_str')}}</span>
-                <ul class="facet-list">
-                    <li ng-repeat="facet in facets.efo_labels_str">
-                        <a ng-click="addFilter('efo_labels_str', facet.label)">{{facet.label}}</a> ({{facet.count}})
-                    </li>
-                </ul>
-            </div>
-            -->
             
-            <div>
+            <div class="facet-options">
+	            <select ng-model="selectedFacetStyle" ng-change="updateFacetStyle(selectedFacetStyle)">
+	            	<option value="NONE">Label facets</option>
+	            	<option value="TREE">Hierarchical facets</option>
+	            	<option value="SIMPLE_PRUNE">Hierarchical facets (pruned)</option>
+	            	<option value="DATAPOINT_PRUNE">Hierarchical facets (datapoints)</option>
+	            </select>
+            </div>
+
+			<div ng-show="facetStyle == 'NONE'">
+				<div ng-show="showTopLevelFacets()">
+					<span class="facet-field">{{getFacetLabel('facet_labels')}}</span>
+					<ul class="facet-list">
+						<li ng-repeat="facet in facets.facet_labels"><a
+							ng-click="addFilter('facet_labels', facet.label)">{{facet.label}}</a>
+							({{facet.count}})</li>
+					</ul>
+				</div>
+				<div ng-show="showSecondLevelFacets()">
+					<span class="facet-field">{{getFacetLabel('efo_labels_str')}}</span>
+					<ul class="facet-list">
+						<li ng-repeat="facet in facets.efo_labels_str"><a
+							ng-click="addFilter('efo_labels_str', facet.label)">{{facet.label}}</a>
+							({{facet.count}})</li>
+					</ul>
+				</div>
+			</div>
+            
+            <div ng-show="facetStyle != 'NONE'">
                 <span class="facet-field">Hierarchy</span>
                 <ul class="facet-list" ng-repeat="entry in facets.efo_uri_hierarchy">
                     <hierarchy entry="entry" click="addFilter(field, value)" top-func="addFilter" />
