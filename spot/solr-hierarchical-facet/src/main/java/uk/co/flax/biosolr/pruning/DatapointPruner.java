@@ -42,7 +42,8 @@ public class DatapointPruner implements Pruner {
 
 	@Override
 	public Collection<TreeFacetField> prune(Collection<TreeFacetField> unprunedTrees) {
-		Collection<TreeFacetField> prunedTrees = new TreeSet<>(Comparator.reverseOrder());
+		Collection<TreeFacetField> prunedTrees = 
+				new TreeSet<>(Comparator.comparingLong(TreeFacetField::getCount).reversed());
 		Collection<TreeFacetField> incoming = new LinkedList<>(unprunedTrees);
 		
 		long total = getNodeTotal(incoming);
