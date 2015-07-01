@@ -16,10 +16,13 @@
 package uk.co.flax.biosolr;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
@@ -29,7 +32,7 @@ import org.apache.solr.common.util.SimpleOrderedMap;
  * <p>Implements Comparable, so that entries in the tree may be ordered by their
  * value count.</p>
  */
-public class TreeFacetField implements Comparable<TreeFacetField>, Serializable {
+public class TreeFacetField implements Comparable<TreeFacetField>, Serializable, Cloneable {
 
 	private static final long serialVersionUID = 5709339278691781478L;
 
@@ -42,8 +45,8 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	private final String label;
 	private final String value;
 	private final long count;
-	private final long childCount;
-	private final Set<TreeFacetField> hierarchy;
+	private long childCount;
+	private final SortedSet<TreeFacetField> hierarchy;
 
 	/**
 	 * Construct a new TreeFacetField node.
@@ -54,12 +57,16 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 	 * node.
 	 * @param hierarchy the set of nodes which comprise the children of this node.
 	 */
-	public TreeFacetField(String label, String value, long count, long childCount, Set<TreeFacetField> hierarchy) {
+	public TreeFacetField(String label, String value, long count, long childCount, SortedSet<TreeFacetField> hierarchy) {
 		this.label = label;
 		this.value = value;
 		this.count = count;
 		this.childCount = childCount;
 		this.hierarchy = hierarchy;
+	}
+	
+	public String getLabel() {
+		return label;
 	}
 
 	public String getValue() {
@@ -82,6 +89,23 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		return hierarchy;
 	}
 
+	public boolean hasChildren() {
+		return hierarchy != null && hierarchy.size() > 0;
+	}
+	
+	public long recalculateChildCount() {
+		// Reset the child count
+		childCount = 0;
+		
+		if (hasChildren()) {
+			for (TreeFacetField childNode : hierarchy) {
+				childCount += childNode.recalculateChildCount();
+			}
+		}
+		
+		return getTotal();
+	}
+
 	@Override
 	public int compareTo(TreeFacetField o) {
 		int ret = 0;
@@ -91,9 +115,13 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		} else {
 			ret = (int) (getTotal() - o.getTotal());
 			if (ret == 0) {
-				// If the counts are the same, compare the ID as well, to double-check
-				// whether they're actually the same entry
-				ret = getValue().compareTo(o.getValue());
+				// If the totals are the same, compare the count as well.
+				ret = (int) (count - o.count);
+				if (ret == 0) {
+					// If the counts are also the same, compare the ID as well, to double-check
+					// whether they're actually the same entry
+					ret = getValue().compareTo(o.getValue());
+				}
 			}
 		}
 
@@ -115,16 +143,14 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		map.add(TOTAL_KEY, getTotal());
 		if (hierarchy != null && hierarchy.size() > 0) {
 			// Recurse through the child nodes, converting each to a map
-			List<NamedList<Object>> hierarchyList = new ArrayList<>(hierarchy.size());
-			for (TreeFacetField tff : hierarchy) {
-				hierarchyList.add(tff.toMap());
-			}
+			List<NamedList<Object>> hierarchyList = 
+					hierarchy.stream().map(TreeFacetField::toMap).collect(Collectors.toList());
 			map.add(HIERARCHY_KEY, hierarchyList);
 		}
 		
 		return map;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -171,10 +197,37 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable 
 		} else if (!label.equals(other.label)) {
 			return false;
 		}
-		if (childCount != other.childCount) {
-			return false;
-		}
 		return true;
 	}
-
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(value);
+		if (StringUtils.isNotBlank(label)) {
+			sb.append(" [").append(label).append("]");
+		}
+		sb.append(" ").append(count).append("/").append(getTotal());
+		return sb.toString();
+	}
+	
+	@Override
+	public TreeFacetField clone() {
+		// Recursively clone the hierarchy
+		return new TreeFacetField(label, value, count, childCount, cloneHierarchy(this.hierarchy));
+	}
+	
+	private SortedSet<TreeFacetField> cloneHierarchy(SortedSet<TreeFacetField> orig) {
+		SortedSet<TreeFacetField> cloned = null;
+		
+		if (orig != null) {
+			cloned = new TreeSet<>(orig.comparator());
+			
+			for (TreeFacetField tff : orig) {
+				cloned.add(tff.clone());
+			}
+		}
+		
+		return cloned;
+	}
+	
 }

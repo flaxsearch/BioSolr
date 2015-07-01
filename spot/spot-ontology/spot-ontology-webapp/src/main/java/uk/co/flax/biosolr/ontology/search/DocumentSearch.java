@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.search;
 import java.util.List;
 
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.FacetStyle;
 
 /**
  * @author Matt Pearce
@@ -32,10 +33,13 @@ public interface DocumentSearch extends SearchEngine {
 	 * @param start the starting offset (0-indexed).
 	 * @param rows the maximum number of rows to return.
 	 * @param additionalFields any fields that should be searched in addition to the defaults.
+	 * @param filters the filters to apply to the results.
+	 * @param facetStyle the style of facet to generate.
 	 * @return a results list wrapping the documents found.
 	 * @throws SearchEngineException if problems occur accessing the search engine.
 	 */
-	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields, List<String> filters) throws SearchEngineException;
+	public ResultsList<Document> searchDocuments(String term, int start, int rows, List<String> additionalFields,
+			List<String> filters, FacetStyle facetStyle) throws SearchEngineException;
 
 	/**
 	 * Search the documents using one or more ontology URIs.

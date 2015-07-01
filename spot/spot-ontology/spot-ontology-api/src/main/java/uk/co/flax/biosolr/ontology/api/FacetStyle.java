@@ -14,39 +14,18 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.ontology.config;
+package uk.co.flax.biosolr.ontology.api;
 
-public class FacetTreeConfiguration {
-
-	private String baseField;
-	private String nodeField;
-	private String childField;
-	private String labelField;
-	private String collection;
-	private int datapoints;
-
-	public String getBaseField() {
-		return baseField;
-	}
-
-	public String getNodeField() {
-		return nodeField;
-	}
-
-	public String getChildField() {
-		return childField;
-	}
-
-	public String getLabelField() {
-		return labelField;
-	}
-
-	public String getCollection() {
-		return collection;
-	}
-
-	public int getDatapoints() {
-		return datapoints;
-	}
+/**
+ * JavaDoc for FacetStyle.
+ *
+ * @author mlp
+ */
+public enum FacetStyle {
+	
+	NONE,
+	TREE,
+	SIMPLE_PRUNE,
+	DATAPOINT_PRUNE
 
 }

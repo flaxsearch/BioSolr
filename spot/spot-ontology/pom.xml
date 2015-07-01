@@ -10,9 +10,10 @@
 
 	<modules>
 		<module>spot-ontology-api</module>
-		<module>spot-ontology-indexer</module>
 		<module>spot-ontology-webapp</module>
+		<module>spot-ontology-indexer-standalone</module>
 		<module>spot-ontology-indexer-plugins</module>
+		<module>spot-ontology-document-indexer</module>
 	</modules>
 
 	<properties>

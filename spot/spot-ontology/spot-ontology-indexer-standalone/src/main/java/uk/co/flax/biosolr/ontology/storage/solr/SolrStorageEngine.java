@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.storage.solr;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -33,6 +34,16 @@ import uk.co.flax.biosolr.ontology.storage.StorageEngine;
 import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
 
 /**
+ * Solr-specific implementation of the {@link StorageEngine} interface.
+ * 
+ * <p>
+ * This is a special case implementation, primarily due to the indexer
+ * application being written with Solr in mind. For this reason, the
+ * {@link #setConfiguration(Map)} and {@link #initialise()} methods
+ * are no-ops. All configuration and initialisation is handled in the
+ * constructor.
+ * </p>
+ * 
  * @author Matt Pearce
  */
 public class SolrStorageEngine implements StorageEngine {
@@ -102,6 +113,16 @@ public class SolrStorageEngine implements StorageEngine {
 				throw new StorageEngineException(e);
 			}
 		}
+	}
+
+	@Override
+	public void setConfiguration(Map<String, Object> configuration) throws StorageEngineException {
+		// NOP
+	}
+
+	@Override
+	public void initialise() throws StorageEngineException {
+		// NOP
 	}
 
 }

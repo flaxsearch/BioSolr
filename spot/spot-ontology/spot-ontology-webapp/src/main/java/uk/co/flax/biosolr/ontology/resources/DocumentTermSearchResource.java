@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
+import uk.co.flax.biosolr.ontology.api.FacetStyle;
 import uk.co.flax.biosolr.ontology.api.SearchResponse;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
@@ -46,11 +47,12 @@ public class DocumentTermSearchResource {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public SearchResponse<Document> search(@QueryParam("q") String query, @QueryParam("start") int start, @QueryParam("rows") int rows) {
+	public SearchResponse<Document> search(@QueryParam("q") String query, @QueryParam("start") int start,
+			@QueryParam("rows") int rows) {
 		SearchResponse<Document> response;
 		
 		try {
-			ResultsList<Document> results = search.searchDocuments(query, start, rows, null, null);
+			ResultsList<Document> results = search.searchDocuments(query, start, rows, null, null, FacetStyle.NONE);
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown searching ontologies: {}", e.getMessage());

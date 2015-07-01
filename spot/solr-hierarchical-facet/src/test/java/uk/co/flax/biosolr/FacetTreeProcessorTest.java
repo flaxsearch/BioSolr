@@ -40,7 +40,7 @@ public class FacetTreeProcessorTest {
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 		
-		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
 		assertNull(ftp.process(new String[]{ "blah" }));
 	}
 
@@ -52,7 +52,7 @@ public class FacetTreeProcessorTest {
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 		
-		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
 		assertNull(ftp.process(null));
 	}
 
@@ -66,8 +66,8 @@ public class FacetTreeProcessorTest {
 		SolrParams params = mock(SolrParams.class);
 		when(req.getParams()).thenReturn(params);
 
-		final String[] facetTrees = new String[] { "{!" + FacetTreeProcessor.LOCAL_PARAM_TYPE + " x=y}uri" };
-		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
+		final String[] facetTrees = new String[] { "{!" + HierarchicalFacets.LOCAL_PARAM_TYPE + " x=y}uri" };
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
 		ftp.process(facetTrees);
 	}
 
@@ -79,8 +79,8 @@ public class FacetTreeProcessorTest {
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 
-		final String[] facetTrees = new String[] { "{!" + FacetTreeProcessor.LOCAL_PARAM_TYPE + FacetTreeProcessor.CHILD_FIELD_PARAM + "=child_uris}uri" };
-		FacetTreeProcessor ftp = new FacetTreeProcessor(req, null, null, rb);
+		final String[] facetTrees = new String[] { "{!" + HierarchicalFacets.LOCAL_PARAM_TYPE + HierarchicalFacets.CHILD_FIELD_PARAM + "=child_uris}uri" };
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
 		assertNotNull(ftp.process(facetTrees));
 	}
 

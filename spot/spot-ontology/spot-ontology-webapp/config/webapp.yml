@@ -92,7 +92,9 @@ solr:
     # The label field
     labelField: label
     # The ontology collection
-    collection: ontology  
+    collection: ontology
+    # Number of datapoints to generate for datapoint hierarchy
+    datapoints: 6
 
 # Apache Jena configuration
 jena:

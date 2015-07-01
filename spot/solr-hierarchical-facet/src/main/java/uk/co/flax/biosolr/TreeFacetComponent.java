@@ -24,7 +24,6 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.FacetComponent;
@@ -40,6 +39,12 @@ public class TreeFacetComponent extends FacetComponent {
 	public static final String FACET_TREE_FIELD = FACET_TREE + ".field";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeFacetComponent.class);
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void init(NamedList args) {
+		super.init(args);
+	}
 	
 	@Override
 	public void prepare(ResponseBuilder rb) throws IOException {
@@ -75,8 +80,7 @@ public class TreeFacetComponent extends FacetComponent {
 			for (String ftField : ftFields) {
 				// Parse the facet tree field, so we only add the field value,
 				// rather than the whole string (ensure it's unique)
-				SolrParams p = QueryParsing.getLocalParams(ftField, params);
-				facetFields.add(p.get(QueryParsing.V));
+				facetFields.add(QueryParsing.getLocalParams(ftField, params).get(QueryParsing.V));
 			}
 			
 			// Add the (possibly) new facet fields
@@ -94,7 +98,7 @@ public class TreeFacetComponent extends FacetComponent {
 
 		// And do the facet tree, if required
 		if (rb.doFacets && rb.req.getParams().getBool(FACET_TREE, false)) {
-			FacetTreeProcessor ftp = new FacetTreeProcessor(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
+			HierarchicalFacets ftp = new HierarchicalFacets(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
 			@SuppressWarnings("rawtypes")
 			SimpleOrderedMap<NamedList> ftpResponse = ftp.process(rb.req.getParams().getParams(FACET_TREE_FIELD));
 			

@@ -47,9 +47,9 @@ ul.facet-list {
 }
 
 .facet-list li {
-	font-size: 10px;
+	font-size: 12px;
 	list-style: none;
-	margin-left: 4px;
+	margin-left: 8px;
 }
 
 .applied-filters ul {
@@ -62,4 +62,20 @@ ul.facet-list {
     padding: 0 4px;
     border: 2px solid #b8cacb;
     border-radius: 4px;
+}
+
+span.expand-collapse {
+	cursor: pointer;
+}
+
+span.not-expandable {
+	padding-left: 15px;
+}
+
+a {
+	cursor: pointer;
+}
+
+.facet-options {
+	font-size: 12px;
 }

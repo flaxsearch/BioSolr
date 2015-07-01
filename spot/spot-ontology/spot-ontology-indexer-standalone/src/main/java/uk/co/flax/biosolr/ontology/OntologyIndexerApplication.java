@@ -30,7 +30,8 @@ import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
-import uk.co.flax.biosolr.ontology.storage.StorageEngineFactory;
+import uk.co.flax.biosolr.ontology.storage.StorageEngineException;
+import uk.co.flax.biosolr.ontology.storage.StorageManager;
 
 /**
  * Main class for indexing one or more ontologies.
@@ -51,13 +52,16 @@ public class OntologyIndexerApplication {
 	}
 	
 	public void run() {
-		StorageEngine storageEngine = StorageEngineFactory.buildStorageEngine(configuration.getStorage());
-		if (storageEngine == null) {
-			System.err.println("No storage engine - aborting!");
-			return;
-		} else if (!storageEngine.isReady()) {
-			System.err.println("Storage engine is not ready - aborting!");
-			return;
+		StorageEngine storageEngine = new StorageManager(configuration.getStorage());
+		try {
+			storageEngine.initialise();
+			if (!storageEngine.isReady()) {
+				System.err.println("Storage engine is not ready - aborting!");
+				return;
+			}
+		} catch (StorageEngineException e) {
+			System.err.println("Could not build storage engine(s): " + e.getMessage());
+			e.printStackTrace();
 		}
 		
 		for (String source : configuration.getOntologies().keySet()) {
