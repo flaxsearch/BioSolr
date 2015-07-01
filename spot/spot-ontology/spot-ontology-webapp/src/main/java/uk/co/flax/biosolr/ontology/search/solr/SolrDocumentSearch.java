@@ -104,10 +104,12 @@ public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSear
 				query.addFilterQuery(filters.toArray(new String[0]));
 			}
 			query.setParam(DisMaxParams.QF, queryFields.toArray(new String[queryFields.size()]));
-			query.addFacetField(config.getFacetFields().toArray(new String[config.getFacetFields().size()]));
 			
-			if (facetStyle != FacetStyle.NONE) {
+			if (facetStyle == FacetStyle.NONE) {
+				query.addFacetField(config.getFacetFields().toArray(new String[config.getFacetFields().size()]));
+			} else {
 				// Add the facet tree params
+				query.setFacet(true);
 				query.setParam("facet.tree", true);
 				query.setParam("facet.tree.field", buildFacetTreeQueryParameter(facetStyle));
 			}
