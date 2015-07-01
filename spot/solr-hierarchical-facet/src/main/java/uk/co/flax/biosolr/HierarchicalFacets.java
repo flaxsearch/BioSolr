@@ -39,17 +39,30 @@ import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SimpleFacets;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.DocSet;
+import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.DefaultSolrThreadFactory;
 
-public class FacetTreeProcessor extends SimpleFacets {
+import uk.co.flax.biosolr.pruning.PrunerFactory;
+
+/**
+ * Facet generator to process and build one or more hierarchical facet
+ * trees. This deals with the parameter processing and retrieving the
+ * base facet values, before handing over to {@link FacetGenerator}
+ * instances to actually build the facet tree.
+ */
+public class HierarchicalFacets extends SimpleFacets {
 
 	public static final String LOCAL_PARAM_TYPE = "ftree";
 	public static final String CHILD_FIELD_PARAM = "childField";
+	public static final String PARENT_FIELD_PARAM = "parentField";
 	public static final String COLLECTION_PARAM = "collection";
 	public static final String NODE_FIELD_PARAM = "nodeField";
 	public static final String LABEL_FIELD_PARAM = "labelField";
 	public static final String LEVELS_PARAM = "levels";
+	public static final String STRATEGY_PARAM = "strategy";
+	public static final String PRUNE_PARAM = "prune";
+	public static final String DATAPOINTS_PARAM = "datapoints";
 
 	static final Executor directExecutor = new Executor() {
 		@Override
@@ -63,7 +76,7 @@ public class FacetTreeProcessor extends SimpleFacets {
 			new SynchronousQueue<Runnable>(), // directly hand off tasks
 			new DefaultSolrThreadFactory("facetExecutor"));
 
-	public FacetTreeProcessor(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
+	public HierarchicalFacets(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
 		super(req, docs, params, rb);
 	}
 
@@ -80,48 +93,40 @@ public class FacetTreeProcessor extends SimpleFacets {
 
 		SimpleOrderedMap<NamedList> treeResponse = new SimpleOrderedMap<>();
 		try {
+			FacetTreeBuilderFactory treeBuilderFactory = new FacetTreeBuilderFactory();
+			PrunerFactory prunerFactory = new PrunerFactory();
+			
 			for (String fTree : facetTrees) {
-				String nodeField;
 				try {
-					// NOTE: this sets localParams (SimpleFacets is stateful)
 					this.parseParams(LOCAL_PARAM_TYPE, fTree);
-					if (localParams == null) {
-						throw new SyntaxError("Missing facet tree parameters");
-					} else if (localParams.get(CHILD_FIELD_PARAM) == null) {
-						throw new SyntaxError("Missing child field definition in " + fTree);
-					} else if (localParams.get(NODE_FIELD_PARAM) == null) {
-						nodeField = key;
-					} else {
-						nodeField = localParams.get(NODE_FIELD_PARAM);
-					}
+					FacetTreeBuilder treeBuilder = treeBuilderFactory.constructFacetTreeBuilder(localParams);
+					final String localKey = localParams.get(QueryParsing.V);
+					
+					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, 
+							localParams.get(COLLECTION_PARAM, null),
+							prunerFactory.constructPruner(localParams));
+					final NamedList<Integer> termCounts = getTermCounts(localKey);
+					Callable<NamedList> callable = new Callable<NamedList>() {
+						@Override
+						public NamedList call() throws Exception {
+							try {
+								List<SimpleOrderedMap<Object>> tree = generator.generateTree(rb, termCounts);
+								NamedList<List<SimpleOrderedMap<Object>>> nl = new NamedList<>();
+								nl.add(localKey, tree);
+								return nl;
+							} finally {
+								semaphore.release();
+							}
+						}
+					};
+
+					RunnableFuture<NamedList> runnableFuture = new FutureTask<>(callable);
+					semaphore.acquire();// may block and/or interrupt
+					executor.execute(runnableFuture);// releases semaphore when done
+					futures.add(runnableFuture);
 				} catch (SyntaxError e) {
 					throw new SolrException(ErrorCode.BAD_REQUEST, e);
 				}
-
-				// Construct generators for the hierarchical facets fields.
-				// Is there ever likely to be more than one?
-				final FacetTreeGenerator generator = new FacetTreeGenerator(localParams.get(COLLECTION_PARAM),
-						nodeField, localParams.get(CHILD_FIELD_PARAM), localParams.get(LABEL_FIELD_PARAM),
-						localParams.getInt(LEVELS_PARAM, 0));
-				final NamedList<Integer> termCounts = getTermCounts(key);
-				Callable<NamedList> callable = new Callable<NamedList>() {
-					@Override
-					public NamedList call() throws Exception {
-						try {
-							List<SimpleOrderedMap<Object>> tree = generator.generateTree(rb, termCounts);
-							NamedList<List<SimpleOrderedMap<Object>>> nl = new NamedList<>();
-							nl.add(key, tree);
-							return nl;
-						} finally {
-							semaphore.release();
-						}
-					}
-				};
-
-				RunnableFuture<NamedList> runnableFuture = new FutureTask<>(callable);
-				semaphore.acquire();// may block and/or interrupt
-				executor.execute(runnableFuture);// releases semaphore when done
-				futures.add(runnableFuture);
 			}
 
 			// Loop over futures to get the values. The order is the same as

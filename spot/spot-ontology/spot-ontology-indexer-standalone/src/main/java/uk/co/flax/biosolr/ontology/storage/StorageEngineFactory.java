@@ -15,11 +15,11 @@
  */
 package uk.co.flax.biosolr.ontology.storage;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.StorageConfiguration;
+import uk.co.flax.biosolr.ontology.config.StorageEngineConfiguration;
 import uk.co.flax.biosolr.ontology.storage.solr.SolrStorageEngine;
 
 /**
@@ -34,20 +34,42 @@ public class StorageEngineFactory {
 	
 	static final String SOLR_ENGINE_TYPE = "solr";
 	
-	public static StorageEngine buildStorageEngine(StorageConfiguration config) {
+	private final StorageConfiguration config;
+	
+	public StorageEngineFactory(StorageConfiguration config) {
+		this.config = config;
+	}
+	
+	public StorageEngine buildStorageEngine(String engineType) throws StorageEngineException {
+		StorageEngine engine;
+
+		if (SOLR_ENGINE_TYPE.equals(engineType)) {
+			// Solr is a special case, with own config class
+			engine = new SolrStorageEngine(config.getSolr());
+		} else {
+			// Build the engine from the additional config
+			engine = constructEngineFromConfiguration(config.getAdditionalEngines().get(engineType));
+		}
+		
+		return engine;
+	}
+	
+	private StorageEngine constructEngineFromConfiguration(StorageEngineConfiguration engineConfig) 
+	throws StorageEngineException {
 		StorageEngine ret = null;
 		
-		if (StringUtils.isBlank(config.getEngineType())) {
-			LOGGER.error("No defined config engine type");
-		} else {
-			if (config.getEngineType().equals(SOLR_ENGINE_TYPE)) {
-				ret = new SolrStorageEngine(config.getSolr());
-			} else {
-				LOGGER.error("Unrecognised storage engine type {}", config.getEngineType());
+		if(engineConfig != null) {
+			try {
+				ret = (StorageEngine)Class.forName(engineConfig.getEngineClass()).newInstance();
+				ret.setConfiguration(engineConfig.getConfiguration());
+				ret.initialise();
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				LOGGER.error("Exception thrown building storage engine {}: {}", engineConfig.getEngineClass(), e.getMessage());
+				throw new StorageEngineException(e);
 			}
 		}
 		
 		return ret;
 	}
-
+	
 }

@@ -110,6 +110,9 @@ public class XJoinQParserPlugin extends QParserPlugin {
       
       @Override
       public BytesRef transform(Object joinId) {
+        if (joinId == null) {
+          throw new RuntimeException("joinId is null! (weird)");
+        }
         String joinStr = joinId.toString();
         // logic same as TermQParserPlugin
         if (ft != null) {

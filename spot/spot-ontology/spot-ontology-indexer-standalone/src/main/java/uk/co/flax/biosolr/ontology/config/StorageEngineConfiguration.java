@@ -16,37 +16,37 @@
 
 package uk.co.flax.biosolr.ontology.config;
 
-public class FacetTreeConfiguration {
+import java.util.HashMap;
+import java.util.Map;
 
-	private String baseField;
-	private String nodeField;
-	private String childField;
-	private String labelField;
-	private String collection;
-	private int datapoints;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-	public String getBaseField() {
-		return baseField;
+/**
+ * JavaDoc for StorageEngineConfiguration.
+ *
+ * @author mlp
+ */
+public class StorageEngineConfiguration {
+
+	@JsonProperty("class")
+	private String engineClass;
+	
+	private Map<String, Object> configuration = new HashMap<>();
+	
+	public String getEngineClass() {
+		return engineClass;
 	}
 
-	public String getNodeField() {
-		return nodeField;
+	public void setPluginClass(String pluginClass) {
+		this.engineClass = pluginClass;
 	}
 
-	public String getChildField() {
-		return childField;
+	public Map<String, Object> getConfiguration() {
+		return configuration;
 	}
 
-	public String getLabelField() {
-		return labelField;
-	}
-
-	public String getCollection() {
-		return collection;
-	}
-
-	public int getDatapoints() {
-		return datapoints;
+	public void setConfiguration(Map<String, Object> configuration) {
+		this.configuration = configuration;
 	}
 
 }

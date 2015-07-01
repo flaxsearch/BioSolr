@@ -14,39 +14,25 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.ontology.config;
+package uk.co.flax.biosolr.pruning;
 
-public class FacetTreeConfiguration {
+import java.util.Collection;
 
-	private String baseField;
-	private String nodeField;
-	private String childField;
-	private String labelField;
-	private String collection;
-	private int datapoints;
+import uk.co.flax.biosolr.TreeFacetField;
 
-	public String getBaseField() {
-		return baseField;
-	}
-
-	public String getNodeField() {
-		return nodeField;
-	}
-
-	public String getChildField() {
-		return childField;
-	}
-
-	public String getLabelField() {
-		return labelField;
-	}
-
-	public String getCollection() {
-		return collection;
-	}
-
-	public int getDatapoints() {
-		return datapoints;
-	}
+/**
+ * A Pruner defines how a facet tree structure should be pruned
+ * in order to return the most relevant information.
+ *
+ * @author mlp
+ */
+public interface Pruner {
+	
+	/**
+	 * Prune the incoming collection of {@link TreeFacetField} items.
+	 * @param unprunedTrees the unpruned facet fields.
+	 * @return the pruned collection.
+	 */
+	public Collection<TreeFacetField> prune(Collection<TreeFacetField> unprunedTrees);
 
 }

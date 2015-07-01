@@ -27,12 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
-import uk.co.flax.biosolr.ontology.api.FacetEntry;
+import uk.co.flax.biosolr.ontology.api.FacetStyle;
 import uk.co.flax.biosolr.ontology.api.SearchResponse;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
-import uk.co.flax.biosolr.ontology.search.solr.FacetTreeBuilder;
 
 /**
  * @author Matt Pearce
@@ -43,18 +42,16 @@ public class SearchResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResource.class);
 
 	private final DocumentSearch documents;
-	private final FacetTreeBuilder facetAccumulator;
 
-	public SearchResource(DocumentSearch doc, FacetTreeBuilder facetAccumulator) {
+	public SearchResource(DocumentSearch doc) {
 		this.documents = doc;
-		this.facetAccumulator = facetAccumulator;
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public SearchResponse<Document> handleSearch(@QueryParam("q") String query, @QueryParam("start") int start,
 			@QueryParam("rows") int rows, @QueryParam("additionalFields") List<String> additionalFields,
-			@QueryParam("fq") List<String> filters) {
+			@QueryParam("fq") List<String> filters, @QueryParam("facetStyle") FacetStyle facetStyle) {
 		SearchResponse<Document> response;
 
 		// Default rows value if not set
@@ -63,11 +60,8 @@ public class SearchResource {
 		}
 
 		try {
-			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields, filters);
-			if (!results.getFacets().containsKey(DocumentSearch.URI_FIELD + "_hierarchy")) {
-				List<FacetEntry> accum = facetAccumulator.buildFacetTree(results.getFacets().get(DocumentSearch.URI_FIELD));
-				results.getFacets().put(DocumentSearch.URI_FIELD + "_hierarchy", accum);
-			}
+			ResultsList<Document> results = documents.searchDocuments(query, start, rows, additionalFields, filters,
+					facetStyle);
 			response = new SearchResponse<>(results.getResults(), start, rows, results.getNumResults(), results.getFacets());
 		} catch (SearchEngineException e) {
 			LOGGER.error("Exception thrown during search: {}", e);
