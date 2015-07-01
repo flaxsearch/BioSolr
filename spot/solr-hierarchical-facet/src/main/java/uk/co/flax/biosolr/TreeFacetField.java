@@ -31,6 +31,8 @@ import org.apache.solr.common.util.SimpleOrderedMap;
  *
  * <p>Implements Comparable, so that entries in the tree may be ordered by their
  * value count.</p>
+ * 
+ * @author mlp
  */
 public class TreeFacetField implements Comparable<TreeFacetField>, Serializable, Cloneable {
 
