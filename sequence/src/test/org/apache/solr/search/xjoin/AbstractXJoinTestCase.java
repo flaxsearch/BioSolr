@@ -38,6 +38,6 @@ public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
     assertNull(h.validateUpdate(commit()));
   }
 
-  final static String[][] DOCUMENTS = new String[][] { { "red" }, { "green" }, { "blue" }, { "pink" }, { "puce" } };
+  final static String[][] DOCUMENTS = new String[][] { { "red" }, { "green" }, { "blue" }, { "pink" }, { "blue" } };
 
 }
