@@ -43,8 +43,76 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
   static String requestHandler = "standard";
 
   @Test
+  @SuppressWarnings("rawtypes")
+  public void testUngrouped() {
+    ModifiableSolrParams params = new ModifiableSolrParams();
+    NamedList results = test(params);
+    ResultContext response = (ResultContext)results.get("response");
+    DocList docs = response.docs;
+    assertEquals(2, docs.size());
+    DocIterator it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(1, it.nextDoc());
+    assertTrue(it.hasNext());
+    assertEquals(3, it.nextDoc());
+    assertFalse(it.hasNext());
+  }
+
+  @Test
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public void test() {
+  public void testGrouped() {
+    ModifiableSolrParams params = new ModifiableSolrParams();    
+    params.add("group", "true");
+    params.add("group.field", "colour");
+    NamedList results = test(params);
+    NamedList grouped = (NamedList)results.get("grouped");
+    NamedList colours = (NamedList)grouped.get("colour");
+    assertEquals(2, colours.get("matches"));
+    List<NamedList> groups = (List<NamedList>)colours.get("groups");
+    assertEquals(2, groups.size());
+    
+    // check first (green) group
+    NamedList green = (NamedList)groups.get(0);
+    assertEquals(green.get("groupValue"), "green");
+    DocList docs = (DocList)green.get("doclist");
+    assertEquals(docs.size(), 1);
+    DocIterator it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(1, it.nextDoc());
+    
+    // check second (pink) group
+    NamedList pink = (NamedList)groups.get(1);
+    assertEquals(pink.get("groupValue"), "pink");
+    docs = (DocList)pink.get("doclist");
+    assertEquals(docs.size(), 1);
+    it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(3, it.nextDoc());
+  }
+
+  @Test
+  @SuppressWarnings("rawtypes")
+  public void testGroupedSimple() {
+    ModifiableSolrParams params = new ModifiableSolrParams();    
+    params.add("group", "true");
+    params.add("group.field", "colour");
+    params.add("group.format", "simple");
+    NamedList results = test(params);
+    NamedList grouped = (NamedList)results.get("grouped");
+    NamedList colours = (NamedList)grouped.get("colour");
+    assertEquals(2, colours.get("matches"));
+    DocList docs = (DocList)colours.get("doclist");
+    assertEquals(docs.size(), 2);
+    DocIterator it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(1, it.nextDoc());
+    assertTrue(it.hasNext());
+    assertEquals(3, it.nextDoc());
+    assertFalse(it.hasNext());
+  }
+  
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private NamedList test(ModifiableSolrParams params) {
     SolrCore core = h.getCore();
 
     SearchComponent sc = core.getSearchComponent(componentName);
@@ -53,7 +121,6 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     QParserPlugin qp = core.getQueryPlugin("xjoin");
     assertTrue("XJoinQParserPlugin not found in solrconfig", qp != null);
     
-    ModifiableSolrParams params = new ModifiableSolrParams();
     params.add("q", "*:*");
     params.add("fq", "{!xjoin}xjoin");
 
@@ -64,10 +131,10 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     SolrRequestHandler handler = core.getRequestHandler(requestHandler);
     handler.handleRequest(req, rsp);
     req.close();
+    assertNull(rsp.getException());
       
     NamedList results = rsp.getValues();
     NamedList xjoin = (NamedList)results.get(componentName);
-    System.out.println("** " + xjoin);
     assertTrue(componentName + " should not be null", xjoin != null);
     assertEquals("a test string", xjoin.get("string"));
     
@@ -76,14 +143,7 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     Set<String> actual = new HashSet<String>((List<String>)xjoin.get("join_ids"));
     assertEquals(expected, actual);
     
-    DocList docs = ((ResultContext)results.get("response")).docs;
-    assertEquals(2, docs.size());
-    DocIterator it = docs.iterator();
-    assertTrue(it.hasNext());
-    assertEquals(1, it.nextDoc());
-    assertTrue(it.hasNext());
-    assertEquals(3, it.nextDoc());
-    assertFalse(it.hasNext());
+    return results;
   }
   
 }
