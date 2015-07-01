@@ -1,0 +1,298 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+
+    <!-- Use the .htaccess and remove these lines to avoid edge case issues.
+         More info: h5bp.com/b/378 -->
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> --> <!-- Not yet implemented -->
+
+    <title>BioSolr &lt; EMBL-EBI</title>
+    <meta name="description" content="EMBL-EBI"><!-- Describe what this page is about -->
+    <meta name="keywords" content="bioinformatics, europe, institute"><!-- A few keywords that relate to the content of THIS PAGE (not the whole project) -->
+    <meta name="author" content="EMBL-EBI"><!-- Your [project-name] here -->
+
+    <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
+
+    <!-- CSS: implied media=all -->
+    <!-- CSS concatenated and minified via ant build script-->
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/boilerplate-style.css">
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-global.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-visual.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/984-24-col-fluid.css" type="text/css" media="screen">
+
+    <!-- you can replace this with [projectname]-colours.css. See http://frontier.ebi.ac.uk/web/style/colour for details of how to do this -->
+    <!-- also inform ES so we can host your colour palette file -->
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/embl-petrol-colours.css" type="text/css" media="screen">
+
+    <!-- for production the above can be replaced with -->
+    <!--
+    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/mini/ebi-fluid-embl.css">
+    -->
+
+    <style type="text/css">
+        /* You have the option of setting a maximum width for your page, and making sure everything is centered */
+        /* body { max-width: 1600px; margin: 0 auto; } */
+    </style>
+
+    <!-- end CSS-->
+
+
+    <!-- All JavaScript at the bottom, except for Modernizr / Respond.
+         Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
+         For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
+
+    <!-- Full build -->
+    <!-- <script src="//www.ebi.ac.uk/web_guidelines/js/libs/modernizr.minified.2.1.6.js"></script> -->
+
+    <!-- custom build (lacks most of the "advanced" HTML5 support -->
+    <script src="//www.ebi.ac.uk/web_guidelines/js/libs/modernizr.custom.49274.js"></script>
+
+</head>
+
+<body class="level2"><!-- add any of your classes or IDs -->
+<div id="skip-to">
+    <ul>
+        <li><a href="#content">Skip to main content</a></li>
+        <li><a href="#local-nav">Skip to local navigation</a></li>
+        <li><a href="#global-nav">Skip to EBI global navigation menu</a></li>
+        <li><a href="#global-nav-expanded">Skip to expanded EBI global navigation menu (includes all sub-sections)</a></li>
+    </ul>
+</div>
+
+<div id="wrapper" class="container_24">
+    <header>
+        <div id="global-masthead" class="masthead grid_24">
+            <!--This has to be one line and no newline characters-->
+            <a href="//www.ebi.ac.uk/" title="Go to the EMBL-EBI homepage"><img src="//www.ebi.ac.uk/web_guidelines/images/logos/EMBL-EBI/EMBL_EBI_Logo_white.png" alt="EMBL European Bioinformatics Institute"></a>
+
+            <nav>
+                <ul id="global-nav">
+                    <!-- set active class as appropriate -->
+                    <li class="first active" id="services"><a href="//www.ebi.ac.uk/services">Services</a></li>
+                    <li id="research"><a href="//www.ebi.ac.uk/research">Research</a></li>
+                    <li id="training"><a href="//www.ebi.ac.uk/training">Training</a></li>
+                    <li id="industry"><a href="//www.ebi.ac.uk/industry">Industry</a></li>
+                    <li id="about" class="last"><a href="//www.ebi.ac.uk/about">About us</a></li>
+                </ul>
+            </nav>
+
+        </div>
+
+        <div id="local-masthead" class="masthead grid_24 nomenu">
+
+            <!-- local-title -->
+            <!-- NB: for additional title style patterns, see http://frontier.ebi.ac.uk/web/style/patterns -->
+
+            <div id="local-title">
+                <h1><a href="." title="Back to BioSolr homepage">BioSolr</a></h1>
+            </div>
+
+            <!-- /local-title -->
+
+            <!-- local-search -->
+            <!-- NB: if you do not have a local-search, delete the following div, and drop the class="grid_12 alpha" class from local-title above -->
+
+            <!--<div class="grid_12 omega">-->
+                <!--<form id="local-search" name="local-search" action="[search-action]" method="post">-->
+
+                    <!--<fieldset>-->
+
+                        <!--<div class="left">-->
+                            <!--<label>-->
+                                <!--<input type="text" name="first" id="local-searchbox">-->
+                            <!--</label>-->
+                            <!--&lt;!&ndash; Include some example searchterms - keep them short and few! &ndash;&gt;-->
+                            <!--<span class="examples">Examples: <a href="[search-url-1]">[search-text-1]</a>, <a href="[search-url-1]">[search-text-2]</a>, <a href="[search-url-1]">[search-text-3]</a></span>-->
+                        <!--</div>-->
+
+                        <!--<div class="right">-->
+                            <!--<input type="submit" name="submit" value="Search" class="submit">-->
+                            <!--&lt;!&ndash; If your search is more complex than just a keyword search, you can link to an Advanced Search,-->
+                                 <!--with whatever features you want available &ndash;&gt;-->
+                            <!--<span class="adv"><a href="../search" id="adv-search" title="Advanced">Advanced</a></span>-->
+                        <!--</div>-->
+
+                    <!--</fieldset>-->
+
+                <!--</form>-->
+            <!--</div>-->
+
+            <!-- /local-search -->
+
+            <!-- local-nav -->
+
+            <nav>
+                <ul class="grid_24" id="local-nav">
+                    <li class="first active"><a href="#">Home</a></li>
+                    <li><a href="#">Demos</a></li>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li class="last"><a href="#">About BioSolr</a></li>
+                    <!-- If you need to include functional (as opposed to purely navigational) links in your local menu,
+                         add them here, and give them a class of "functional". Remember: you'll need a class of "last" for
+                         whichever one will show up last...
+                         For example: -->
+                    <li class="functional"><a href="#" class="icon icon-generic" data-icon="\">Feedback</a></li>
+                    <li class="functional"><a href="#" class="icon icon-functional" data-icon="r">Share</a></li>
+                </ul>
+            </nav>
+
+            <!-- /local-nav -->
+
+        </div>
+    </header>
+
+    <div id="content" role="main" class="grid_24 clearfix">
+
+        <!-- If you require a breadcrumb trail, its root should be your service.
+              You don't need a breadcrumb trail on the homepage of your service... -->
+        <nav id="breadcrumb">
+            <p>
+                <a href=".">BioSolr</a> &gt; Home
+            </p>
+        </nav>
+
+        <!-- Example layout containers -->
+
+        <section>
+            <h2>About the Project</h2>
+
+            <p>Funded by the BBSRC, the BioSolr Project is a collaboration between <a href="http://www.flax.co.uk/">Flax</a> and the
+                <a href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> aims “to significantly advance the
+               state of the art with regard to indexing and
+               querying biomedical data with freely available open source software”.</p>
+
+            <p>See <a href="http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/">this
+                                                                                                                      blog
+                                                                                                                      post</a>
+               for some more background.</p>
+
+        </section>
+
+        <section>
+            <h3>Demos</h3>
+            <p>There are a small number of demo services to illustrate some of the uses of BioSolr.  These are...</p>
+            <ul>
+                <li><a href="ontology-indexing">Ontology Indexing</a></li>
+                <li><a href="xjoins">X-Joins</a></li>
+                <li><a href="heirarchical-facets">Heirarchical Faceting</a></li>
+            </ul>
+
+            <h3>Code</h3>
+
+            <p> We use a <a href="https://github.com/flaxsearch/BioSolr">GitHub repository</a> to publish the open
+                source software we develop to enhance and improve the use of the Apache Lucene/Solr search engine for
+                this important sector.</p>
+
+            <h4>Contact</h4>
+
+            <p>If you're interested in joining this exciting collaboration please contact
+                <a href="http://www.flax.co.uk/contact_us">Flax</a>,
+                <a href="http://www.ebi.ac.uk/about/people/sameer-velankar">Dr Sameer Velankar</a> or
+                <a href="http://www.ebi.ac.uk/about/people/tony-burdett">Tony Burdett</a>.
+            </p>
+
+        </section>
+        <!-- End example layout containers -->
+
+    </div>
+
+
+    <footer>
+        <!-- Optional local footer (insert citation / project-specific copyright / etc here -->
+        <!--
+        <div id="local-footer" class="grid_24 clearfix">
+          <p>How to reference this page: ...</p>
+        </div>
+        -->
+        <!-- End optional local footer -->
+
+        <div id="global-footer" class="grid_24">
+
+            <nav id="global-nav-expanded">
+
+                <div class="grid_4 alpha">
+                    <h3 class="embl-ebi"><a href="//www.ebi.ac.uk/" title="EMBL-EBI">EMBL-EBI</a></h3>
+                </div>
+
+                <div class="grid_4">
+                    <h3 class="services"><a href="//www.ebi.ac.uk/services">Services</a></h3>
+                </div>
+
+                <div class="grid_4">
+                    <h3 class="research"><a href="//www.ebi.ac.uk/research">Research</a></h3>
+                </div>
+
+                <div class="grid_4">
+                    <h3 class="training"><a href="//www.ebi.ac.uk/training">Training</a></h3>
+                </div>
+
+                <div class="grid_4">
+                    <h3 class="industry"><a href="//www.ebi.ac.uk/industry">Industry</a></h3>
+                </div>
+
+                <div class="grid_4 omega">
+                    <h3 class="about"><a href="//www.ebi.ac.uk/about">About us</a></h3>
+                </div>
+
+            </nav>
+
+            <section id="ebi-footer-meta">
+                <p class="address">EMBL-EBI, Wellcome Trust Genome Campus, Hinxton, Cambridgeshire, CB10 1SD, UK &nbsp; &nbsp; +44 (0)1223 49 44 44</p>
+                <p class="legal">Copyright &copy; EMBL-EBI 2013 | EBI is an outstation of the <a href="http://www.embl.org">European Molecular Biology Laboratory</a> | <a href="/about/privacy">Privacy</a> | <a href="/about/cookies">Cookies</a> | <a href="/about/terms-of-use">Terms of use</a></p>
+            </section>
+
+        </div>
+
+    </footer>
+</div> <!--! end of #wrapper -->
+
+
+                     <!-- JavaScript at the bottom for fast page loading -->
+
+                     <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+                     <!--
+                     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+                     <script>window.jQuery || document.write('<script src="../js/libs/jquery-1.6.2.min.js"><\/script>')</script>
+                     -->
+
+
+                     <!-- Your custom JavaScript file scan go here... change names accordingly -->
+                     <!--
+                     <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/plugins.js"></script>
+                     <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/script.js"></script>
+                     -->
+<script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/cookiebanner.js"></script>
+<script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/foot.js"></script>
+                     <!-- end scripts-->
+
+                     <!-- Google Analytics details... -->
+                     <!-- Change UA-XXXXX-X to be your site's ID -->
+                     <!--
+                     <script>
+                       window._gaq = [['_setAccount','UAXXXXXXXX1'],['_trackPageview'],['_trackPageLoadTime']];
+                       Modernizr.load({
+                         load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'
+                       });
+                     </script>
+                     -->
+
+
+                     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+                          chromium.org/developers/how-tos/chrome-frame-getting-started -->
+                     <!--[if lt IE 7 ]>
+<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+                     <![endif]-->
+
+</body>
+</html>
