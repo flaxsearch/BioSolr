@@ -1,10 +1,14 @@
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if lt IE 7]>
+<html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js ie8 oldie" lang="en"> <![endif]-->
 <!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
 <head>
     <meta charset="utf-8">
 
@@ -13,9 +17,12 @@
     <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> --> <!-- Not yet implemented -->
 
     <title>BioSolr &lt; EMBL-EBI</title>
-    <meta name="description" content="EMBL-EBI"><!-- Describe what this page is about -->
-    <meta name="keywords" content="bioinformatics, europe, institute"><!-- A few keywords that relate to the content of THIS PAGE (not the whole project) -->
-    <meta name="author" content="EMBL-EBI"><!-- Your [project-name] here -->
+    <meta name="description" content="EMBL-EBI">
+    <!-- Describe what this page is about -->
+    <meta name="keywords" content="bioinformatics, europe, institute">
+    <!-- A few keywords that relate to the content of THIS PAGE (not the whole project) -->
+    <meta name="author" content="EMBL-EBI">
+    <!-- Your [project-name] here -->
 
     <!-- Mobile viewport optimized: j.mp/bplateviewport -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -25,13 +32,25 @@
     <!-- CSS: implied media=all -->
     <!-- CSS concatenated and minified via ant build script-->
     <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/boilerplate-style.css">
-    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-global.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-visual.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/984-24-col-fluid.css" type="text/css" media="screen">
+    <link rel="stylesheet"
+          href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-global.css"
+          type="text/css"
+          media="screen">
+    <link rel="stylesheet"
+          href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-visual.css"
+          type="text/css"
+          media="screen">
+    <link rel="stylesheet"
+          href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/984-24-col-fluid.css"
+          type="text/css"
+          media="screen">
 
     <!-- you can replace this with [projectname]-colours.css. See http://frontier.ebi.ac.uk/web/style/colour for details of how to do this -->
     <!-- also inform ES so we can host your colour palette file -->
-    <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/embl-petrol-colours.css" type="text/css" media="screen">
+    <link rel="stylesheet"
+          href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/embl-petrol-colours.css"
+          type="text/css"
+          media="screen">
 
     <!-- for production the above can be replaced with -->
     <!--
@@ -64,7 +83,8 @@
         <li><a href="#content">Skip to main content</a></li>
         <li><a href="#local-nav">Skip to local navigation</a></li>
         <li><a href="#global-nav">Skip to EBI global navigation menu</a></li>
-        <li><a href="#global-nav-expanded">Skip to expanded EBI global navigation menu (includes all sub-sections)</a></li>
+        <li><a href="#global-nav-expanded">Skip to expanded EBI global navigation menu (includes all sub-sections)</a>
+        </li>
     </ul>
 </div>
 
@@ -72,7 +92,9 @@
     <header>
         <div id="global-masthead" class="masthead grid_24">
             <!--This has to be one line and no newline characters-->
-            <a href="//www.ebi.ac.uk/" title="Go to the EMBL-EBI homepage"><img src="//www.ebi.ac.uk/web_guidelines/images/logos/EMBL-EBI/EMBL_EBI_Logo_white.png" alt="EMBL European Bioinformatics Institute"></a>
+            <a href="//www.ebi.ac.uk/"
+               title="Go to the EMBL-EBI homepage"><img src="//www.ebi.ac.uk/web_guidelines/images/logos/EMBL-EBI/EMBL_EBI_Logo_white.png"
+                                                        alt="EMBL European Bioinformatics Institute"></a>
 
             <nav>
                 <ul id="global-nav">
@@ -102,28 +124,28 @@
             <!-- NB: if you do not have a local-search, delete the following div, and drop the class="grid_12 alpha" class from local-title above -->
 
             <!--<div class="grid_12 omega">-->
-                <!--<form id="local-search" name="local-search" action="[search-action]" method="post">-->
+            <!--<form id="local-search" name="local-search" action="[search-action]" method="post">-->
 
-                    <!--<fieldset>-->
+            <!--<fieldset>-->
 
-                        <!--<div class="left">-->
-                            <!--<label>-->
-                                <!--<input type="text" name="first" id="local-searchbox">-->
-                            <!--</label>-->
-                            <!--&lt;!&ndash; Include some example searchterms - keep them short and few! &ndash;&gt;-->
-                            <!--<span class="examples">Examples: <a href="[search-url-1]">[search-text-1]</a>, <a href="[search-url-1]">[search-text-2]</a>, <a href="[search-url-1]">[search-text-3]</a></span>-->
-                        <!--</div>-->
+            <!--<div class="left">-->
+            <!--<label>-->
+            <!--<input type="text" name="first" id="local-searchbox">-->
+            <!--</label>-->
+            <!--&lt;!&ndash; Include some example searchterms - keep them short and few! &ndash;&gt;-->
+            <!--<span class="examples">Examples: <a href="[search-url-1]">[search-text-1]</a>, <a href="[search-url-1]">[search-text-2]</a>, <a href="[search-url-1]">[search-text-3]</a></span>-->
+            <!--</div>-->
 
-                        <!--<div class="right">-->
-                            <!--<input type="submit" name="submit" value="Search" class="submit">-->
-                            <!--&lt;!&ndash; If your search is more complex than just a keyword search, you can link to an Advanced Search,-->
-                                 <!--with whatever features you want available &ndash;&gt;-->
-                            <!--<span class="adv"><a href="../search" id="adv-search" title="Advanced">Advanced</a></span>-->
-                        <!--</div>-->
+            <!--<div class="right">-->
+            <!--<input type="submit" name="submit" value="Search" class="submit">-->
+            <!--&lt;!&ndash; If your search is more complex than just a keyword search, you can link to an Advanced Search,-->
+            <!--with whatever features you want available &ndash;&gt;-->
+            <!--<span class="adv"><a href="../search" id="adv-search" title="Advanced">Advanced</a></span>-->
+            <!--</div>-->
 
-                    <!--</fieldset>-->
+            <!--</fieldset>-->
 
-                <!--</form>-->
+            <!--</form>-->
             <!--</div>-->
 
             <!-- /local-search -->
@@ -153,39 +175,39 @@
 
     <div id="content" role="main" class="grid_24 clearfix">
 
-        <!-- If you require a breadcrumb trail, its root should be your service.
-              You don't need a breadcrumb trail on the homepage of your service... -->
-        <nav id="breadcrumb">
-            <p>
-                <a href=".">BioSolr</a> &gt; Home
-            </p>
-        </nav>
-
-        <!-- Example layout containers -->
-
         <section>
             <h2>About the Project</h2>
 
-            <p>Funded by the BBSRC, the BioSolr Project is a collaboration between <a href="http://www.flax.co.uk/">Flax</a> and the
+            <p>Funded by the BBSRC, the BioSolr Project is a collaboration between
+                <a href="http://www.flax.co.uk/">Flax</a> and the
                 <a href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> aims “to significantly advance the
-               state of the art with regard to indexing and
-               querying biomedical data with freely available open source software”.</p>
+               state of the art with regard to indexing and querying biomedical data with freely available open source
+               software”.</p>
 
-            <p>See <a href="http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/">this
-                                                                                                                      blog
-                                                                                                                      post</a>
-               for some more background.</p>
-
+            <p>See <a href="http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/">this blog post</a> for some more background.</p>
         </section>
 
         <section>
-            <h3>Demos</h3>
-            <p>There are a small number of demo services to illustrate some of the uses of BioSolr.  These are...</p>
+            <h3>Areas of Interest</h3>
+
+            <p>BioSolr is concerned with improving the indexing and querying on biomedical data, with special regard to</p>
             <ul>
-                <li><a href="ontology-indexing">Ontology Indexing</a></li>
-                <li><a href="xjoins">X-Joins</a></li>
-                <li><a href="heirarchical-facets">Heirarchical Faceting</a></li>
+                <li>Indexing of ontologies</li>
+                <li>Indexing data that is externally cross-referenced</li>
+                <li>Federating searches</li>
+                <li>Optimising search for scientific terminology, not just natural language</li>
             </ul>
+            <p>For more information on each of these areas, and the specific projects BioSolr has focused on, see the <a href="documentation.html">Documentation pages</a>.</p>
+
+            <h3>Demos</h3>
+
+            <p>There are a three demo services to illustrate some of the uses of BioSolr. These are...</p>
+            <ul>
+                <li><a href="xjoins">X-Joins</a></li>
+                <li><a href="hierarchical-facets">Hierarchical Faceting</a></li>
+                <li><a href="facet-contains">facet.contains</a></li>
+            </ul>
+            <p>Feel free to try these demos out, explore the types of functionality on offer, and please, <a href="mailto:solr-users@ebi.ac.uk">let us know what you think!</a></p>
 
             <h3>Code</h3>
 
@@ -247,14 +269,20 @@
             </nav>
 
             <section id="ebi-footer-meta">
-                <p class="address">EMBL-EBI, Wellcome Trust Genome Campus, Hinxton, Cambridgeshire, CB10 1SD, UK &nbsp; &nbsp; +44 (0)1223 49 44 44</p>
-                <p class="legal">Copyright &copy; EMBL-EBI 2013 | EBI is an outstation of the <a href="http://www.embl.org">European Molecular Biology Laboratory</a> | <a href="/about/privacy">Privacy</a> | <a href="/about/cookies">Cookies</a> | <a href="/about/terms-of-use">Terms of use</a></p>
+                <p class="address">EMBL-EBI, Wellcome Trust Genome Campus, Hinxton, Cambridgeshire, CB10 1SD, UK &nbsp;
+                                   &nbsp; +44 (0)1223 49 44 44</p>
+
+                <p class="legal">Copyright &copy; EMBL-EBI 2013 | EBI is an outstation of the
+                    <a href="http://www.embl.org">European Molecular Biology Laboratory</a> | <a href="/about/privacy">Privacy</a>
+                                 | <a href="/about/cookies">Cookies</a> | <a href="/about/terms-of-use">Terms of use</a>
+                </p>
             </section>
 
         </div>
 
     </footer>
-</div> <!--! end of #wrapper -->
+</div>
+                     <!--! end of #wrapper -->
 
 
                      <!-- JavaScript at the bottom for fast page loading -->
@@ -291,7 +319,9 @@
                           chromium.org/developers/how-tos/chrome-frame-getting-started -->
                      <!--[if lt IE 7 ]>
 <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
-<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+<script>window.attachEvent('onload', function() {
+    CFInstall.check({mode: 'overlay'})
+})</script>
                      <![endif]-->
 
 </body>
