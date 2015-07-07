@@ -47,7 +47,7 @@ plugins:
 # Configuration for the storage engine
 storage:
   # Storage engine type to use
-  engineType: solr
+  engineTypes: [ solr ]
   
   # Solr-specific configuration
   solr:
