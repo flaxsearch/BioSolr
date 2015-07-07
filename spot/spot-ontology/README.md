@@ -2,17 +2,15 @@
 
 This is the top-level folder for the SPOT Ontology applications. These include:
 
-* a standalone, generic indexer for ontology data.
+* a generic, standalon indexer for ontology data.
 * an indexer for documents that have been annotated with ontology references.
 The ontology references are expanded during the indexing process, pulling 
 across labels, synonyms, child and parent relationship details, and data
 from other relationships.
 * an example web application for searching across the document data,
 demonstrating the various relationships that can be searched on, as well as
-the hierarchical facet plugin. 
-
-The web application also has a proof-of-concept SPARQL search option, using
-Apache Jena with Solr to search across the ontology data.
+the hierarchical facet plugin. This also has a proof-of-concept SPARQL search
+option, using Apache Jena with Solr to search across the ontology data.
 
 These applications are currently built against Solr 4.10, since Apache Jena
 is not yet compatible with Solr 5.
