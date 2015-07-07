@@ -18,10 +18,13 @@ package org.apache.solr.search.xjoin;
  */
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.StoredDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -29,6 +32,8 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.search.DocIterator;
+import org.apache.solr.search.DocList;
+import org.apache.solr.search.Grouping;
 
 /**
  * SOLR Search Component for performing an "x-join". It must be added to a request handler
@@ -118,31 +123,60 @@ public class XJoinSearchComponent extends SearchComponent {
   @Override
   @SuppressWarnings("rawtypes")
   public void process(ResponseBuilder rb) throws IOException {
-      SolrParams params = rb.req.getParams();
-      if (! params.getBool(getName(), false)) {
-        return;
-      }
-      
-      XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
-      if (results == null || rb.getResults() == null) {
-        return;
-      }
-      
-      // general results
-      FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
-      NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
-      
-      // per doc results
-      FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));
-      Set<String> joinFields = new HashSet<>();
-      joinFields.add(joinField);
-      for (DocIterator it = rb.getResults().docList.iterator(); it.hasNext(); ) {
-        StoredDocument doc = rb.req.getSearcher().doc(it.nextDoc(), joinFields);
-        Object object = results.getResult(doc.get(joinField));
-        if (object != null) {
-          docAppender.addNamedList(general, "doc", object);
+  	SolrParams params = rb.req.getParams();
+  	if (! params.getBool(getName(), false)) {
+  	  return;
+  	}
+	  
+	  XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
+	  if (results == null || rb.getResults() == null) {
+	    return;
+	  }
+	  
+	  // general results
+	  FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
+	  NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
+	  
+	  // per doc results
+	  FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));
+	  Set<String> joinFields = new HashSet<>();
+	  joinFields.add(joinField);
+	  
+	  for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
+	    StoredDocument doc = rb.req.getSearcher().doc(it.next(), joinFields);
+	    Object object = results.getResult(doc.get(joinField));
+	    if (object != null) {
+	      docAppender.addNamedList(general, "doc", object);
+	    }
+	  }
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private Iterator<Integer> docIterator(ResponseBuilder rb) {
+    if (rb.grouping()) {
+      List<Integer> docList = new ArrayList<>();
+      NamedList values = rb.rsp.getValues();
+      NamedList grouped = (NamedList)values.get("grouped");
+      for (String field : rb.getGroupingSpec().getFields()) {
+        NamedList fieldResults = (NamedList)grouped.get(field);
+        if (rb.getGroupingSpec().getResponseFormat() == Grouping.Format.grouped) {
+          List<NamedList> groups = (List<NamedList>)fieldResults.get("groups");
+          for (NamedList group : groups) {
+            for (DocIterator it = ((DocList)group.get("doclist")).iterator(); it.hasNext(); ) {
+              docList.add(it.nextDoc());
+            }
+          }
+        } else {
+          for (DocIterator it = ((DocList)fieldResults.get("doclist")).iterator(); it.hasNext(); ) {
+            docList.add(it.nextDoc());
+          }
         }
       }
+      return docList.iterator();
+    } else {
+      return rb.getResults().docList.iterator();
+    }
+    
   }
   
   /*package*/ String getJoinField() {

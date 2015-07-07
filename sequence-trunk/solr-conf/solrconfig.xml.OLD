@@ -1784,7 +1784,7 @@
         <int name="xjoin_fasta.external.scores">1000</int>
         <int name="xjoin_fasta.external.alignments">1000</int>
         <str name="xjoin_fasta.results">num_chains,num_entries</str>
-        <str name="xjoin_fasta.fl">pdb_id_chain,e_value,percent_identity,return_sequence_string,query_sequence_string,query_overlap_start,query_overlap_end,db_overlap_start,db_overlap_end,query_sequence_overlap,return_sequence_overlap</str>
+        <str name="xjoin_fasta.fl">pdb_id_chain,e_value,percent_identity,return_sequence_string,query_sequence_string</str>
         
         <bool name="xjoin_test">true</bool>
         <str name="xjoin_test.results">test</str>

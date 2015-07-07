@@ -10,52 +10,54 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
 
 public class Main {
-	
-	private static final String EMAIL = "sameer@ebi.ac.uk";
-	
-	public static void main(String[] args) {
-		if (args.length < 4) {
-			System.err.println("Arguments: [sequence] [e value] [n scores] [n alignments]");
-			return;
-		}
-		try {
-	        JDispatcherService_Service service = new JDispatcherService_ServiceLocator();
-	        JDispatcherService_PortType fasta = service.getJDispatcherServiceHttpPort();
 
-			String sequence = args[0];
-			double eVal = new Double(args[1]);
-			int nScores = new Integer(args[2]);
-			int nAlignments = new Integer(args[3]);
-			
-			InputParameters params = new InputParameters();
-			params.setProgram("ssearch");
-			params.setDatabase(new String[] { "pdb" });
-			params.setStype("protein");
-	        params.setSequence(sequence);
-	        params.setExplowlim(0.0d);
-	        params.setExpupperlim(eVal);
-	        params.setScores(nScores);
-	        params.setAlignments(nAlignments);
-			
-	        FastaJob job = new FastaJob(fasta, EMAIL, params);
-			job.run();
-			
-			if (job.getException() != null) {
-				System.err.println("Error during run()");
-				job.getException().printStackTrace(System.err);;
-			}
-			
-			System.out.println(new String(job.getRawResults()));
-		} catch (NumberFormatException e) {
-			System.err.println("Cannot parse command line arguments");
-			e.printStackTrace(System.err);
-		} catch (ServiceException e) {
-			System.err.println("Cannot create FASTA service");
-			e.printStackTrace(System.err);
-		} catch (RemoteException e) {
-			System.err.println("Cannot retrieve FASTA results");
-			e.printStackTrace(System.err);
-		}
-	}
-	
+  private static final String EMAIL = "sameer@ebi.ac.uk";
+
+  public static void main(String[] args) {
+    if (args.length < 4) {
+      System.err.println("Arguments: [sequence] [e value] [n scores] [n alignments]");
+      return;
+    }
+    try {
+      JDispatcherService_Service service = new JDispatcherService_ServiceLocator();
+      JDispatcherService_PortType fasta = service
+          .getJDispatcherServiceHttpPort();
+
+      String sequence = args[0];
+      double eVal = new Double(args[1]);
+      int nScores = new Integer(args[2]);
+      int nAlignments = new Integer(args[3]);
+
+      InputParameters params = new InputParameters();
+      params.setProgram("ssearch");
+      params.setDatabase(new String[] { "pdb" });
+      params.setStype("protein");
+      params.setSequence(sequence);
+      params.setExplowlim(0.0d);
+      params.setExpupperlim(eVal);
+      params.setScores(nScores);
+      params.setAlignments(nAlignments);
+
+      FastaJob job = new FastaJob(fasta, EMAIL, params);
+      job.run();
+
+      if (job.getException() != null) {
+        System.err.println("Error during run()");
+        job.getException().printStackTrace(System.err);
+        ;
+      }
+
+      System.out.println(new String(job.getRawResults()));
+    } catch (NumberFormatException e) {
+      System.err.println("Cannot parse command line arguments");
+      e.printStackTrace(System.err);
+    } catch (ServiceException e) {
+      System.err.println("Cannot create FASTA service");
+      e.printStackTrace(System.err);
+    } catch (RemoteException e) {
+      System.err.println("Cannot retrieve FASTA results");
+      e.printStackTrace(System.err);
+    }
+  }
+
 }
