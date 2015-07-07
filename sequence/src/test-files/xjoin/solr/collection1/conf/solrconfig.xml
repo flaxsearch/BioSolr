@@ -301,6 +301,14 @@
       <str name="string">component with different join field</str>
     </lst>
   </searchComponent>
+
+  <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="string">component with no results</str>
+    </lst>
+  </searchComponent>
       
   <!-- requestHandler plugins... incoming queries will be dispatched to the
      correct handler based on the path or the 'qt' param.
