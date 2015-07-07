@@ -122,32 +122,32 @@ public class XJoinSearchComponent extends SearchComponent {
   @Override
   @SuppressWarnings("rawtypes")
   public void process(ResponseBuilder rb) throws IOException {
-  	SolrParams params = rb.req.getParams();
-  	if (! params.getBool(getName(), false)) {
-  	  return;
-  	}
-	  
-	  XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
-	  if (results == null || rb.getResults() == null) {
-	    return;
-	  }
-	  
-	  // general results
-	  FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
-	  NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
-	  
-	  // per doc results
-	  FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));
-	  Set<String> joinFields = new HashSet<>();
-	  joinFields.add(joinField);
-	  
-	  for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
-	    StoredDocument doc = rb.req.getSearcher().doc(it.next(), joinFields);
-	    Object object = results.getResult(doc.get(joinField));
-	    if (object != null) {
-	      docAppender.addNamedList(general, "doc", object);
-	    }
-	  }
+    SolrParams params = rb.req.getParams();
+    if (! params.getBool(getName(), false)) {
+      return;
+    }
+    
+    XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
+    if (results == null || rb.getResults() == null) {
+      return;
+    }
+    
+    // general results
+    FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
+    NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
+    
+    // per doc results
+    FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));
+    Set<String> joinFields = new HashSet<>();
+    joinFields.add(joinField);
+    
+    for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
+      StoredDocument doc = rb.req.getSearcher().doc(it.next(), joinFields);
+      Object object = results.getResult(doc.get(joinField));
+      if (object != null) {
+        docAppender.addNamedList(general, "doc", object);
+      }
+    }
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })

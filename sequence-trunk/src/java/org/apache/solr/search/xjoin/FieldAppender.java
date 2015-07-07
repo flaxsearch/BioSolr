@@ -92,9 +92,9 @@ public class FieldAppender {
     NamedList<Object> list = new NamedList<>();
     target.add(name, list);
     for (Method method : object.getClass().getMethods()) {
-	  if (method.getParameterCount() > 0) {
-		continue;
-  	  }
+      if (method.getParameterCount() > 0) {
+        continue;
+      }
       String fieldName = NameConverter.getFieldName(method.getName());
       if (fieldName == null) {
         continue;
