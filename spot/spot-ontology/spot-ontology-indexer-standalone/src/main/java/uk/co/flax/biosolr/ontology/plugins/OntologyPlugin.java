@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.ontology.plugins;
 
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
 
 /**
  * Interface describing the functionality of a plugin which runs
@@ -27,10 +28,11 @@ public interface OntologyPlugin extends Plugin {
 	
 	/**
 	 * Process an ontology.
+	 * @param loader the ontology loader.
 	 * @param sourceName the name of the ontology to process.
 	 * @param ontologyConfiguration the configuration details for the ontology.
 	 * @throws PluginException if a problem occurs while processing the ontology.
 	 */
-	public void process(String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException;
+	public void process(OntologyLoader loader, String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException;
 	
 }

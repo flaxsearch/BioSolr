@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
+import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
 import uk.co.flax.biosolr.ontology.plugins.OntologyPlugin;
 import uk.co.flax.biosolr.ontology.plugins.Plugin;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
@@ -81,7 +82,7 @@ public class TDBOntologyPlugin implements OntologyPlugin {
 	}
 
 	@Override
-	public void process(String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException {
+	public void process(OntologyLoader loader, String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException {
         if (enabled) {
             LOGGER.debug("Loading dataset {} into triple store from {}", sourceName, ontologyConfiguration.getAccessURI());
             TDBLoader.load(TDBInternal.getDatasetGraphTDB(dataset), ontologyConfiguration.getAccessURI(), true);
