@@ -12,7 +12,7 @@ of the libraries required to run the indexer.
 
 The document indexer can be run using the following command:
 
-    java -jar spot-ontology-indexer.jar indexer.yml
+    java -jar spot-ontology-document-indexer.jar indexer.yml
     
 where `indexer.yml` points to a file similar to the example file
 file in the config subdirectory.
