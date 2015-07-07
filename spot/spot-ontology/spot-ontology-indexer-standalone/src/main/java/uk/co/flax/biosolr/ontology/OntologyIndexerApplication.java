@@ -28,7 +28,7 @@ import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
 import uk.co.flax.biosolr.ontology.indexer.ReasonerFactory;
-import uk.co.flax.biosolr.ontology.indexer.loaders.BasicOWLOntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.BasicOWLOntologyLoader;
 import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 import uk.co.flax.biosolr.ontology.loaders.OntologyLoadingException;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;

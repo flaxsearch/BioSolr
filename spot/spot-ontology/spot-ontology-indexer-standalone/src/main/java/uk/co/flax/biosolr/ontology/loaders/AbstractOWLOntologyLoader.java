@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.ontology.indexer.loaders;
+package uk.co.flax.biosolr.ontology.loaders;
 
 import java.net.URI;
 import java.net.URISyntaxException;
