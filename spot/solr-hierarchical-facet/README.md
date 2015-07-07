@@ -7,6 +7,28 @@ data, such as ontologies.
 It replaces the default Solr `facet` component. It is built against the 
 Solr 5.0 code library.
 
+The basic principal is that documents in the data have an ID and one or more
+child or parent IDs stored. When a facet is generated using this field, the
+child ID is used to calculate the position of the document in the hierarchy.
+These are returned as a nested structure, and could be represented as:
+
+```
++ Top level node (0 / 24)
+|
+\ + First level node 1 (2 / 20)
+  |
+  \ - Second level node 1 (10 / 10)
+    - Second level node 2 (10 / 10)
+  |
+  - First level node 2 (4 / 4)
+```
+
+There are options to prune the tree, so entries with no hits (ie. "Top
+level node," above) are suppressed. It is also possible to extract the
+most significant entries and display them at the top level, grouping
+less significant entries under a "More" entry.
+ 
+
 ## Building the plugin
 
 To build the plugin, navigate to this directory, and execute
