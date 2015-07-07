@@ -18,6 +18,8 @@ package uk.co.flax.biosolr.ontology.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * A request from the SPARQL search form.
+ * 
  * @author Matt Pearce
  */
 public class JenaRequest {

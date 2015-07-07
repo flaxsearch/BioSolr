@@ -19,7 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A response from a search request.
+ * 
  * @author Matt Pearce
+ * @param T the object being searched - likely to be either {@link Document}
+ * or {@link OntologyEntryBean}.
  */
 public class SearchResponse<T> {
 

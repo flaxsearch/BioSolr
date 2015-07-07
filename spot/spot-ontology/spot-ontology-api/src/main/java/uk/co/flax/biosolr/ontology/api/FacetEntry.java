@@ -16,6 +16,8 @@
 package uk.co.flax.biosolr.ontology.api;
 
 /**
+ * Class representing a facet, to be used in the webapp.
+ * 
  * @author Matt Pearce
  */
 public class FacetEntry {

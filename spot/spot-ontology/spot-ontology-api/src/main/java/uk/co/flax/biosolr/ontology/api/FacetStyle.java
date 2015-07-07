@@ -17,7 +17,7 @@
 package uk.co.flax.biosolr.ontology.api;
 
 /**
- * JavaDoc for FacetStyle.
+ * Enumeration representing the style of facet required by the webapp.
  *
  * @author mlp
  */
