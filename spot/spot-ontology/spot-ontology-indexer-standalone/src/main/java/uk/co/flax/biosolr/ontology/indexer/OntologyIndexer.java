@@ -15,7 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
-import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 
 
 /**

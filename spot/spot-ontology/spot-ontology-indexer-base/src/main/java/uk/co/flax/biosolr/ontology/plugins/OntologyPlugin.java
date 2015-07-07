@@ -16,7 +16,7 @@
 package uk.co.flax.biosolr.ontology.plugins;
 
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
-import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 
 /**
  * Interface describing the functionality of a plugin which runs

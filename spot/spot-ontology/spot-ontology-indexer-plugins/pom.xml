@@ -12,7 +12,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>uk.co.flax</groupId>
-			<artifactId>spot-ontology-indexer-standalone</artifactId>
+			<artifactId>spot-ontology-indexer-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
-import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 import uk.co.flax.biosolr.ontology.plugins.OntologyPlugin;
 import uk.co.flax.biosolr.ontology.plugins.Plugin;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;

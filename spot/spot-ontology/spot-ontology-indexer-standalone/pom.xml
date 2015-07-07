@@ -21,7 +21,6 @@
 		<!-- Solr version -->
 		<solr.version>4.10.1</solr.version>
 		<!-- Jackson version -->
-		<jackson.version>2.5.3</jackson.version>
 		<!-- SLF4J version -->
 		<slf4j.version>1.7.7</slf4j.version>
 	</properties>
@@ -111,11 +110,6 @@
 
 		<!-- Ontology libraries -->
 		<dependency>
-			<groupId>net.sourceforge.owlapi</groupId>
-			<artifactId>owlapi-distribution</artifactId>
-			<version>3.5.2</version>
-		</dependency>
-		<dependency>
 			<groupId>com.hermit-reasoner</groupId>
 			<artifactId>org.semanticweb.hermit</artifactId>
 			<version>1.3.8.4</version>
@@ -151,6 +145,18 @@
 			<groupId>org.checkerframework</groupId>
 			<artifactId>checker-qual</artifactId>
 			<version>1.9.2</version>
+		</dependency>
+		
+		<!-- Ontology indexer dependencies -->
+		<dependency>
+			<groupId>uk.co.flax</groupId>
+			<artifactId>spot-ontology-indexer-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.flax</groupId>
+			<artifactId>spot-ontology-indexer-plugins</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
