@@ -39,23 +39,6 @@ public class Alignment {
     queryOverlapEnd = n;
   }
   
-  public String getQuerySequenceOverlap(String filler) {
-    //FIXME this is possibly wrong
-    StringBuilder s = new StringBuilder();
-    for (int i = 0; i < queryOverlapStart - 1; ++i) {
-      s.append(filler);
-    }
-    s.append(querySeq.substring(queryOverlapStart - 1, queryOverlapEnd));
-    for (int i = queryOverlapEnd; i < querySeq.length(); ++i) {
-      s.append(filler);
-    }
-    return s.toString();
-  }
-  
-  public String getQuerySequenceOverlap() {
-    return getQuerySequenceOverlap("-");
-  }
-  
   public void addReturnSequence(String r) {
     retSeq.append(r);
   }
@@ -71,24 +54,7 @@ public class Alignment {
   public void setDbOverlapEnd(int n) {
     dbOverlapEnd = n;
   }
-  
-  public String getReturnSequenceOverlap(String filler) {
-    //FIXME this is possibly wrong
-    StringBuilder s = new StringBuilder();
-    for (int i = 0; i < dbOverlapStart - 1; ++i) {
-      s.append(filler);
-    }
-    s.append(retSeq.substring(dbOverlapStart - 1, dbOverlapEnd));
-    for (int i = dbOverlapEnd; i < retSeq.length(); ++i) {
-      s.append(filler);
-    }
-    return s.toString();
-  }
-
-  public String getReturnSequenceOverlap() {
-    return getReturnSequenceOverlap("-");
-  }
-  
+ 
   public void setPercentIdentity(double d) {
     percentIdentity = d;
   }

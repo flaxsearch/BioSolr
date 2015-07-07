@@ -103,8 +103,7 @@ public class FieldAppender {
         try {
           list.add(fieldName, method.invoke(object));
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-        	System.out.println("*** " + fieldName + " " + method);
-          throw new RuntimeException(e);
+          throw new RuntimeException(fieldName + ": " + e.getCause().getMessage(), e.getCause());
         }
       }
     }

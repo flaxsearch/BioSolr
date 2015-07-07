@@ -154,6 +154,9 @@ public class XJoinQParserPlugin extends QParserPlugin {
       }
       FieldType ft = req.getSchema().getFieldTypeNoEx(joinField);
       Iterator<BytesRef> bytesRefs = new TransformIterator(it, transformer(ft));
+      if (! bytesRefs.hasNext()) {
+        return new BooleanQuery.Builder().build(); // matches nothing
+      }
       return new SolrConstantScoreQuery(method.makeFilter(joinField, bytesRefs));
     }
     
