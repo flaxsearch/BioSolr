@@ -15,12 +15,12 @@ These are returned as a nested structure, and could be represented as:
 ```
 + Top level node (0 / 24)
 |
-\ + First level node 1 (2 / 20)
+\ + First level node 1 (2 / 22)
   |
   \ - Second level node 1 (10 / 10)
     - Second level node 2 (10 / 10)
   |
-  - First level node 2 (4 / 4)
+  - First level node 2 (2 / 2)
 ```
 
 There are options to prune the tree, so entries with no hits (ie. "Top
