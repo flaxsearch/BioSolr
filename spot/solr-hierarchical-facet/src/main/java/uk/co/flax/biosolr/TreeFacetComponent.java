@@ -33,6 +33,12 @@ import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Extension to the default {@code FacetComponent} that adds tree
+ * facet building capabilities.
+ *
+ * @author mlp
+ */
 public class TreeFacetComponent extends FacetComponent {
 
 	public static final String FACET_TREE = FacetParams.FACET + ".tree";

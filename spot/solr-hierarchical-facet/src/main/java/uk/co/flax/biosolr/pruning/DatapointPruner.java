@@ -87,20 +87,11 @@ public class DatapointPruner implements Pruner {
 	}
 	
 	private int getThreshold(int iteration, int previous, long total) {
-		int min = Math.round((total / datapoints) / iteration);
-		// Avoid looping over and over with the same minCount
-		if (min >= previous) {
-			min = previous - 1;
-		}
+		int min = Math.min(Math.round((total / datapoints) / iteration), previous - 1);
 		
-		if (min == 0) {
-			if (iteration == 1) {
-				// First iteration - set minCount to 1
-				min = 1;
-			} else {
-				// Iterated more than once, unlikely to find anything useful
-				min = 0;
-			}
+		if (min == 0 && iteration == 1) {
+			// First iteration - set minCount to 1
+			min = 1;
 		}
 		
 		return min;

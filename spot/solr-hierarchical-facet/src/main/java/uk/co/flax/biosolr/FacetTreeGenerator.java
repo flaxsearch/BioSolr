@@ -40,6 +40,8 @@ import uk.co.flax.biosolr.pruning.Pruner;
 
 /**
  * Class to generate a facet tree.
+ * 
+ * @author mlp
  */
 public class FacetTreeGenerator {
 	

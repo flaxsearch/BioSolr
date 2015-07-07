@@ -14,6 +14,12 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * Unit tests for the SimpleTreeFacetComponent, using a basic
+ * Solr instance for integration testing.
+ *
+ * @author mlp
+ */
 public class SimpleTreeFacetComponentTest extends SolrTestCaseJ4 {
 	
 	static String requestHandler = "facetTree";

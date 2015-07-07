@@ -29,6 +29,8 @@ import org.junit.Test;
 
 /**
  * Unit tests for the FacetTreeProcessor.
+ * 
+ * @author mlp
  */
 public class FacetTreeProcessorTest {
 	

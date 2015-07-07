@@ -59,6 +59,8 @@ import uk.co.flax.biosolr.TreeFacetField;
  * the child node field. {@link #initialiseParameters(SolrParams)} will
  * throw a SyntaxError if these values are not defined.
  * </p>
+ * 
+ * @author mlp
  */
 public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	

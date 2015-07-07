@@ -50,6 +50,8 @@ import uk.co.flax.biosolr.pruning.PrunerFactory;
  * trees. This deals with the parameter processing and retrieving the
  * base facet values, before handing over to {@link FacetGenerator}
  * instances to actually build the facet tree.
+ * 
+ * @author mlp
  */
 public class HierarchicalFacets extends SimpleFacets {
 
