@@ -44,6 +44,7 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
   static final String COMPONENT_NAME = "xjoin";
   static final String COMPONENT_NAME_2 = "xjoin2";
   static final String COMPONENT_NAME_3 = "xjoin3";
+  static final String COMPONENT_NAME_0 = "xjoin0";
   static final String PARSER_NAME = "xjoin";
   
   static SolrCore core;
@@ -80,6 +81,7 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     initComponent(core, context, COMPONENT_NAME);
     initComponent(core, context, COMPONENT_NAME_2);
     initComponent(core, context, COMPONENT_NAME_3);
+    initComponent(core, context, COMPONENT_NAME_0);
     
     // get a search, used by some tests
     searcher = core.getRegisteredSearcher().get();
@@ -119,6 +121,13 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
   @Test(expected=XJoinQParserPlugin.Exception.class)
   public void testConflictingJoinFields() throws Exception {
     parse(COMPONENT_NAME + " OR " + COMPONENT_NAME_3);
+  }
+  
+  @Test
+  public void testNoResults() throws Exception {
+    Query q = parse(COMPONENT_NAME_0);
+    DocSet docs = searcher.getDocSet(q);
+    assertEquals(0, docs.size());
   }
   
 }

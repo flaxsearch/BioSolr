@@ -38,7 +38,7 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
   @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
     String valuesStr = (String)args.get("values");
-    values = valuesStr.split(",");
+    values = valuesStr != null ? valuesStr.split(",") : new String[0];
     string = (String)args.get("string");
     missingId = (String)args.get("missingId");
   }
