@@ -28,4 +28,5 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
+	<name>SPOT Ontology Indexer - plugins</name>
 </project>

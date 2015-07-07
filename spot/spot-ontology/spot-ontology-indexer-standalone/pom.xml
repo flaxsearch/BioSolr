@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>spot-ontology-indexer-standalone</artifactId>
-	<name>Ontology Indexer</name>
+	<name>SPOT Ontology Indexer</name>
 	<description>Generic application for indexing ontologies with Solr.</description>
 
 	<properties>

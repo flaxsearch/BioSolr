@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>spot-ontology-indexer-base</artifactId>
-	<name>SPOT Ontology Indexer base</name>
+	<name>SPOT Ontology Indexer - base</name>
 	<description>Base classes for the SPOT Ontology standalone indexer.</description>
 
 	<dependencies>

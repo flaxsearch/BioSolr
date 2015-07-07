@@ -114,4 +114,5 @@
 		</dependency>
 		
 	</dependencies>
+	<name>SPOT Ontology Web Application</name>
 </project>

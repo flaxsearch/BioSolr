@@ -29,4 +29,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<name>SPOT Ontology API</name>
 </project>
