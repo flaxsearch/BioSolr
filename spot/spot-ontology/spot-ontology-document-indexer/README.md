@@ -1,21 +1,18 @@
-# SPOT Ontology indexer
+# SPOT document indexer
 
-This directory contains the indexer classes, which are both standalone java
-applications. The `mvn package` command will build a fat jar containing all
-of the libraries required to run the indexers.
+This directory contains the document indexer application, which creates an
+example index of documents annotated with ontology references, 
+including labels for child, parent and related ontology nodes.
 
-## Indexing ontologies
-
-The ontology indexer application has been moved to the 
-`spot-ontology-indexer-standalone` directory. This
-contains a standalone generic ontology indexer application.
+The `mvn package` command will build a fat jar containing all
+of the libraries required to run the indexer.
 
 
 ## Indexing the documents
 
 The document indexer can be run using the following command:
 
-    java -cp spot-ontology-indexer.jar uk.co.flax.biosolr.ontology.documents.DocumentIndexer indexer.yml
+    java -jar spot-ontology-indexer.jar indexer.yml
     
 where `indexer.yml` points to a file similar to the example file
 file in the config subdirectory.
