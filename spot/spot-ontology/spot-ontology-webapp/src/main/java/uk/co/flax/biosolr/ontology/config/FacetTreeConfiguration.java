@@ -16,6 +16,11 @@
 
 package uk.co.flax.biosolr.ontology.config;
 
+/**
+ * Configuration details for the facet tree request.
+ *
+ * @author mlp
+ */
 public class FacetTreeConfiguration {
 
 	private String baseField;

@@ -48,6 +48,7 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
  * Solr-specific implementation of the {@link DocumentSearch} search engine.
+ * 
  * @author Matt Pearce
  */
 public class SolrDocumentSearch extends SolrSearchEngine implements DocumentSearch {

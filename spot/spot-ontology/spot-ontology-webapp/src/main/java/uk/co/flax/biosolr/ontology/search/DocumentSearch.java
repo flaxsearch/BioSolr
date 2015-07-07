@@ -21,6 +21,8 @@ import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.api.FacetStyle;
 
 /**
+ * Search engine definition for searching the documents core.
+ * 
  * @author Matt Pearce
  */
 public interface DocumentSearch extends SearchEngine {

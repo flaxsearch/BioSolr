@@ -21,6 +21,8 @@ import com.codahale.metrics.health.HealthCheck;
 
 /**
  * Health check for the Solr search engine.
+ * 
+ * @author mlp
  */
 public class SolrHealthCheck extends HealthCheck {
 
