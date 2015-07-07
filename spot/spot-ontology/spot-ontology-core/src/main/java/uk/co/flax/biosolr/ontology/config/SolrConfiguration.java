@@ -50,56 +50,76 @@ public class SolrConfiguration {
 	
 	@JsonProperty("documentFacetTree")
 	private FacetTreeConfiguration documentFacetTree;
-	
+
 	public String getOntologyUrl() {
 		return ontologyUrl;
 	}
-	
+
+	public void setOntologyUrl(String ontologyUrl) {
+		this.ontologyUrl = ontologyUrl;
+	}
+
 	public String getOntologyRequestHandler() {
 		return ontologyRequestHandler;
 	}
-	
+
+	public void setOntologyRequestHandler(String ontologyRequestHandler) {
+		this.ontologyRequestHandler = ontologyRequestHandler;
+	}
+
+	public String getOntologyNodeRequestHandler() {
+		return ontologyNodeRequestHandler;
+	}
+
+	public void setOntologyNodeRequestHandler(String ontologyNodeRequestHandler) {
+		this.ontologyNodeRequestHandler = ontologyNodeRequestHandler;
+	}
+
 	public String getDocumentUrl() {
 		return documentUrl;
 	}
 
-	/**
-	 * @return the documentRequestHandler
-	 */
+	public void setDocumentUrl(String documentUrl) {
+		this.documentUrl = documentUrl;
+	}
+
 	public String getDocumentRequestHandler() {
 		return documentRequestHandler;
 	}
 
-	/**
-	 * @return the documentUriRequestHandler
-	 */
+	public void setDocumentRequestHandler(String documentRequestHandler) {
+		this.documentRequestHandler = documentRequestHandler;
+	}
+
 	public String getDocumentUriRequestHandler() {
 		return documentUriRequestHandler;
 	}
 
-	/**
-	 * @return the ontologyTermCount
-	 */
+	public void setDocumentUriRequestHandler(String documentUriRequestHandler) {
+		this.documentUriRequestHandler = documentUriRequestHandler;
+	}
+
 	public int getOntologyTermCount() {
 		return ontologyTermCount;
 	}
 
-	/**
-	 * @return the facetFields
-	 */
+	public void setOntologyTermCount(int ontologyTermCount) {
+		this.ontologyTermCount = ontologyTermCount;
+	}
+
 	public List<String> getFacetFields() {
 		return facetFields;
 	}
 
-	/**
-	 * @return the ontologyNodeRequestHandler
-	 */
-	public String getOntologyNodeRequestHandler() {
-		return ontologyNodeRequestHandler;
+	public void setFacetFields(List<String> facetFields) {
+		this.facetFields = facetFields;
 	}
 
 	public FacetTreeConfiguration getDocumentFacetTree() {
 		return documentFacetTree;
 	}
 
+	public void setDocumentFacetTree(FacetTreeConfiguration documentFacetTree) {
+		this.documentFacetTree = documentFacetTree;
+	}
 }

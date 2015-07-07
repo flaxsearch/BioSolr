@@ -1,0 +1,106 @@
+#server:
+#  applicationConnectors:
+#    - type: http
+#      port: 8080
+#  adminConnectors:
+#    - type: http
+#      port: 8081
+
+# The URL path from which resources should be served.
+# Without this, it is impossible to serve static files from /
+#urlPattern: "/service/*"
+
+# Logging
+#logging:
+#
+#  level: INFO
+#
+#  loggers:
+#    # Set info logging for Flax code
+#    "uk.co.flax": DEBUG
+#
+#  appenders:
+#
+#    # Set up console logging
+#    - type: console
+#      threshold: ALL
+#      target: stdout
+#
+#    # Set up file logging
+#
+#    # Settings for logging to a file.
+#    - type: file
+#
+#      # Do not write log statements below this threshold to the file.
+#      threshold: ALL
+#
+#      # The time zone in which dates should be displayed.
+#      timeZone: UTC
+#
+#      # A custom Logback format string.
+#      logFormat: null
+#
+#      # The file to which statements will be logged.
+#      #
+#      # If enabled is true, this must be specified.
+#      currentLogFilename: logs/ontology-webapp.log
+#
+#      # When the log file rolls over, the file will be archived to
+#      # app-2012-03-15.log.gz, example.log will be truncated,
+#      # and new statements written to it.
+#      #
+#      # If archive is true, this must be specified.
+#      archivedLogFilenamePattern: logs/ontology-webapp-%d.log.gz
+#
+#      # The maximum number of log files to archive.
+#      archivedFileCount: 5
+
+# Solr configuration
+solr:
+
+  # The URL for the Ontology Solr core
+  ontologyUrl: "http://localhost:8983/solr/ontology"
+
+  # The default ontology search request handler
+  ontologyRequestHandler: "/ontologySearch"
+
+  # The request handle to fetch a particular node from the ontology
+  ontologyNodeRequestHandler: "/nodeSearch"
+
+  # The URL for the Document Solr core
+  documentUrl: "http://localhost:8983/solr/documents"
+
+  # The request handler for searching documents (by string)
+  documentRequestHandler: "/groupedDocumentSearch"
+
+  # The request handler for searching documents (by URI)
+  documentUriRequestHandler: "/uriSearch"
+
+  # The maximum number of ontology terms to retrieve
+  ontologyTermCount: 3
+
+  facetFields: [ "facet_labels", "efo_labels_str", "efo_uri" ]
+
+  # Configuration for the hierarchical facet generator
+  documentFacetTree:
+    # The base field, in the documents collection
+    baseField: efo_uri
+    # The equivalent field, in the ontology collection
+    nodeField: uri
+    # The child ID field
+    childField: child_uris
+    # The label field
+    labelField: label
+    # The ontology collection
+    collection: ontology
+    # Number of datapoints to generate for datapoint hierarchy
+    datapoints: 6
+
+# Apache Jena configuration
+jena:
+
+  # The URI for the ontology to be read
+  ontologyUri: http://www.ebi.ac.uk/efo/efo.owl
+
+  # The directory containing the TDB database (OPTIONAL)
+  tdbPath: /data/tburdett/Files/biosolr/tdb

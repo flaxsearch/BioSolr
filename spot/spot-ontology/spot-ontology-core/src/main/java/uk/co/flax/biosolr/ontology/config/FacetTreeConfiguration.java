@@ -29,24 +29,47 @@ public class FacetTreeConfiguration {
 		return baseField;
 	}
 
+	public void setBaseField(String baseField) {
+		this.baseField = baseField;
+	}
+
 	public String getNodeField() {
 		return nodeField;
+	}
+
+	public void setNodeField(String nodeField) {
+		this.nodeField = nodeField;
 	}
 
 	public String getChildField() {
 		return childField;
 	}
 
+	public void setChildField(String childField) {
+		this.childField = childField;
+	}
+
 	public String getLabelField() {
 		return labelField;
+	}
+
+	public void setLabelField(String labelField) {
+		this.labelField = labelField;
 	}
 
 	public String getCollection() {
 		return collection;
 	}
 
+	public void setCollection(String collection) {
+		this.collection = collection;
+	}
+
 	public int getDatapoints() {
 		return datapoints;
 	}
 
+	public void setDatapoints(int datapoints) {
+		this.datapoints = datapoints;
+	}
 }

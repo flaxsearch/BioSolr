@@ -30,15 +30,19 @@ public class JenaConfiguration {
 	@JsonProperty("tdbPath")
 	private String tdbPath = null;
 
-	/**
-	 * @return the ontologyUri
-	 */
 	public String getOntologyUri() {
 		return ontologyUri;
 	}
-	
+
+	public void setOntologyUri(String ontologyUri) {
+		this.ontologyUri = ontologyUri;
+	}
+
 	public String getTdbPath() {
 		return tdbPath;
 	}
 
+	public void setTdbPath(String tdbPath) {
+		this.tdbPath = tdbPath;
+	}
 }

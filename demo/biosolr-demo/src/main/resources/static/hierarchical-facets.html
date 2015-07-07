@@ -1,14 +1,14 @@
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7]>
-<html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<html class="no-js ie6 oldie" lang="en" ng-app="ontologyApp"> <![endif]-->
 <!--[if IE 7]>
-<html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<html class="no-js ie7 oldie" lang="en" ng-app="ontologyApp"> <![endif]-->
 <!--[if IE 8]>
-<html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<html class="no-js ie8 oldie" lang="en" ng-app="ontologyApp"> <![endif]-->
 <!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
 <!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<html class="no-js" lang="en" ng-app="ontologyApp"> <!--<![endif]-->
 <head>
     <meta charset="utf-8">
 
@@ -31,6 +31,9 @@
 
     <!-- CSS: implied media=all -->
     <!-- CSS concatenated and minified via ant build script-->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/spot_ontology.css" />
+
     <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/boilerplate-style.css">
     <link rel="stylesheet"
           href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/ebi-global.css"
@@ -51,6 +54,7 @@
           href="//www.ebi.ac.uk/web_guidelines/css/compliance/develop/embl-petrol-colours.css"
           type="text/css"
           media="screen">
+
 
     <!-- for production the above can be replaced with -->
     <!--
@@ -118,40 +122,6 @@
                 <h1><a href="." title="Back to BioSolr homepage"><img src="images/BioSolr_logo.png" style="height: 90px !important"/> </a></h1>
             </div>
 
-            <!-- /local-title -->
-
-            <!-- local-search -->
-            <!-- NB: if you do not have a local-search, delete the following div, and drop the class="grid_12 alpha" class from local-title above -->
-
-            <!--<div class="grid_12 omega">-->
-            <!--<form id="local-search" name="local-search" action="[search-action]" method="post">-->
-
-            <!--<fieldset>-->
-
-            <!--<div class="left">-->
-            <!--<label>-->
-            <!--<input type="text" name="first" id="local-searchbox">-->
-            <!--</label>-->
-            <!--&lt;!&ndash; Include some example searchterms - keep them short and few! &ndash;&gt;-->
-            <!--<span class="examples">Examples: <a href="[search-url-1]">[search-text-1]</a>, <a href="[search-url-1]">[search-text-2]</a>, <a href="[search-url-1]">[search-text-3]</a></span>-->
-            <!--</div>-->
-
-            <!--<div class="right">-->
-            <!--<input type="submit" name="submit" value="Search" class="submit">-->
-            <!--&lt;!&ndash; If your search is more complex than just a keyword search, you can link to an Advanced Search,-->
-            <!--with whatever features you want available &ndash;&gt;-->
-            <!--<span class="adv"><a href="../search" id="adv-search" title="Advanced">Advanced</a></span>-->
-            <!--</div>-->
-
-            <!--</fieldset>-->
-
-            <!--</form>-->
-            <!--</div>-->
-
-            <!-- /local-search -->
-
-            <!-- local-nav -->
-
             <nav>
                 <ul class="grid_24" id="local-nav">
                     <li class="first active"><a href="#">Home</a></li>
@@ -175,53 +145,42 @@
     <div id="content" role="main" class="grid_24 clearfix">
 
         <section>
-            <h2>About the Project</h2>
+            <h2>Hierarchical Faceting</h2>
 
-            <p>Funded by the BBSRC, the BioSolr Project is a collaboration between
-                <a href="http://www.flax.co.uk/">Flax</a> and the
-                <a href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> aims “to significantly advance the
-               state of the art with regard to indexing and querying biomedical data with freely available open source
-               software”.</p>
+            <p>Hierarchical facets gives users the ability to perform a search and then drill down into more specific
+               aspects of the data. Typically, hierarchical faceting is achieved in Solr using a small number of
+               predefined categories (for example, Amazon-style genres).</p>
 
-            <p>See <a href="http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/">this blog post</a> for some more background.</p>
+            <p>When data is richly annotated to ontologies, we have much more power for categorization, but simply
+               converting to ontology to a tree often doesn't work well - upper classes are often quite abstract, and
+               frequently a user will have to drill down through many levels to get to the terms they require.</p>
+
+            <p>In BioSolr, we have been looking for ways to use data and ontologies hand in hand to dynamically predict
+               categorisations based on the results of a search. A few examples of what can be done are shown on this
+               page.</p>
         </section>
 
         <section>
-            <h3>Areas of Interest</h3>
+            <h3>Search Demo</h3>
 
-            <p>BioSolr is concerned with improving the indexing and querying on biomedical data, with special regard to</p>
-            <ul>
-                <li>Indexing of ontologies</li>
-                <li>Indexing data that is externally cross-referenced</li>
-                <li>Federating searches</li>
-                <li>Optimising search for scientific terminology, not just natural language</li>
-            </ul>
-            <p>For more information on each of these areas, and the specific projects BioSolr has focused on, see the <a href="documentation.html">Documentation pages</a>.</p>
-
-            <h3>Demos</h3>
-
-            <p>There are two demo services to illustrate some of the uses of BioSolr. These are...</p>
-            <ul>
-                <li><a href="xjoins.html">X-Joins</a></li>
-                <li><a href="hierarchical-facets.html">Hierarchical Faceting</a></li>
-            </ul>
-            <p>Feel free to try these demos out, explore the types of functionality on offer, and please, <a href="mailto:solr-users@ebi.ac.uk">let us know what you think!</a></p>
-
-            <h3>Code</h3>
-
-            <p> We use a <a href="https://github.com/flaxsearch/BioSolr">GitHub repository</a> to publish the open
-                source software we develop to enhance and improve the use of the Apache Lucene/Solr search engine for
-                this important sector.</p>
-
-            <h4>Contact</h4>
-
-            <p>If you're interested in joining this exciting collaboration please contact
-                <a href="http://www.flax.co.uk/contact_us">Flax</a>,
-                <a href="http://www.ebi.ac.uk/about/people/sameer-velankar">Dr Sameer Velankar</a> or
-                <a href="http://www.ebi.ac.uk/about/people/tony-burdett">Tony Burdett</a>.
+            <p>The example below uses some dummy data from the <a href="http://www.ebi.ac.uk/gwas">GWAS Catalog</a>,
+               which is richly annotated to the <a href="http://www.ebi.ac.uk/efo">Experimental Factor Ontology</a>.
+               This provides a search facility over GWAS publications. You can search by text that appears in the
+               publication title, or ontology terms that these publications have been annotated to. Searches that hit
+               parent terms will be expanded to children automatically. On the left, several facets are presented that
+               categorize your search results using the ontology in several different ways. Feel free to play around
+               with them!
             </p>
-
         </section>
+
+        <section>
+            <div class="container">
+
+                <div ng-view></div>
+
+            </div>
+        </section>
+
         <!-- End example layout containers -->
 
     </div>
@@ -297,6 +256,18 @@
                      <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/plugins.js"></script>
                      <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/script.js"></script>
                      -->
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-route.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+                     <!-- checklist-model enables arrays of checklists -->
+<script src="/js/checklist-model.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.js"></script>
+
+<script src="/js/app.js"></script>
+<script src="/js/controllers.js"></script>
+
 <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/cookiebanner.js"></script>
 <script defer="defer" src="//www.ebi.ac.uk/web_guidelines/js/foot.js"></script>
                      <!-- end scripts-->

@@ -115,7 +115,8 @@
             <!-- NB: for additional title style patterns, see http://frontier.ebi.ac.uk/web/style/patterns -->
 
             <div id="local-title">
-                <h1><a href="." title="Back to BioSolr homepage"><img src="images/BioSolr_logo.png" style="height: 90px !important"/> </a></h1>
+                <h1><a href="." title="Back to BioSolr homepage"><img src="images/BioSolr_logo.png"
+                                                                      style="height: 90px !important"/> </a></h1>
             </div>
 
             <!-- /local-title -->
@@ -175,52 +176,36 @@
     <div id="content" role="main" class="grid_24 clearfix">
 
         <section>
-            <h2>About the Project</h2>
+            <h2>XJoins</h2>
 
-            <p>Funded by the BBSRC, the BioSolr Project is a collaboration between
-                <a href="http://www.flax.co.uk/">Flax</a> and the
-                <a href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> aims “to significantly advance the
-               state of the art with regard to indexing and querying biomedical data with freely available open source
-               software”.</p>
+            <p>XJoins allow users to perform a single search and view results that have been combined from Solr and
+               another external service. This makes it possible to federate searches across Solr and, for example,
+               sequence databases without having to re-index all the data held in an external resource into Solr.</p>
 
-            <p>See <a href="http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/">this blog post</a> for some more background.</p>
+            <p>A common scenario in Bioinformatics is the requirement to search for metadata and data hand in hand.
+               XJoins facilitates this by allowing searches to be joined across a Solr index (for example storing
+               text-based metadata), and raw data stored in external database. It is also possible to join on the
+               results of an algorithm, not just a database. So, for example, using XJoins one could store sequence
+               metadata in a Solr index, then search for results that match on the metadata as well as sequence
+               similarity (XJoined with a Blast result)</p>
+
+            <p>A couple of examples of what can be done with XJoins are shown on this page.</p>
         </section>
 
         <section>
-            <h3>Areas of Interest</h3>
+            <h3>Search Demo</h3>
 
-            <p>BioSolr is concerned with improving the indexing and querying on biomedical data, with special regard to</p>
-            <ul>
-                <li>Indexing of ontologies</li>
-                <li>Indexing data that is externally cross-referenced</li>
-                <li>Federating searches</li>
-                <li>Optimising search for scientific terminology, not just natural language</li>
-            </ul>
-            <p>For more information on each of these areas, and the specific projects BioSolr has focused on, see the <a href="documentation.html">Documentation pages</a>.</p>
-
-            <h3>Demos</h3>
-
-            <p>There are two demo services to illustrate some of the uses of BioSolr. These are...</p>
-            <ul>
-                <li><a href="xjoins.html">X-Joins</a></li>
-                <li><a href="hierarchical-facets.html">Hierarchical Faceting</a></li>
-            </ul>
-            <p>Feel free to try these demos out, explore the types of functionality on offer, and please, <a href="mailto:solr-users@ebi.ac.uk">let us know what you think!</a></p>
-
-            <h3>Code</h3>
-
-            <p> We use a <a href="https://github.com/flaxsearch/BioSolr">GitHub repository</a> to publish the open
-                source software we develop to enhance and improve the use of the Apache Lucene/Solr search engine for
-                this important sector.</p>
-
-            <h4>Contact</h4>
-
-            <p>If you're interested in joining this exciting collaboration please contact
-                <a href="http://www.flax.co.uk/contact_us">Flax</a>,
-                <a href="http://www.ebi.ac.uk/about/people/sameer-velankar">Dr Sameer Velankar</a> or
-                <a href="http://www.ebi.ac.uk/about/people/tony-burdett">Tony Burdett</a>.
+            <p>The example below uses some dummy data from <a href="http://www.ebi.ac.uk/pdbe">PDBe</a>.
+               XJoins are performed over the EBI's FASTA sequence database, using the results of
+                <a href="???">this service</a> to identify matching records. These records are joined with a Solr index,
+               and further searched by any additional fields, leaving a precise set of results.
             </p>
+        </section>
 
+        <section>
+            <div class="container">
+
+            </div>
         </section>
         <!-- End example layout containers -->
 
