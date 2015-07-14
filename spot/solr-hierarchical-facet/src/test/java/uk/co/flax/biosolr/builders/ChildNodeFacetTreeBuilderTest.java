@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.impl;
+package uk.co.flax.biosolr.builders;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
