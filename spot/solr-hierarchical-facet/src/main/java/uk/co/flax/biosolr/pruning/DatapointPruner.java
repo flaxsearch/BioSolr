@@ -190,7 +190,7 @@ public class DatapointPruner implements Pruner {
 	private TreeFacetField buildOtherNode(Collection<TreeFacetField> otherNodes) {
 		// Prune the other nodes - use the SimplePruner
 		SortedSet<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
-		pruned.addAll(new SimplePruner().prune(otherNodes));
+		pruned.addAll(new SimplePruner(SimplePruner.MIN_CHILD_COUNT).prune(otherNodes));
 		
 		TreeFacetField other = new TreeFacetField("More", "", 0, 0, pruned);
 		other.recalculateChildCount();

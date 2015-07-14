@@ -43,7 +43,9 @@ public class TreeFacetComponent extends FacetComponent {
 
 	public static final String FACET_TREE = FacetParams.FACET + ".tree";
 	public static final String FACET_TREE_FIELD = FACET_TREE + ".field";
-
+	
+	public static final String FACET_TREE_SIMPLE_PRUNE_NODES = FACET_TREE + ".prune.simple.nodes";
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeFacetComponent.class);
 	
 	@SuppressWarnings("rawtypes")
