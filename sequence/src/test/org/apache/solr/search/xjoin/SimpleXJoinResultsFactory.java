@@ -22,11 +22,9 @@ import java.util.Arrays;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.search.xjoin.XJoinResults;
-import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
 public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
-
+  
   private String string;
   
   private String[] values;
@@ -70,7 +68,7 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
       if (joinId.equals(missingId)) {
         return null;
       }
-      return new Result(joinId, 0.5);
+      return new Result(joinId);
     }
 
     @Override
@@ -88,11 +86,9 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
   public static class Result {
     
     private String value;
-    private double score;
     
-    private Result(String value, double score) {
+    private Result(String value) {
       this.value = value;
-      this.score = score;
     }
     
     public String getValue() {
@@ -100,7 +96,7 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
     }
     
     public double getScore() {
-      return score;
+      return Math.random();
     }
     
   }
