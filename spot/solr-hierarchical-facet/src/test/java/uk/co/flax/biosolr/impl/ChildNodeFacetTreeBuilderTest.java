@@ -25,6 +25,7 @@ import org.apache.solr.search.QueryParsing;
 import org.junit.Test;
 
 import uk.co.flax.biosolr.HierarchicalFacets;
+import uk.co.flax.biosolr.builders.ChildNodeFacetTreeBuilder;
 
 /**
  * Unit tests for ChildNodeFacetTreeBuilder.

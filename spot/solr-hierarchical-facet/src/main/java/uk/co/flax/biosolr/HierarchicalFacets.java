@@ -43,6 +43,8 @@ import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.DefaultSolrThreadFactory;
 
+import uk.co.flax.biosolr.builders.FacetTreeBuilder;
+import uk.co.flax.biosolr.builders.FacetTreeBuilderFactory;
 import uk.co.flax.biosolr.pruning.PrunerFactory;
 
 /**
