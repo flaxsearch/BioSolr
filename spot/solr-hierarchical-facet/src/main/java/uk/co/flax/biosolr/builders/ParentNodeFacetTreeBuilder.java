@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.impl;
+package uk.co.flax.biosolr.builders;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -45,63 +46,54 @@ import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.FacetTreeBuilder;
 import uk.co.flax.biosolr.HierarchicalFacets;
 import uk.co.flax.biosolr.TreeFacetField;
 
 /**
- * Implementation of {@link FacetTreeBuilder} that uses a child node field
- * to build a hierarchical facet tree from the bottom upwards.
+ * FacetTreeBuilder implementation that uses parent node IDs to build a
+ * tree from the bottom node upwards.
  * 
  * <p>
  * Minimum required parameters for this tree builder are the node field,
  * either passed in local parameters or taken from the key value, and 
- * the child node field. {@link #initialiseParameters(SolrParams)} will
+ * the parent node field. {@link #initialiseParameters(SolrParams)} will
  * throw a SyntaxError if these values are not defined.
  * </p>
- * 
+ *
  * @author mlp
  */
-public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
+public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChildNodeFacetTreeBuilder.class);
-	
-	private String childField;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ParentNodeFacetTreeBuilder.class);
+
+	private String parentField;
 	private int maxLevels;
 	
 	private final Set<String> docFields = new HashSet<>();
 	
-	public ChildNodeFacetTreeBuilder() {
-	}
-	
-	@Override
-	protected Logger getLogger() {
-		return LOGGER;
-	}
-
 	@Override
 	public void initialiseParameters(SolrParams localParams) throws SyntaxError {
+		// Initialise the common fields
 		super.initialiseParameters(localParams);
 
-		// Initialise the child field - REQUIRED
-		childField = localParams.get(HierarchicalFacets.CHILD_FIELD_PARAM);
-		if (StringUtils.isBlank(childField)) {
-			throw new SyntaxError("Missing child field definition in " + localParams);
+		// Initialise the parent field - REQUIRED
+		parentField = localParams.get(HierarchicalFacets.PARENT_FIELD_PARAM);
+		if (StringUtils.isBlank(parentField)) {
+			throw new SyntaxError("Missing parent field definition in " + localParams);
 		}
 		
 		//  Initialise the optional fields
 		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
 		
-		docFields.addAll(Arrays.asList(getNodeField(), childField));
+		docFields.addAll(Arrays.asList(getNodeField(), parentField));
 		if (hasLabelField()) {
 			docFields.add(getLabelField());
 		}
 	}
-	
+
 	@Override
 	public List<TreeFacetField> processFacetTree(SolrIndexSearcher searcher, Map<String, Integer> facetMap)
 			throws IOException {
-		// Check that all of the given fields are in the searcher's schema
 		checkFieldsInSchema(searcher, docFields);
 		
 		// Extract the facet keys to a volatile set
@@ -110,11 +102,6 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		// Build a map of parent - child node IDs. This should contain the parents
 		// of all our starting facet terms.
 		Map<String, Set<String>> nodeChildren = findParentEntries(searcher, facetKeys);
-
-		// Find the details for the starting facet terms, if there are any which haven't 
-		// been found already.
-		facetKeys.removeAll(nodeChildren.keySet());
-		nodeChildren.putAll(filterEntriesByField(searcher, facetKeys, getNodeField()));
 
 		// Find the top nodes
 		Set<String> topNodes = findTopLevelNodes(nodeChildren);
@@ -125,82 +112,75 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 				.map(node -> buildAccumulatedEntryTree(0, node, nodeChildren, facetMap))
 				.collect(Collectors.toList());
 	}
-
+	
 	/**
 	 * Find all parent nodes for the given set of items.
 	 * @param searcher the searcher for the collection being used.
 	 * @param facetValues the starting set of node IDs.
-	 * @param childField the item field containing the child values.
 	 * @return a map of nodes, keyed by their IDs.
 	 * @throws IOException
 	 */
 	private Map<String, Set<String>> findParentEntries(SolrIndexSearcher searcher, Collection<String> facetValues)
 			throws IOException {
-		Map<String, Set<String>> parentEntries = new HashMap<>();
+		Map<String, Set<String>> nodeParentIds = new HashMap<>();
 
-		Set<String> childrenFound = new HashSet<>();
-		Set<String> childIds = new HashSet<>(facetValues);
+		Set<String> nodesFound = new HashSet<>();
+		Set<String> nodeIds = new HashSet<>(facetValues);
 
 		int count = 0;
-		while (childIds.size() > 0 && (maxLevels == 0 || maxLevels >= count)) {
-			// Find the direct parents for the current child IDs
-			Map<String, Set<String>> parents = filterEntriesByField(searcher, childIds, childField);
-			parentEntries.putAll(parents);
-			childrenFound.addAll(childIds);
+		while (nodeIds.size() > 0 && (maxLevels == 0 || maxLevels >= count)) {
+			// Find the direct parents for the current node IDs
+			Map<String, Set<String>> parents = findParentIdsForNodes(searcher, nodeIds);
+			nodeParentIds.putAll(parents);
+			nodesFound.addAll(nodeIds);
 
-			// Get the IDs for all the retrieved nodes - these are the next set of
+			// Get the parent IDs from all the retrieved nodes - these are the next set of
 			// nodes whose parents should be found.
-			childIds = parents.keySet();
-			// Strip out any nodes we've already looked up
-			childIds.removeAll(childrenFound);
+			nodeIds = parents.values().stream()
+					.flatMap(v -> v.stream())
+					.filter(id -> !nodesFound.contains(id))
+					.collect(Collectors.toSet());
 			
 			count ++;
 		};
+		
+		// Now, invert the map, so it's a map of parent->child IDs
+		Map<String, Set<String>> parentChildIds = new HashMap<>();
+		for (Entry<String, Set<String>> entry : nodeParentIds.entrySet()) {
+			for (String parentId : entry.getValue()) {
+				if (!parentChildIds.containsKey(parentId)) {
+					parentChildIds.put(parentId, new HashSet<String>());
+				}
+				parentChildIds.get(parentId).add(entry.getKey());
+			}
+		}
 
-		return parentEntries;
+		return parentChildIds;
 	}
-
-	/**
-	 * Fetch facets for items containing a specific set of values.
-	 * @param searcher the searcher for the collection being used.
-	 * @param facetValues the incoming values to use as filters.
-	 * @param filterField the item field containing the child values, which will be used
-	 * to filter against.
-	 * @return a map of node value to child values for the items.
-	 * @throws IOException
-	 */
-	private Map<String, Set<String>> filterEntriesByField(SolrIndexSearcher searcher, Collection<String> facetValues,
-			String filterField) throws IOException {
-		Map<String, Set<String>> filteredEntries = new HashMap<>();
-
-		LOGGER.debug("Looking up {} entries in field {}", facetValues.size(), filterField);
-		Query filter = buildFilterQuery(filterField, facetValues);
+	
+	private Map<String, Set<String>> findParentIdsForNodes(SolrIndexSearcher searcher, Collection<String> nodeIds) throws IOException {
+		Map<String, Set<String>> parentIds = new HashMap<>();
+		
+		LOGGER.debug("Looking up parents for {} nodes", nodeIds.size());
+		Query filter = buildFilterQuery(getNodeField(), nodeIds);
 		LOGGER.trace("Filter query: {}", filter);
-
+		
 		DocSet docs = searcher.getDocSet(filter);
-
+		
 		for (DocIterator it = docs.iterator(); it.hasNext(); ) {
 			Document doc = searcher.doc(it.nextDoc(), docFields);
 			String nodeId = doc.get(getNodeField());
 			
-			// Get the children for the node, if necessary
-			Set<String> childIds;
-			if (filterField.equals(getNodeField())) {
-				// Filtering on the node field - child IDs are redundant
-				childIds = Collections.emptySet();
-			} else {
-				childIds = new HashSet<>(Arrays.asList(doc.getValues(filterField)));
-				LOGGER.trace("Got {} children for node {}", childIds.size(), nodeId);
-			}
-			filteredEntries.put(nodeId, childIds);
+			Set<String> parentIdValues = new HashSet<>(Arrays.asList(doc.getValues(parentField)));
+			parentIds.put(nodeId, parentIdValues);
 			
 			// Record the label, if required
 			if (isLabelRequired(nodeId)) {
 				recordLabel(nodeId, doc.getValues(getLabelField()));
 			}
 		}
-
-		return filteredEntries;
+		
+		return parentIds;
 	}
 
 	/**
@@ -242,9 +222,10 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		if (hierarchyMap.containsKey(fieldValue)) {
 			// Loop through all the direct child URIs, looking for those which are in the annotation map
 			for (String childId : hierarchyMap.get(fieldValue)) {
-				if (hierarchyMap.containsKey(childId) && !childId.equals(fieldValue)) {
+				if (!childId.equals(fieldValue)) {
 					// Found a child of this node - recurse to build its facet tree
-					LOGGER.trace("[{}] Building child tree for {}, with {} children", level, childId, hierarchyMap.get(childId).size());
+					LOGGER.trace("[{}] Building child tree for {}, with {} children", level, childId, 
+							(hierarchyMap.containsKey(childId) ? hierarchyMap.get(childId).size(): 0));
 					TreeFacetField childTree = buildAccumulatedEntryTree(level + 1, childId, hierarchyMap, facetCounts);
 					
 					// Only add to the total count if this node isn't already in the child hierarchy
@@ -253,7 +234,7 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 					}
 					LOGGER.trace("[{}] child tree total: {} - child Total {}, child count {}", level, childTree.getTotal(), childTotal, childHierarchy.size());
 				} else {
-					LOGGER.trace("[{}] no node entry for {}->{}", level, fieldValue, childId);
+					LOGGER.trace("[{}] found self-referring ID {}->{}", level, fieldValue, childId);
 				}
 			}
 		}
@@ -276,4 +257,9 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		return 0;
 	}
 	
+	@Override
+	protected Logger getLogger() {
+		return LOGGER;
+	}
+
 }

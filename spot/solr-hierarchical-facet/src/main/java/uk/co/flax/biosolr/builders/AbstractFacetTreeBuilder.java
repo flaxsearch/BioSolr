@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.impl;
+package uk.co.flax.biosolr.builders;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,7 +33,6 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 
-import uk.co.flax.biosolr.FacetTreeBuilder;
 import uk.co.flax.biosolr.HierarchicalFacets;
 
 /**
