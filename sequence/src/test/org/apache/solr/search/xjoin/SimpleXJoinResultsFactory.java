@@ -53,11 +53,18 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
 
   @Override
   public XJoinResults<String> getResults(SolrParams params) throws IOException {
-    return new Results();
+    String valuesStr = params != null ? (String)params.get("values") : null;
+    return new Results(valuesStr != null ? valuesStr.split(",") : values);
   }
   
   public class Results implements XJoinResults<String> {
 
+    private String[] values;
+    
+    private Results(String[] values) {
+      this.values = values;
+    }
+    
     @Override
     public Object getResult(String joinId) {
       if (joinId.equals(missingId)) {
