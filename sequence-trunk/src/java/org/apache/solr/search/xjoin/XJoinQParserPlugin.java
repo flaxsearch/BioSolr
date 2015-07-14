@@ -67,7 +67,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     termsFilter {
       @Override
       Filter makeFilter(String fname, Iterator<BytesRef> it) {
-      	BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
+          BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
         return new QueryWrapperFilter(new TermsQuery(fname, bytesRefs));
       }
     },
@@ -93,7 +93,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     docValuesTermsFilter {
       @Override
       Filter makeFilter(String fname, Iterator<BytesRef> it) {
-    	BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
+        BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
         return new QueryWrapperFilter(new DocValuesTermsQuery(fname, bytesRefs));
       }
     };

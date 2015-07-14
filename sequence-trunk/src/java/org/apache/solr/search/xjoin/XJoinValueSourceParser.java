@@ -120,31 +120,31 @@ public class XJoinValueSourceParser extends ValueSourceParser {
       final BinaryDocValues joinValues = DocValues.getBinary(readerContext.reader(), joinField);
 
       return new DoubleDocValues(this) {
-    	  
+          
         @Override
         public double doubleVal(int doc) {
-	      BytesRef joinValue = joinValues.get(doc);
-	      if (joinValue == null) {
-	        throw new RuntimeException("No such doc: " + doc);
-	      }
-	      Object result = results.getResult(joinValue.utf8ToString());
-	      if (result == null) {
-	    	return defaultValue;
-	      }
-	      try {
-	    	Method method = result.getClass().getMethod(methodName);
-	    	return (Double)method.invoke(result);
-	      } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-	        throw new RuntimeException(e);
-	      }
+          BytesRef joinValue = joinValues.get(doc);
+          if (joinValue == null) {
+            throw new RuntimeException("No such doc: " + doc);
+          }
+          Object result = results.getResult(joinValue.utf8ToString());
+          if (result == null) {
+            return defaultValue;
+          }
+          try {
+            Method method = result.getClass().getMethod(methodName);
+            return (Double)method.invoke(result);
+          } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+          }
         }
 
         //FIXME TODO What is the calling convention? Can we cache the BytesRef in exists() for doubleVal()?
         
         @Override
         public boolean exists(int doc) {
-  	      BytesRef joinValue = joinValues.get(doc);
-  	      return joinValue != null;
+          BytesRef joinValue = joinValues.get(doc);
+          return joinValue != null;
         }
         
       };

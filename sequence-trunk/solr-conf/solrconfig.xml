@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>6.0.0</luceneMatchVersion>
+  <luceneMatchVersion>4.10.3</luceneMatchVersion>
 
   <!-- Data Directory
 
@@ -45,6 +45,14 @@
        configuration.
     -->
   <dataDir>${solr.data.dir:}</dataDir>
+  
+  <!-- xjoin -->
+  <lib path="/Users/tomjon/flax/BioSolr/sequence-trunk/xjoin.jar" />
+
+  <!-- FASTA -->
+  <lib dir="/Users/tomjon/flax/BioSolr/sequence/lib/" regex=".*\.jar" />
+  <lib path="/Users/tomjon/flax/BioSolr/sequence/Fasta_Axis1.jar" />
+  <lib path="/Users/tomjon/flax/BioSolr/sequence/fasta.jar" />
 
 
   <!-- The DirectoryFactory to use for indexes.
@@ -573,6 +581,67 @@
     <arr name="components">
       <str>terms</str>
     </arr>
+  </requestHandler>
+  
+  <!-- BioSolr FASTA -->
+  <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin" />
+  
+  <valueSourceParser name="fasta" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="xJoinSearchComponent">xjoin_fasta</str>
+    <double name="defaultValue">1.0</double>
+  </valueSourceParser>
+
+  <valueSourceParser name="test" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="attribute">score</str>
+    <double name="defaultValue">1.0</double>
+  </valueSourceParser>
+
+  <searchComponent name="xjoin_fasta" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">uk.co.flax.biosolr.pdbe.FastaXJoinResultsFactory</str>
+    <str name="joinField">entry_entity</str>
+    <lst name="external">
+      <str name="email">sameer@ebi.ac.uk</str>
+      <str name="program">ssearch</str>
+      <str name="database">pdb</str>
+      <str name="stype">protein</str>
+      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/src/test/uk/co/flax/biosolr/pdbe/result</str>
+    </lst>
+  </searchComponent>
+  
+  <searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="joinField">entry_entity</str>
+    <lst name="external">
+      <str name="values">2afi_1,3aeu_2,1aky_1</str>
+    </lst>
+  </searchComponent>
+  
+  <requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
+      <lst name="defaults">
+        <str name="echoParams">all</str>
+        <str name="defType">edismax</str>
+        <str name="df">text</str>
+        
+        <bool name="xjoin_fasta">true</bool>
+        <double name="xjoin_fasta.external.explowlim">0.0</double>
+        <double name="xjoin_fasta.external.expupperlim">1.0</double>
+        <int name="xjoin_fasta.external.scores">1000</int>
+        <int name="xjoin_fasta.external.alignments">1000</int>
+        <str name="xjoin_fasta.results">num_chains,num_entries</str>
+        <str name="xjoin_fasta.fl">pdb_id_chain,e_value,percent_identity,return_sequence_string,query_sequence_string</str>
+        
+        <bool name="xjoin_test">true</bool>
+        <str name="xjoin_test.results">test</str>
+        <str name="xjoin_test.fl">value,score</str>
+      </lst>
+      <arr name="first-components">
+        <str>xjoin_fasta</str>
+        <str>xjoin_test</str>
+      </arr>
+      <arr name="last-components">
+        <str>xjoin_fasta</str>
+        <str>xjoin_test</str>
+      </arr>
   </requestHandler>
 
   <!-- Legacy config for the admin interface -->
