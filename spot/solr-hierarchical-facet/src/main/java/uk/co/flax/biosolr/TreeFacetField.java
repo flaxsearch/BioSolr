@@ -17,7 +17,6 @@ package uk.co.flax.biosolr;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -87,14 +86,24 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable,
 		return count + childCount;
 	}
 
-	public Set<TreeFacetField> getHierarchy() {
+	public SortedSet<TreeFacetField> getHierarchy() {
 		return hierarchy;
 	}
 
+	/**
+	 * @return <code>true</code> if this node has a non-empty hierarchy.
+	 */
 	public boolean hasChildren() {
 		return hierarchy != null && hierarchy.size() > 0;
 	}
 	
+	/**
+	 * Recalculate and update the child count for this node, in the event that 
+	 * one or more child nodes have been removed (possibly further down the
+	 * hierarchy).
+	 * @return the new total count for this node, which can be used to recurse
+	 * down the tree.
+	 */
 	public long recalculateChildCount() {
 		// Reset the child count
 		childCount = 0;
@@ -114,15 +123,19 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable,
 
 		if (o == null) {
 			ret = 1;
+		} else if (this.equals(o)) {
+			// As per the definition of SortedSet, if these items
+			// are equivalent, only one may exist in the Set.
+			ret = 0;
 		} else {
-			ret = (int) (getTotal() - o.getTotal());
+			// Compare the total, then the count if the totals are the same
+			ret = (int) (getTotal() - o.getTotal()) | (int) (count - o.count);
 			if (ret == 0) {
-				// If the totals are the same, compare the count as well.
-				ret = (int) (count - o.count);
-				if (ret == 0) {
-					// If the counts are also the same, compare the ID as well, to double-check
-					// whether they're actually the same entry
-					ret = getValue().compareTo(o.getValue());
+				// If all the counts are the same, compare the ID as well, to double-check
+				// whether they're actually the same entry
+				ret = getValue().compareTo(o.getValue());
+				if (ret == 0 && StringUtils.isNotBlank(label) && StringUtils.isNotBlank(o.getLabel())) {
+					ret = getLabel().compareTo(o.getLabel());
 				}
 			}
 		}
@@ -183,6 +196,9 @@ public class TreeFacetField implements Comparable<TreeFacetField>, Serializable,
 		}
 		TreeFacetField other = (TreeFacetField) obj;
 		if (count != other.count) {
+			return false;
+		}
+		if (childCount != other.childCount) {
 			return false;
 		}
 		if (value == null) {
