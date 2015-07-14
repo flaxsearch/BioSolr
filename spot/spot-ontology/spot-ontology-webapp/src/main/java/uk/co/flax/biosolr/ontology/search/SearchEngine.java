@@ -18,6 +18,8 @@ package uk.co.flax.biosolr.ontology.search;
 import java.util.List;
 
 /**
+ * Base definition of search engine functionality.
+ * 
  * @author Matt Pearce
  */
 public interface SearchEngine {

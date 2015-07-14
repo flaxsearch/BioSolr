@@ -24,6 +24,7 @@ import uk.co.flax.biosolr.ontology.api.FacetEntry;
  * Generic results list class, wrapping different types of result items.
  * 
  * @author Matt Pearce
+ * @param T the type of object being searched over.
 */
 public class ResultsList<T> {
 

@@ -30,6 +30,8 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 import uk.co.flax.biosolr.ontology.search.jena.JenaOntologySearch;
 
 /**
+ * Endpoint for searching using Apache Jena, using SPARQL.
+ * 
  * @author Matt Pearce
  */
 @Path("/jenaSearch")

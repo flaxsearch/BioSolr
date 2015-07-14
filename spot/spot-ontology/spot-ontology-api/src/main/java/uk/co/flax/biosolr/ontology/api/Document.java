@@ -22,8 +22,9 @@ import java.util.Map;
 import org.apache.solr.client.solrj.beans.Field;
 
 /**
+ * A document, as stored in the documents index.
+ * 
  * @author Matt Pearce
- *
  */
 public class Document {
 	

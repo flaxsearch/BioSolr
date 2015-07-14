@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.ontology.indexer;
+package uk.co.flax.biosolr.ontology.loaders;
 
 /**
  * @author Simon Jupp

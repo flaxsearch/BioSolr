@@ -19,8 +19,10 @@ package uk.co.flax.biosolr.ontology.api;
 import java.util.List;
 
 /**
+ * A hierarchical facet entry, possibly containing one or more child
+ * facets.
+ * 
  * @author mlp
- *
  */
 public class HierarchicalFacetEntry extends FacetEntry {
 

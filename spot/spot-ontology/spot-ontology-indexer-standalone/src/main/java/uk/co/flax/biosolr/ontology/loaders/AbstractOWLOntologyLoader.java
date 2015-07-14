@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.ontology.indexer.loaders;
+package uk.co.flax.biosolr.ontology.loaders;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -43,7 +43,8 @@ import org.slf4j.Logger;
 
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
-import uk.co.flax.biosolr.ontology.indexer.OntologyLoadingException;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoadingException;
 import uk.co.flax.biosolr.ontology.utils.Namespaces;
 
 /**

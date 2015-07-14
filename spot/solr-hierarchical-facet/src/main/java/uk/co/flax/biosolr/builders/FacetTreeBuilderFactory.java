@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.builders;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SyntaxError;
 
-import uk.co.flax.biosolr.impl.ChildNodeFacetTreeBuilder;
-import uk.co.flax.biosolr.impl.ParentNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.HierarchicalFacets;
 
 /**
  * Factory class to construct an appropriate {@link FacetTreeBuilder}

@@ -15,12 +15,14 @@
  */
 package uk.co.flax.biosolr.ontology.indexer;
 
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
+
 
 /**
  * Interface defining the behaviours for an ontology indexer.
  * 
  * <p>There should be one of these created for each ontology being indexed.
- * Configuration should be passed in, and the {@link #indexOntology()} method
+ * Configuration should be passed in, and the {@link #indexOntology(OntologyLoader)} method
  * called to index the ontology's content.</p>
  * 
  * @author Matt Pearce
@@ -29,8 +31,9 @@ public interface OntologyIndexer {
 
 	/**
 	 * Index the ontology.
+	 * @param loader the loader for the ontology.
 	 * @throws OntologyIndexingException
 	 */
-	public void indexOntology() throws OntologyIndexingException;
+	void indexOntology(OntologyLoader loader) throws OntologyIndexingException;
 
 }

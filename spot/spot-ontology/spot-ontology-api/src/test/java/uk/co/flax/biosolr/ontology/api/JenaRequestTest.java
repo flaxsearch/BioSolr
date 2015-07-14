@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * Unit tests for the Jena request class.
+ * 
  * @author Matt Pearce
  */
 public class JenaRequestTest {

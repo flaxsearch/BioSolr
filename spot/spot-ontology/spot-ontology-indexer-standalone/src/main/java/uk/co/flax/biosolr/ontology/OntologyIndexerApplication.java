@@ -27,6 +27,10 @@ import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoaderFactory;
 import uk.co.flax.biosolr.ontology.indexer.OWLOntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexer;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
+import uk.co.flax.biosolr.ontology.indexer.ReasonerFactory;
+import uk.co.flax.biosolr.ontology.loaders.BasicOWLOntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoadingException;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
@@ -67,9 +71,10 @@ public class OntologyIndexerApplication {
 		for (String source : configuration.getOntologies().keySet()) {
 			try {
 				OntologyConfiguration ontologyConfig = configuration.getOntologies().get(source);
+				OntologyLoader loader = buildOntologyLoader(ontologyConfig);
 				OntologyIndexer indexer = new OWLOntologyIndexer(source, ontologyConfig, storageEngine, pluginManager);
-				indexer.indexOntology();
-				pluginManager.processOntologyPlugins(source, ontologyConfig);
+				indexer.indexOntology(loader);
+				pluginManager.processOntologyPlugins(loader, source, ontologyConfig);
 			} catch (OntologyIndexingException e) {
 				LOGGER.error("Caught exception indexing {}: {}", source, e.getMessage());
 				LOGGER.error("Exception detail:", e);
@@ -78,6 +83,19 @@ public class OntologyIndexerApplication {
 				LOGGER.error("Exception detail:", e);
 			}
 		}
+	}
+	
+	private OntologyLoader buildOntologyLoader(OntologyConfiguration ontConfig) throws OntologyIndexingException {
+		OntologyLoader loader;
+		
+		try {
+			loader = new BasicOWLOntologyLoader(ontConfig, new ReasonerFactory());
+			loader.initializeOntology();
+		} catch (OntologyLoadingException e) {
+			throw new OntologyIndexingException(e);
+		}
+		
+		return loader;
 	}
 	
 	public static void main(String[] args) {

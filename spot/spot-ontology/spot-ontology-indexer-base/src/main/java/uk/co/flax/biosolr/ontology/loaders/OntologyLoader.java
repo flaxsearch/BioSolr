@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.ontology.indexer.loaders;
+package uk.co.flax.biosolr.ontology.loaders;
 
 /**
  * @author Simon Jupp
@@ -11,8 +11,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.semanticweb.owlapi.model.IRI;
-
-import uk.co.flax.biosolr.ontology.indexer.OntologyLoadingException;
 
 /**
  * An ontology loader that provides some abstraction around core concepts in ontologies.  We essentially

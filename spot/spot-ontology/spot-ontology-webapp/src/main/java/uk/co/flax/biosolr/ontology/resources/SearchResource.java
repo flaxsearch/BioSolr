@@ -34,6 +34,8 @@ import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
+ * Endpoint for searching the document index.
+ * 
  * @author Matt Pearce
  */
 @Path("/search")

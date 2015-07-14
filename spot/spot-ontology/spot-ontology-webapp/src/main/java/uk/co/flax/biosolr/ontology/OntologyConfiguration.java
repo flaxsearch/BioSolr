@@ -15,16 +15,16 @@
  */
 package uk.co.flax.biosolr.ontology;
 
+import io.dropwizard.Configuration;
 import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.dropwizard.Configuration;
-
 /**
+ * The main configuration class for the Ontology web application.
+ * 
  * @author Matt Pearce
- *
  */
 public class OntologyConfiguration extends Configuration {
 	

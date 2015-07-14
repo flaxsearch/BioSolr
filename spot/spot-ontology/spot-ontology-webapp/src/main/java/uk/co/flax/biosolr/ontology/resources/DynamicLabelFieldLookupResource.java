@@ -30,6 +30,9 @@ import uk.co.flax.biosolr.ontology.search.SearchEngine;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
+ * Endpoint for looking up the dynamic search field labels to
+ * present on the search form.
+ * 
  * @author Matt Pearce
  */
 @Path("/dynamicLabelFields")

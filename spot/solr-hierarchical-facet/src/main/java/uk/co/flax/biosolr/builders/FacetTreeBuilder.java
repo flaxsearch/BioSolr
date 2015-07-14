@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.builders;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +23,8 @@ import java.util.Map;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
+
+import uk.co.flax.biosolr.TreeFacetField;
 
 /**
  * A processor to build the facet tree from the incoming base

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.indexer.loaders;
+package uk.co.flax.biosolr.ontology.loaders;
 
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
-import uk.co.flax.biosolr.ontology.indexer.OntologyLoadingException;
 import uk.co.flax.biosolr.ontology.indexer.ReasonerFactory;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoadingException;
 
 /**
  * @author Matt Pearce

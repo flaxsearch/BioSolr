@@ -36,6 +36,7 @@ import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.co.flax.biosolr.builders.FacetTreeBuilder;
 import uk.co.flax.biosolr.pruning.Pruner;
 
 /**

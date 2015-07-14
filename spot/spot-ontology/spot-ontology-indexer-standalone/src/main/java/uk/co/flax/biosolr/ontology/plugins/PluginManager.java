@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
 import uk.co.flax.biosolr.ontology.config.PluginConfiguration;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 
 /**
  * Singleton class for managing all of the plugins used while indexing the ontology.
@@ -110,12 +111,12 @@ public class PluginManager {
 		}
 	}
 	
-	public void processOntologyPlugins(String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException {
+	public void processOntologyPlugins(OntologyLoader loader, String sourceName, OntologyConfiguration ontologyConfiguration) throws PluginException {
 		if (plugins.containsKey(ONTOLOGY_PLUGIN_KEY)) {
 			Map<String, Plugin> pluginMap = plugins.get(ONTOLOGY_PLUGIN_KEY);
 			for (String pluginName : pluginMap.keySet()) {
 				OntologyPlugin plugin = (OntologyPlugin)pluginMap.get(pluginName);
-				plugin.process(sourceName, ontologyConfiguration);
+				plugin.process(loader, sourceName, ontologyConfiguration);
 			}
 		}
 	}

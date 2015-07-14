@@ -31,8 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.OntologyEntryBean;
 import uk.co.flax.biosolr.ontology.config.OntologyConfiguration;
-import uk.co.flax.biosolr.ontology.indexer.loaders.BasicOWLOntologyLoader;
-import uk.co.flax.biosolr.ontology.indexer.loaders.OntologyLoader;
+import uk.co.flax.biosolr.ontology.loaders.OntologyLoader;
 import uk.co.flax.biosolr.ontology.plugins.PluginException;
 import uk.co.flax.biosolr.ontology.plugins.PluginManager;
 import uk.co.flax.biosolr.ontology.storage.StorageEngine;
@@ -56,8 +55,6 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	private final StorageEngine storageEngine;
 	private final PluginManager pluginManager;
 
-	private final OntologyLoader loader;
-
 	/**
 	 * Create the OWL Ontology indexer.
 	 * @param source the name of the ontology being indexed (eg. "efo").
@@ -67,24 +64,17 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 	 * @throws OntologyIndexingException
 	 */
 	public OWLOntologyIndexer(String source, OntologyConfiguration config, StorageEngine storageEngine,
-			PluginManager pluginManager) throws OntologyIndexingException {
+			PluginManager pluginManager) {
 		this.sourceKey = source;
 		this.config = config;
 		this.storageEngine = storageEngine;
 		this.pluginManager = pluginManager;
-
-		try {
-			this.loader = new BasicOWLOntologyLoader(config, new ReasonerFactory());
-			loader.initializeOntology();
-		} catch (OntologyLoadingException e) {
-			throw new OntologyIndexingException(e);
-		}
 	}
 
 	@Override
-	public void indexOntology() throws OntologyIndexingException {
+	public void indexOntology(OntologyLoader loader) throws OntologyIndexingException {
 		try {
-			List<OntologyEntryBean> documents = buildOntologyEntries();
+			List<OntologyEntryBean> documents = buildOntologyEntries(loader);
 
 			int numDocuments = documents.size();
 			LOGGER.debug("Extracted {} documents", numDocuments);
@@ -111,7 +101,7 @@ public class OWLOntologyIndexer implements OntologyIndexer {
 		}
 	}
 
-	private List<OntologyEntryBean> buildOntologyEntries() throws PluginException {
+	private List<OntologyEntryBean> buildOntologyEntries(OntologyLoader loader) throws PluginException {
 		List<OntologyEntryBean> documents = new ArrayList<>(loader.getAllClasses().size());
 
         for (IRI classTerm : loader.getAllClasses()) {

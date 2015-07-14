@@ -26,8 +26,10 @@ import static org.mockito.Mockito.when;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
-import uk.co.flax.biosolr.impl.ChildNodeFacetTreeBuilder;
-import uk.co.flax.biosolr.impl.ParentNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.builders.ChildNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.builders.FacetTreeBuilder;
+import uk.co.flax.biosolr.builders.FacetTreeBuilderFactory;
+import uk.co.flax.biosolr.builders.ParentNodeFacetTreeBuilder;
 
 /**
  * Unit tests for the FacetTreeBuilderFactory.

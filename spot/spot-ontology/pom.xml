@@ -14,6 +14,7 @@
 		<module>spot-ontology-indexer-standalone</module>
 		<module>spot-ontology-indexer-plugins</module>
 		<module>spot-ontology-document-indexer</module>
+		<module>spot-ontology-indexer-base</module>
 	</modules>
 
 	<properties>
@@ -24,6 +25,7 @@
 		<solr-version>4.10.1</solr-version>
 		<!-- Dropwizard version -->
 		<dropwizard-version>0.7.1</dropwizard-version>
+		<jackson.version>2.5.3</jackson.version>
 	</properties>
 
 	<build>
@@ -56,4 +58,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<name>SPOT Ontology</name>
 </project>

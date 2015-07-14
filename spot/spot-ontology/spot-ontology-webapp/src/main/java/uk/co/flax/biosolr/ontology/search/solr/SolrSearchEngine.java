@@ -36,6 +36,10 @@ import uk.co.flax.biosolr.ontology.search.SearchEngine;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 /**
+ * Abstract Solr search engine implementation, providing
+ * implementations of the {@link #isSearchEngineReady()} and
+ * {@link #getDynamicFieldNames()} methods.
+ * 
  * @author Matt Pearce
  */
 public abstract class SolrSearchEngine implements SearchEngine {
