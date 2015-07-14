@@ -40,7 +40,7 @@ public class PrunerFactory {
 		
 		if (StringUtils.isNotBlank(prunerParam)) {
 			if (SIMPLE_PRUNER_VALUE.equals(prunerParam)) {
-				pruner = new SimplePruner();
+				pruner = new SimplePruner(params.getInt(SimplePruner.CHILD_COUNT_PARAM, SimplePruner.MIN_CHILD_COUNT));
 			} else if (DATAPOINTS_PRUNER_VALUE.equals(prunerParam)) {
 				int dp = params.getInt(HierarchicalFacets.DATAPOINTS_PARAM, 0);
 				if (dp <= 0) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.builders;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
+import uk.co.flax.biosolr.HierarchicalFacets;
 import uk.co.flax.biosolr.builders.ChildNodeFacetTreeBuilder;
 import uk.co.flax.biosolr.builders.FacetTreeBuilder;
 import uk.co.flax.biosolr.builders.FacetTreeBuilderFactory;

@@ -149,7 +149,9 @@ The `prune` parameter can be used to specify how the tree should be
 pruned, using one of the following values:
 
 - `simple` will reduce the tree to nodes which either have hits themselves,
-or which have three or more child nodes with hits.
+or which have more than a certain number of direct children with hits. The
+default number of children required is 4 - this can be modified using the
+`childCount` parameter.
 - `datapoint` will reduce the tree to a given number of data points,
 with the remaining nodes held under an "Other" node entry. The "Other" entry
 is pruned using the `simple` strategy, so is also reduced to significant
