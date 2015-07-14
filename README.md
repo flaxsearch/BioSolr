@@ -1,7 +1,7 @@
 BioSolr
 =======
 
-Funded by the BBSRC this collaboration between Flax and the European Bioinformatics Institute (http://www.ebi.ac.uk/) aims “to significantly advance the state of the art with regard to indexing and querying biomedical data with freely available open source software”. Here's some background:
+Funded by the BBSRC http://www.bbsrc.ac.uk/ this collaboration between Flax and the European Bioinformatics Institute (http://www.ebi.ac.uk/) aims “to significantly advance the state of the art with regard to indexing and querying biomedical data with freely available open source software”. Here's some background:
 http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/
 
 We'll be using this repository to publish the open source software we develop to enhance and improve the use of the Apache Lucene/Solr search engine for this important sector.
