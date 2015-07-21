@@ -42,6 +42,7 @@ public class SolrOntologySearch extends SolrSearchEngine implements OntologySear
 	
 	public static final String URI_FIELD = "uri";
 	public static final String LABEL_FIELD = "label";
+	public static final String SYNONYMS_FIELD = "synonyms";
 	public static final String CHILD_URI_FIELD = "child_uris";
 	public static final String SHORT_FORM_FIELD = "short_form";
 
