@@ -32,7 +32,6 @@ import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
-import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.DatasetFactory;
@@ -50,7 +49,6 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
-import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * Search engine providing SPARQL search through Apache Jena, using
@@ -74,21 +72,29 @@ public class JenaOntologySearch {
 	}
 	
 	private Dataset buildDataSet() {
+		Dataset ds;
+		
 		LOGGER.info("Construct a dataset backed by Solr");
 		Dataset jenaData = buildBaseDataset();
 
-		// Define the index mapping
-		EntityDefinition entDef = buildEntityDefinition();
-		// Define the Solr server
-		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
-		// Join together into a dataset
-		Dataset ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
+		if (StringUtils.isNotBlank(jenaConfig.getAssemblerFile())) {
+			// The assembler file contains the full mapping detail
+			ds = jenaData;
+		} else {
+			// Define the index mapping
+			EntityDefinition entDef = buildEntityDefinition();
+			// Define the Solr server
+			SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
+			// Join together into a dataset
+			ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
+		}
+		
 		return ds;
 	}
 	
 	private EntityDefinition buildEntityDefinition() {
 		// Build the base definition
-		EntityDefinition entity = new EntityDefinition(SolrOntologySearch.URI_FIELD, jenaConfig.getPrimaryField());
+		EntityDefinition entity = new EntityDefinition(jenaConfig.getEntityField(), jenaConfig.getPrimaryField());
 		
 		// And add the field mappings
 		for (String field : jenaConfig.getFieldMappings().keySet()) {
@@ -103,7 +109,10 @@ public class JenaOntologySearch {
 	private Dataset buildBaseDataset() {
 		Dataset jenaData;
 		
-		if (StringUtils.isNotBlank(jenaConfig.getTdbPath())) {
+		if (StringUtils.isNotBlank(jenaConfig.getAssemblerFile())) {
+			LOGGER.debug("Building dataset from assembler file {}", jenaConfig.getAssemblerFile());
+			jenaData = DatasetFactory.assemble(jenaConfig.getAssemblerFile(), jenaConfig.getAssemblerDataset());
+		} else if (StringUtils.isNotBlank(jenaConfig.getTdbPath())) {
 			LOGGER.debug("Building dataset from TDB data at {}", jenaConfig.getTdbPath());
 			jenaData = TDBFactory.createDataset(jenaConfig.getTdbPath());
 		} else {

@@ -33,9 +33,13 @@ public class JenaConfiguration {
 	@JsonProperty("tdbPath")
 	private String tdbPath = null;
 	
+	private String entityField;
 	private String primaryField;
 	
 	private Map<String, List<String>> fieldMappings;
+	
+	private String assemblerFile;
+	private String assemblerDataset;
 
 	/**
 	 * @return the ontologyUri
@@ -54,6 +58,18 @@ public class JenaConfiguration {
 
 	public Map<String, List<String>> getFieldMappings() {
 		return fieldMappings;
+	}
+
+	public String getAssemblerFile() {
+		return assemblerFile;
+	}
+
+	public String getAssemblerDataset() {
+		return assemblerDataset;
+	}
+
+	public String getEntityField() {
+		return entityField;
 	}
 
 }

@@ -100,12 +100,20 @@ solr:
 # data store to be set up.
 jena:
 
-  # The URI for the ontology to be read
-  ontologyUri: /home/mlp/Downloads/efo.owl
+  # Assembler file settings.
+  # If these are supplied, all other parameters are ignored, all configuration
+  # is expected to be in the assembler file.
+  assemblerFile: config/assembler.ttl
+  assemblerDataset: "http://localhost/jena_example/#text_dataset"
   
-  # The directory containing the TDB database (OPTIONAL)
+  # The directory containing the TDB database.
   tdbPath: /home/mlp/flax/tdb
   
+  # If no TDB database is available, search a single ontology from its URI
+  ontologyUri: /home/mlp/Downloads/efo.owl
+  
+  # The entity field - used to map the field in the TDB
+  entityField: uri
   # The primary field - node mapping
   primaryField: label
   
@@ -114,3 +122,4 @@ jena:
     label: [ "http://www.w3.org/2000/01/rdf-schema#label" ]
     synonyms: [ "http://www.ebi.ac.uk/efo/alternative_term", "http://purl.obolibrary.org/obo#Synonym", "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym" ]
     
+  
