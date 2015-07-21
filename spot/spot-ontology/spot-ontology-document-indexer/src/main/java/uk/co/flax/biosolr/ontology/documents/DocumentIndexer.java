@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -62,12 +62,12 @@ public class DocumentIndexer {
 	
 	private final IndexerConfiguration config;
 	
-	private final SolrServer solrServer;
+	private final SolrClient solrServer;
 	private final OntologyHandler ontologyHandler;
 	
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
 		this.config = readConfig(configFilepath);
-		solrServer = new HttpSolrServer(config.getDocumentsSolrUrl());
+		solrServer = new HttpSolrClient(config.getDocumentsSolrUrl());
 		ontologyHandler = new OntologyHandler(config.getOntologyUri());
 	}
 

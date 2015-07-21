@@ -32,6 +32,7 @@ import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
+import uk.co.flax.biosolr.ontology.search.solr.SolrOntologySearch;
 
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.DatasetFactory;
@@ -60,9 +61,6 @@ public class JenaOntologySearch {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(JenaOntologySearch.class);
 	
-	private static final String URI_FIELD = "uri";
-	private static final String LABEL_FIELD = "label";
-	
 	private final JenaConfiguration jenaConfig;
 	private final SolrConfiguration solrConfig;
 
@@ -79,7 +77,8 @@ public class JenaOntologySearch {
 		Dataset jenaData = buildBaseDataset();
 
 		// Define the index mapping
-		EntityDefinition entDef = new EntityDefinition(URI_FIELD, LABEL_FIELD, RDFS.label.asNode());
+		EntityDefinition entDef = new EntityDefinition(SolrOntologySearch.URI_FIELD, SolrOntologySearch.LABEL_FIELD,
+				RDFS.label.asNode());
 		// Define the Solr server
 		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
 		// Join together into a dataset
