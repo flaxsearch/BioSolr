@@ -15,6 +15,9 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -29,6 +32,10 @@ public class JenaConfiguration {
 	
 	@JsonProperty("tdbPath")
 	private String tdbPath = null;
+	
+	private String primaryField;
+	
+	private Map<String, List<String>> fieldMappings;
 
 	/**
 	 * @return the ontologyUri
@@ -39,6 +46,14 @@ public class JenaConfiguration {
 	
 	public String getTdbPath() {
 		return tdbPath;
+	}
+
+	public String getPrimaryField() {
+		return primaryField;
+	}
+
+	public Map<String, List<String>> getFieldMappings() {
+		return fieldMappings;
 	}
 
 }

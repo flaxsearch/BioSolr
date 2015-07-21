@@ -47,6 +47,7 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.RDFS;
@@ -77,13 +78,26 @@ public class JenaOntologySearch {
 		Dataset jenaData = buildBaseDataset();
 
 		// Define the index mapping
-		EntityDefinition entDef = new EntityDefinition(SolrOntologySearch.URI_FIELD, SolrOntologySearch.LABEL_FIELD,
-				RDFS.label.asNode());
+		EntityDefinition entDef = buildEntityDefinition();
 		// Define the Solr server
 		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
 		// Join together into a dataset
 		Dataset ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
 		return ds;
+	}
+	
+	private EntityDefinition buildEntityDefinition() {
+		// Build the base definition
+		EntityDefinition entity = new EntityDefinition(SolrOntologySearch.URI_FIELD, jenaConfig.getPrimaryField());
+		
+		// And add the field mappings
+		for (String field : jenaConfig.getFieldMappings().keySet()) {
+			for (String mapping : jenaConfig.getFieldMappings().get(field)) {
+				entity.set(field, ResourceFactory.createProperty(mapping).asNode());
+			}
+		}
+		
+		return entity;
 	}
 	
 	private Dataset buildBaseDataset() {
