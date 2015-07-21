@@ -49,10 +49,15 @@ database to search over.
 ### Setting up Apache Jena
 
 The location of the primary dataset for Jena to use is specified in the
-config file, in the `jena` section. There are two options - either specify
-a `tdbPath` to a TDB database directory, or set the `ontologyUri` property to point
-to the location of the ontology (this can be web-based or a local file). The
-TDB setting will be chosen as a priority over the URI.
+config file, in the `jena` section. There are three options - use an
+assembler file to set all the configuration (using `assemblerFile` and
+`assemberDataset`), specify a `tdbPath` to a TDB database directory, 
+or set the `ontologyUri` property to point
+to the location of the ontology (this can be web-based or a local file).
+If an assembler file is given, along with the base URI for the assembler
+dataset, the application assumes all of the configuration is in the file,
+and will ignore all other settings. Otherwise, the TDB setting will be 
+chosen as a priority over the URI.
 
 The TDB database can be built by the Ontology Indexer at the same time as the
 Solr Ontology core. It can also be built using the Jena `tdbloader` 
