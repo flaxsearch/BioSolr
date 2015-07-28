@@ -45,17 +45,18 @@ public class PrunerFactory {
 	public Pruner constructPruner(SolrParams params) throws SyntaxError {
 		Pruner pruner = null;
 		
-		String prunerParam = params.get(PRUNE_PARAM, componentParameters.getArgument(PRUNE_PARAM));
+		String prunerParam = params.get(PRUNE_PARAM, componentParameters.getDefault(PRUNE_PARAM));
 		
 		if (StringUtils.isNotBlank(prunerParam)) {
 			if (SIMPLE_PRUNER_VALUE.equals(prunerParam)) {
 				pruner = new SimplePruner(params.getInt(SimplePruner.CHILD_COUNT_PARAM, SimplePruner.MIN_CHILD_COUNT));
 			} else if (DATAPOINTS_PRUNER_VALUE.equals(prunerParam)) {
-				int dp = params.getInt(DATAPOINTS_PARAM, componentParameters.getIntArgument(DATAPOINTS_PARAM));
+				int dp = params.getInt(DATAPOINTS_PARAM, componentParameters.getIntDefault(DATAPOINTS_PARAM));
 				if (dp <= 0) {
 					throw new SyntaxError("Datapoints parameter invalid");
 				}
-				pruner = new DatapointPruner(dp);
+				pruner = new DatapointPruner(dp, 
+						componentParameters.getDefault(FacetTreeParameters.DATAPOINTS_MORELABEL_PARAM,  DatapointPruner.DEFAULT_MORE_LABEL));
 			}
 		}
 		

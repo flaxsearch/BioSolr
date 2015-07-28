@@ -50,7 +50,7 @@ public class PrunerFactoryTest {
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
 		PrunerFactory factory = new PrunerFactory(ftParams);
 		assertNull(factory.constructPruner(params));
@@ -64,7 +64,7 @@ public class PrunerFactoryTest {
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
 		PrunerFactory factory = new PrunerFactory(ftParams);
 		assertNull(factory.constructPruner(params));
@@ -78,7 +78,7 @@ public class PrunerFactoryTest {
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
 		PrunerFactory factory = new PrunerFactory(ftParams);
 		Pruner pruner = factory.constructPruner(params);
@@ -92,8 +92,8 @@ public class PrunerFactoryTest {
 	public void constructPruner_datapointsPruner_noDatapoints() throws Exception {
 		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
-		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
 		when(params.getInt(FacetTreeParameters.DATAPOINTS_PARAM, 0)).thenReturn(0);
@@ -102,7 +102,7 @@ public class PrunerFactoryTest {
 		factory.constructPruner(params);
 		
 		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
-		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
+		verify(ftParams).getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM);
 	}
 
 	@Test
@@ -110,8 +110,8 @@ public class PrunerFactoryTest {
 		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
 		final Integer dp = 6;
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
-		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(dp);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(dp);
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
 		when(params.getInt(FacetTreeParameters.DATAPOINTS_PARAM, dp)).thenReturn(dp);
@@ -120,15 +120,15 @@ public class PrunerFactoryTest {
 		factory.constructPruner(params);
 		
 		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
-		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
+		verify(ftParams).getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM);
 	}
 
 	@Test
 	public void constructPruner_datapointsPruner_withDatapoints() throws Exception {
 		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
 		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
-		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
-		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
+		when(ftParams.getDefault(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
 		final Integer dp = 6;
 		final SolrParams params = mock(SolrParams.class);
 		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
@@ -141,7 +141,7 @@ public class PrunerFactoryTest {
 		
 		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
 		verify(params).getInt(FacetTreeParameters.DATAPOINTS_PARAM, 0);
-		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
+		verify(ftParams).getIntDefault(FacetTreeParameters.DATAPOINTS_PARAM);
 	}
 
 }
