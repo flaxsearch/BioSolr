@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
-import uk.co.flax.biosolr.HierarchicalFacets;
+import uk.co.flax.biosolr.FacetTreeParameters;
 
 /**
  * Unit tests for the PrunerFactory.
@@ -38,8 +38,9 @@ public class PrunerFactoryTest {
 	@Test(expected=java.lang.NullPointerException.class)
 	public void constructPruner_withNullParams() throws Exception {
 		final SolrParams params = null;
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		factory.constructPruner(params);
 	}
 
@@ -47,68 +48,100 @@ public class PrunerFactoryTest {
 	public void constructPruner_withNullPrunerParam() throws Exception {
 		final String prunerParam = null;
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.PRUNE_PARAM)).thenReturn(prunerParam);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		assertNull(factory.constructPruner(params));
 		
-		verify(params).get(HierarchicalFacets.PRUNE_PARAM);
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
 	}
 
 	@Test
 	public void constructPruner_withDummyPrunerParam() throws Exception {
 		final String prunerParam = "dummy";
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.PRUNE_PARAM)).thenReturn(prunerParam);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		assertNull(factory.constructPruner(params));
 		
-		verify(params).get(HierarchicalFacets.PRUNE_PARAM);
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
 	}
 
 	@Test
 	public void constructPruner_simplePruner() throws Exception {
 		final String prunerParam = PrunerFactory.SIMPLE_PRUNER_VALUE;
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.PRUNE_PARAM)).thenReturn(prunerParam);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		Pruner pruner = factory.constructPruner(params);
 		assertNotNull(pruner);
 		assertTrue(pruner instanceof SimplePruner);
 		
-		verify(params).get(HierarchicalFacets.PRUNE_PARAM);
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
 	}
 
 	@Test(expected=org.apache.solr.search.SyntaxError.class)
 	public void constructPruner_datapointsPruner_noDatapoints() throws Exception {
 		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.PRUNE_PARAM)).thenReturn(prunerParam);
-		when(params.getInt(HierarchicalFacets.DATAPOINTS_PARAM, 0)).thenReturn(0);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		when(params.getInt(FacetTreeParameters.DATAPOINTS_PARAM, 0)).thenReturn(0);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		factory.constructPruner(params);
 		
-		verify(params).get(HierarchicalFacets.PRUNE_PARAM);
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
+		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
+	}
+
+	@Test
+	public void constructPruner_datapointsPruner_dpFromDefaults() throws Exception {
+		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
+		final Integer dp = 6;
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(dp);
+		final SolrParams params = mock(SolrParams.class);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		when(params.getInt(FacetTreeParameters.DATAPOINTS_PARAM, dp)).thenReturn(dp);
+		
+		PrunerFactory factory = new PrunerFactory(ftParams);
+		factory.constructPruner(params);
+		
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
+		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
 	}
 
 	@Test
 	public void constructPruner_datapointsPruner_withDatapoints() throws Exception {
 		final String prunerParam = PrunerFactory.DATAPOINTS_PRUNER_VALUE;
+		final FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
+		when(ftParams.getArgument(FacetTreeParameters.PRUNE_PARAM)).thenReturn(null);
+		when(ftParams.getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM)).thenReturn(0);
 		final Integer dp = 6;
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.PRUNE_PARAM)).thenReturn(prunerParam);
-		when(params.getInt(HierarchicalFacets.DATAPOINTS_PARAM, 0)).thenReturn(dp);
+		when(params.get(FacetTreeParameters.PRUNE_PARAM, null)).thenReturn(prunerParam);
+		when(params.getInt(FacetTreeParameters.DATAPOINTS_PARAM, 0)).thenReturn(dp);
 		
-		PrunerFactory factory = new PrunerFactory();
+		PrunerFactory factory = new PrunerFactory(ftParams);
 		Pruner pruner = factory.constructPruner(params);
 		assertNotNull(pruner);
 		assertTrue(pruner instanceof DatapointPruner);
 		
-		verify(params).get(HierarchicalFacets.PRUNE_PARAM);
-		verify(params).getInt(HierarchicalFacets.DATAPOINTS_PARAM, 0);
+		verify(params).get(FacetTreeParameters.PRUNE_PARAM, null);
+		verify(params).getInt(FacetTreeParameters.DATAPOINTS_PARAM, 0);
+		verify(ftParams).getIntArgument(FacetTreeParameters.DATAPOINTS_PARAM);
 	}
 
 }
