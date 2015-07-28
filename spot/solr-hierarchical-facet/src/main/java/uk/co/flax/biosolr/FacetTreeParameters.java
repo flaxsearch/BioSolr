@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.PluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +43,9 @@ public class FacetTreeParameters {
 	public static final String STRATEGY_PARAM = "strategy";
 	public static final String PRUNE_PARAM = "prune";
 	public static final String DATAPOINTS_PARAM = "datapoints";
+	public static final String DATAPOINTS_MORELABEL_PARAM = "datapoints.moreLabel";
 	
-	private final Map<String, String> componentArgs = new LinkedHashMap<>();
+	private final Map<String, String> defaults = new LinkedHashMap<>();
 
 	/**
 	 * Construct the tree parameters from the arguments passed to the
@@ -51,21 +53,34 @@ public class FacetTreeParameters {
 	 * @param args the arguments passed to the component.
 	 */
 	public FacetTreeParameters(NamedList<? extends Object> args) {
-		// Assume all of the args are single strings for now
-		args.forEach(entry -> {
-			componentArgs.put(entry.getKey(), (String)entry.getValue());
-		});
+		// Find "defaults" list
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		NamedList<? extends Object> defaultArgs = (NamedList) args.get(PluginInfo.DEFAULTS);
+		
+		if (defaultArgs != null) {
+			// Assume all of the args are single strings for now
+			defaultArgs.forEach(entry -> {
+				defaults.put(entry.getKey(), (String)entry.getValue());
+			});
+		}
 	}
 	
-	public String getArgument(String name) {
-		return componentArgs.get(name);
+	public String getDefault(String name) {
+		return getDefault(name, null);
 	}
 	
-	public int getIntArgument(String name) {
+	public String getDefault(String name, String defaultVal) {
+		if (defaults.containsKey(name)) {
+			return defaults.get(name);
+		}
+		return defaultVal;
+	}
+	
+	public int getIntDefault(String name) {
 		int ret = 0;
-		if (componentArgs.containsKey(name)) {
+		if (defaults.containsKey(name)) {
 			try {
-				ret = Integer.valueOf(componentArgs.get(name));
+				ret = Integer.valueOf(defaults.get(name));
 			} catch (NumberFormatException nfe) {
 				LOGGER.error("{} is not an integer argument: {}", name, nfe.getMessage());
 			}
