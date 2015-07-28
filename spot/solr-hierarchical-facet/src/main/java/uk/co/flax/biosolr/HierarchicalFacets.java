@@ -57,16 +57,7 @@ import uk.co.flax.biosolr.pruning.PrunerFactory;
  */
 public class HierarchicalFacets extends SimpleFacets {
 
-	public static final String LOCAL_PARAM_TYPE = "ftree";
-	public static final String CHILD_FIELD_PARAM = "childField";
-	public static final String PARENT_FIELD_PARAM = "parentField";
-	public static final String COLLECTION_PARAM = "collection";
-	public static final String NODE_FIELD_PARAM = "nodeField";
-	public static final String LABEL_FIELD_PARAM = "labelField";
-	public static final String LEVELS_PARAM = "levels";
-	public static final String STRATEGY_PARAM = "strategy";
-	public static final String PRUNE_PARAM = "prune";
-	public static final String DATAPOINTS_PARAM = "datapoints";
+	private final FacetTreeParameters parameters;
 
 	static final Executor directExecutor = new Executor() {
 		@Override
@@ -80,8 +71,9 @@ public class HierarchicalFacets extends SimpleFacets {
 			new SynchronousQueue<Runnable>(), // directly hand off tasks
 			new DefaultSolrThreadFactory("facetExecutor"));
 
-	public HierarchicalFacets(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb) {
+	public HierarchicalFacets(SolrQueryRequest req, DocSet docs, SolrParams params, ResponseBuilder rb, FacetTreeParameters ftParams) {
 		super(req, docs, params, rb);
+		this.parameters = ftParams;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -98,16 +90,16 @@ public class HierarchicalFacets extends SimpleFacets {
 		SimpleOrderedMap<NamedList> treeResponse = new SimpleOrderedMap<>();
 		try {
 			FacetTreeBuilderFactory treeBuilderFactory = new FacetTreeBuilderFactory();
-			PrunerFactory prunerFactory = new PrunerFactory();
+			PrunerFactory prunerFactory = new PrunerFactory(parameters);
 			
 			for (String fTree : facetTrees) {
 				try {
-					this.parseParams(LOCAL_PARAM_TYPE, fTree);
+					this.parseParams(FacetTreeParameters.LOCAL_PARAM_TYPE, fTree);
 					FacetTreeBuilder treeBuilder = treeBuilderFactory.constructFacetTreeBuilder(localParams);
 					final String localKey = localParams.get(QueryParsing.V);
 					
 					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, 
-							localParams.get(COLLECTION_PARAM, null),
+							localParams.get(FacetTreeParameters.COLLECTION_PARAM, null),
 							prunerFactory.constructPruner(localParams));
 					final NamedList<Integer> termCounts = getTermCounts(localKey);
 					Callable<NamedList> callable = new Callable<NamedList>() {

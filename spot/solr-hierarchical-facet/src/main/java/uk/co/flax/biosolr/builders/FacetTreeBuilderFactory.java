@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SyntaxError;
 
-import uk.co.flax.biosolr.HierarchicalFacets;
+import uk.co.flax.biosolr.FacetTreeParameters;
 
 /**
  * Factory class to construct an appropriate {@link FacetTreeBuilder}
@@ -67,13 +67,13 @@ public class FacetTreeBuilderFactory {
 	}
 	
 	private String deriveStrategyFromLocalParams(SolrParams params) {
-		String strategy = params.get(HierarchicalFacets.STRATEGY_PARAM);
+		String strategy = params.get(FacetTreeParameters.STRATEGY_PARAM);
 		
 		if (StringUtils.isBlank(strategy)) {
 			// Attempt to derive strategy from given parameters
-			if (StringUtils.isNotBlank(params.get(HierarchicalFacets.CHILD_FIELD_PARAM))) {
+			if (StringUtils.isNotBlank(params.get(FacetTreeParameters.CHILD_FIELD_PARAM))) {
 				strategy = CHILD_NODE_STRATEGY;
-			} else if (StringUtils.isNotBlank(params.get(HierarchicalFacets.PARENT_FIELD_PARAM))) {
+			} else if (StringUtils.isNotBlank(params.get(FacetTreeParameters.PARENT_FIELD_PARAM))) {
 				strategy = PARENT_NODE_STRATEGY;
 			}
 		}
