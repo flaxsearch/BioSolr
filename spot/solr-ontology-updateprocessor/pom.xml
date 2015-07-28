@@ -36,6 +36,11 @@
 			<artifactId>solr-core</artifactId>
 			<version>${solr.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>owlapi-distribution</artifactId>
+			<version>3.5.2</version>
+		</dependency>
 		
 		<!-- Logging -->
 		<dependency>

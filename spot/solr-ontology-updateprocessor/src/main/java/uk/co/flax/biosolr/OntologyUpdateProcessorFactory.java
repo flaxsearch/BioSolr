@@ -39,15 +39,15 @@ import org.apache.solr.util.plugin.SolrCoreAware;
 public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
 	
 	private static final String ENABLED_PARAM = "enabled";
-	private static final String ANNOTATION_FIELD_PARAM = "annotation_field";
-	private static final String LABEL_FIELD_PARAM = "label_field";
+	private static final String ANNOTATION_FIELD_PARAM = "annotationField";
+	private static final String LABEL_FIELD_PARAM = "labelField";
 	
 	private boolean enabled;
 	private String annotationField;
 	private String labelField;
 
 	@Override
-	public void init(final NamedList args) {
+	public void init(@SuppressWarnings("rawtypes") final NamedList args) {
 		if (args != null) {
 			SolrParams params = SolrParams.toSolrParams(args);
 			this.enabled = params.getBool(ENABLED_PARAM, true);
