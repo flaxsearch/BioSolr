@@ -170,9 +170,11 @@ public class OntologyHandler {
         // get all label annotations
         for (OWLAnnotationAssertionAxiom axiom : ontology.getAnnotationAssertionAxioms(iri)) {
         	OWLAnnotation labelAnnotation = axiom.getAnnotation();
-        	OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
-        	if (labelAnnotationValue instanceof OWLLiteral) {
-        		classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+        	if (labelAnnotation.getProperty().equals(typeAnnotation)) {
+        		OWLAnnotationValue labelAnnotationValue = labelAnnotation.getValue();
+        		if (labelAnnotationValue instanceof OWLLiteral) {
+        			classNames.add(((OWLLiteral) labelAnnotationValue).getLiteral());
+        		}
         	}
         }
 
