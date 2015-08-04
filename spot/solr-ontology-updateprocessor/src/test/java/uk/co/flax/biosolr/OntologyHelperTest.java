@@ -34,13 +34,25 @@ import org.semanticweb.owlapi.model.OWLClass;
 public class OntologyHelperTest {
 	
 	private static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
-	private static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
+	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 	
 	private static URI testOntologyUri;
 	
 	@BeforeClass
 	public static void setup() throws Exception {
 		testOntologyUri = OntologyHelperTest.class.getClassLoader().getResource(TEST_ONTOLOGY).toURI();
+	}
+	
+	@Test(expected=java.net.URISyntaxException.class)
+	public void constructString_withBadURI() throws Exception {
+		final String dummyUri = "http://blah<.com:8080/dummy.owl";
+		new OntologyHelper(dummyUri);
+	}
+	
+	@Test
+	public void constructString() throws Exception {
+		OntologyHelper helper = new OntologyHelper(TEST_ONTOLOGY);
+		assertNotNull(helper.getOwlClass(TEST_IRI));
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)

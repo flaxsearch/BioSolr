@@ -17,6 +17,8 @@
 package uk.co.flax.biosolr;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Collection;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
@@ -30,6 +32,10 @@ import org.apache.solr.update.AddUpdateCommand;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JavaDoc for OntologyUpdateProcessorFactory.
@@ -38,13 +44,19 @@ import org.apache.solr.util.plugin.SolrCoreAware;
  */
 public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
 	
+	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyUpdateProcessorFactory.class);
+	
 	private static final String ENABLED_PARAM = "enabled";
 	private static final String ANNOTATION_FIELD_PARAM = "annotationField";
 	private static final String LABEL_FIELD_PARAM = "labelField";
+	private static final String ONTOLOGY_URI = "ontologyURI";
 	
 	private boolean enabled;
 	private String annotationField;
 	private String labelField;
+	private String ontologyUri;
+	
+	private OntologyHelper helper;
 
 	@Override
 	public void init(@SuppressWarnings("rawtypes") final NamedList args) {
@@ -53,6 +65,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.enabled = params.getBool(ENABLED_PARAM, true);
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
 			this.labelField = params.get(LABEL_FIELD_PARAM);
+			this.ontologyUri = params.get(ONTOLOGY_URI);
 		}
 	}
 
@@ -82,26 +95,47 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public String getLabelField() {
 		return labelField;
 	}
+	
+	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
+		if (helper == null) {
+			helper = new OntologyHelper(ontologyUri);
+		}
+		
+		return helper;
+	}
 
 	@Override
 	public UpdateRequestProcessor getInstance(SolrQueryRequest req, SolrQueryResponse rsp, UpdateRequestProcessor next) {
-		return new OntologyUpdateProcessor(req, rsp, next);
+		return new OntologyUpdateProcessor(next);
 	}
 	
 	
 	class OntologyUpdateProcessor extends UpdateRequestProcessor {
 		
-		private final SolrQueryRequest req;
-
-		public OntologyUpdateProcessor(SolrQueryRequest req, SolrQueryResponse rsp, UpdateRequestProcessor next) {
+		public OntologyUpdateProcessor(UpdateRequestProcessor next) {
 			super(next);
-			this.req = req;
 		}
 		
 		@Override
 		public void processAdd(AddUpdateCommand cmd) throws IOException {
 			if (isEnabled()) {
-				// Look up ontology data for document
+				try {
+					// Look up ontology data for document
+					OntologyHelper helper = getHelper();
+					
+					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
+					OWLClass owlClass = helper.getOwlClass(iri);
+					
+					if (owlClass == null) {
+						LOGGER.debug("Cannot find OWL class for IRI {}", iri);
+					} else {
+						Collection<String> labels = helper.findLabels(owlClass);
+						cmd.getSolrInputDocument().addField(getLabelField(), labels);
+					}
+				} catch (OWLOntologyCreationException | URISyntaxException e) {
+					throw new SolrException(ErrorCode.SERVER_ERROR, 
+							"Cannot load ontology: " + e.getMessage());
+				}
 			}
 			
 			// Run the next processor in the chain

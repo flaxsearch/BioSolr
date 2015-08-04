@@ -16,8 +16,19 @@
 
 package uk.co.flax.biosolr;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.solr.SolrTestCaseJ4;
+import org.apache.solr.common.params.MultiMapSolrParams;
+import org.apache.solr.common.params.UpdateParams;
+import org.apache.solr.common.util.ContentStream;
+import org.apache.solr.common.util.ContentStreamBase;
+import org.apache.solr.handler.UpdateRequestHandler;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.request.SolrQueryRequestBase;
+import org.apache.solr.response.SolrQueryResponse;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,9 +65,29 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 
 	@Test
 	public void test() throws Exception {
-		assertNull(h.validateUpdate(adoc("id", "1", "name", "name1")));
-		assertNull(h.validateUpdate(commit()));
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperTest.TEST_IRI), 
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
 		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find label", req, "//result[@numFound=1]",
+				"//str[@name='ontology_label'][.='experimental factor']");
 	}
 
+	static void addDoc(String doc, String chain) throws Exception {
+		Map<String, String[]> params = new HashMap<>();
+		MultiMapSolrParams mmparams = new MultiMapSolrParams(params);
+		params.put(UpdateParams.UPDATE_CHAIN, new String[] { chain });
+		SolrQueryRequestBase req = new SolrQueryRequestBase(h.getCore(), mmparams) {
+		};
+
+		UpdateRequestHandler handler = new UpdateRequestHandler();
+		handler.init(null);
+		ArrayList<ContentStream> streams = new ArrayList<>(2);
+		streams.add(new ContentStreamBase.StringStream(doc));
+		req.setContentStreams(streams);
+		handler.handleRequestBody(req, new SolrQueryResponse());
+		req.close();
+	}
 }

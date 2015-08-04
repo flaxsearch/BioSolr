@@ -17,6 +17,7 @@
 package uk.co.flax.biosolr;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,9 +56,19 @@ public class OntologyHelper {
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
+	
+	public OntologyHelper(String ontologyUriString) throws OWLOntologyCreationException, URISyntaxException {
+		this(new URI(ontologyUriString));
+	}
 
-	public OntologyHelper(URI ontologyUri) throws OWLOntologyCreationException {
+	public OntologyHelper(URI ontologyUri) throws OWLOntologyCreationException, URISyntaxException {
+		if (!ontologyUri.isAbsolute()) {
+			// Try to read as a file from the resource path
+			LOGGER.debug("Ontology URI {} is not absolute - loading from classpath", ontologyUri);
+			ontologyUri = this.getClass().getClassLoader().getResource(ontologyUri.toString()).toURI();
+		}
 		LOGGER.info("Loading ontology from " + ontologyUri + "...");
+		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		IRI iri = IRI.create(ontologyUri);
 		this.ontology = manager.loadOntologyFromOntologyDocument(iri);

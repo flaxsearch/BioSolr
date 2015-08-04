@@ -209,6 +209,8 @@
        If a Request Handler is declared with startup="lazy", then it will
        not be initialized until the first request that uses it.
 
+       The "standard" request handler is the default and will be used if qt
+       is not specified in the request.
     -->
   <requestHandler name="/select" class="solr.SearchHandler">
     <!-- default values for query parameters can be specified, these
@@ -221,12 +223,19 @@
      </lst>
   </requestHandler>
 
+  <requestHandler name="standard" class="solr.StandardRequestHandler">
+  	<bool name="httpCaching">true</bool>
+  </requestHandler>
+
   <!-- Ontology lookup processor chain -->    
   <updateRequestProcessorChain name="ontology">
     <processor class="uk.co.flax.biosolr.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">annotation_uri</str>
       <str name="labelField">ontology_label</str>
+      
+      <!-- Location of the ontology -->
+      <str name="ontologyURI">ontologyUpdate/owl/test.owl</str>
     </processor>
     <processor class="solr.RunUpdateProcessorFactory" />
   </updateRequestProcessorChain>
