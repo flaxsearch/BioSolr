@@ -35,6 +35,11 @@
     <!-- Dynamic field(s) holding relation labels -->
     <dynamicField name="*_rel_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
 
+    <!-- Dynamic string field(s) -->
+    <dynamicField name="*_s" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Dynamic text field(s) -->
+    <dynamicField name="*_t" type="text_general" indexed="true" stored="true" multiValued="true" />
+
 	<!-- catchall field, containing all other searchable text fields (implemented via copyField further on in this schema -->
 	<field name="text" type="text_general" indexed="true" stored="false" multiValued="true" />
 
