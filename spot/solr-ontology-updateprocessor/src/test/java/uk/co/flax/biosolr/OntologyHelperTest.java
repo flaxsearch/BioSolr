@@ -16,25 +16,22 @@
 
 package uk.co.flax.biosolr;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
-import java.util.Collection;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLClass;
 
 /**
- * Unit tests for the OntologyHelper class.
+ * Unit tests for the OntologyHelper class, focussing on the constructors.
  *
  * @author mlp
  */
 public class OntologyHelperTest {
 	
-	private static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
-	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
+	static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
+	static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 	
 	private static URI testOntologyUri;
 	
@@ -67,19 +64,4 @@ public class OntologyHelperTest {
 		assertNotNull(helper.getOwlClass(TEST_IRI));
 	}
 	
-	@Test(expected=java.lang.NullPointerException.class)
-	public void getLabels_nullClass() throws Exception {
-		OntologyHelper helper = new OntologyHelper(testOntologyUri);
-		helper.findLabels(null);
-	}
-
-	@Test
-	public void getLabels() throws Exception {
-		OntologyHelper helper = new OntologyHelper(testOntologyUri);
-		OWLClass testClass = helper.getOwlClass(TEST_IRI);
-		Collection<String> labels = helper.findLabels(testClass);
-		assertNotNull(labels);
-		assertEquals(1, labels.size());
-	}
-
 }
