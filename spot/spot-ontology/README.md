@@ -2,7 +2,7 @@
 
 This is the top-level folder for the SPOT Ontology applications. These include:
 
-* a generic, standalon indexer for ontology data.
+* a generic, standalone indexer for ontology data.
 * an indexer for documents that have been annotated with ontology references.
 The ontology references are expanded during the indexing process, pulling 
 across labels, synonyms, child and parent relationship details, and data
