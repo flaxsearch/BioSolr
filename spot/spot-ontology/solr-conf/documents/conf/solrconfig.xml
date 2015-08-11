@@ -1106,11 +1106,9 @@
          updateRequestProcessorChains that can be used by name 
          on each Update Request
       -->
-    <!--
        <lst name="defaults">
-         <str name="update.chain">dedupe</str>
+         <str name="update.chain">ontology</str>
        </lst>
-       -->
   </requestHandler>
 
   <!-- for back compat with clients using /update/json and /update/csv -->  
@@ -1836,6 +1834,21 @@
     </updateRequestProcessorChain>
   -->
  
+  <!-- Ontology lookup processor chain -->    
+  <updateRequestProcessorChain name="ontology">
+    <processor class="uk.co.flax.biosolr.OntologyUpdateProcessorFactory">
+      <bool name="enabled">true</bool>
+      <str name="annotationField">efo_uri</str>
+      <str name="labelField">efo_labels</str>
+      
+      <!-- Location of the ontology -->
+      <str name="ontologyURI">file:///home/mlp/Downloads/efo.owl</str>
+    </processor>
+    <processor class="solr.LogUpdateProcessorFactory" />
+    <processor class="solr.DistributedUpdateProcessorFactory" />
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
+    
   <!-- Response Writers
 
        http://wiki.apache.org/solr/QueryResponseWriter
