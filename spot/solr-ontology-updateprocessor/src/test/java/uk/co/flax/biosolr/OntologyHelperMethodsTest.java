@@ -18,6 +18,7 @@ package uk.co.flax.biosolr;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
@@ -28,6 +29,7 @@ import java.util.Collection;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -54,6 +56,25 @@ public class OntologyHelperMethodsTest {
 	@AfterClass
 	public static void dispose() {
 		helper.dispose();
+	}
+	
+	@Test
+	public void getOwlClass_nullValue() {
+		OWLClass test = helper.getOwlClass(null);
+		assertNull(test);
+	}
+
+	@Test
+	public void getOwlClass_emptyValue() {
+		OWLClass test = helper.getOwlClass("");
+		assertNull(test);
+	}
+
+	@Test
+	public void getOwlClass() {
+		OWLClass test = helper.getOwlClass(TEST_IRI);
+		assertNotNull(test);
+		assertEquals(test.getIRI(), IRI.create(TEST_IRI));
 	}
 
 	@Test(expected=java.lang.NullPointerException.class)

@@ -19,9 +19,12 @@ package uk.co.flax.biosolr;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
@@ -61,11 +64,13 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 	private static final String DESCENDENT_FIELD_PARAM = "descendentsField";
 	private static final String ANCESTOR_FIELD_PARAM = "ancestorsField";
+	private static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 	
 	
 	/*
 	 * Default field values
 	 */
+	private static final String LABEL_FIELD_DEFAULT = "label_t";
 	private static final String URI_FIELD_SUFFIX = "_uris_s";
 	private static final String LABEL_FIELD_SUFFIX = "_labels_t";
 	private static final String CHILD_FIELD_DEFAULT = "child";
@@ -88,6 +93,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String descendentLabelField;
 	private String ancestorUriField;
 	private String ancestorLabelField;
+	private boolean includeRelations;
 	
 	private OntologyHelper helper;
 
@@ -97,7 +103,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			SolrParams params = SolrParams.toSolrParams(args);
 			this.enabled = params.getBool(ENABLED_PARAM, true);
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
-			this.labelField = params.get(LABEL_FIELD_PARAM);
+			this.labelField = params.get(LABEL_FIELD_PARAM, LABEL_FIELD_DEFAULT);
 			this.ontologyUri = params.get(ONTOLOGY_URI_PARAM);
 			this.uriFieldSuffix = params.get(URI_FIELD_SUFFIX_PARAM, URI_FIELD_SUFFIX);
 			this.labelFieldSuffix = params.get(LABEL_FIELD_SUFFIX_PARAM, LABEL_FIELD_SUFFIX);
@@ -114,6 +120,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			String ancestorField = params.get(ANCESTOR_FIELD_PARAM, ANCESTOR_FIELD_DEFAULT);
 			this.ancestorUriField = ancestorField + uriFieldSuffix;
 			this.ancestorLabelField = ancestorField + labelFieldSuffix;
+			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
 		}
 	}
 
@@ -123,12 +130,6 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		if (annoField == null) {
 			throw new SolrException(ErrorCode.SERVER_ERROR, 
 					"Cannot use annotation field which does not exist in schema: " + getAnnotationField());
-		}
-		
-		final SchemaField labelField = core.getLatestSchema().getFieldOrNull(getLabelField());
-		if (labelField == null) {
-			throw new SolrException(ErrorCode.SERVER_ERROR, 
-					"Cannot use label field which does not exist in schema: " + getLabelField());
 		}
 	}
 
@@ -178,6 +179,18 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	
 	public String getAncestorLabelField() {
 		return ancestorLabelField;
+	}
+	
+	public boolean isIncludeRelations() {
+		return includeRelations;
+	}
+	
+	public String getUriFieldSuffix() {
+		return uriFieldSuffix;
+	}
+	
+	public String getLabelFieldSuffix() {
+		return labelFieldSuffix;
 	}
 	
 	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
@@ -233,6 +246,10 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 							cmd.getSolrInputDocument().addField(getAncestorUriField(), ancestorUris);
 							cmd.getSolrInputDocument().addField(getAncestorLabelField(), helper.findLabelsForIRIs(ancestorUris));
 						}
+						
+						if (isIncludeRelations()) {
+							addRelationships(cmd.getSolrInputDocument(), owlClass, helper);
+						}
 					}
 				} catch (OWLOntologyCreationException | URISyntaxException e) {
 					throw new SolrException(ErrorCode.SERVER_ERROR, 
@@ -243,6 +260,16 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			// Run the next processor in the chain
 			if (next != null) {
 				next.processAdd(cmd);
+			}
+		}
+		
+		private void addRelationships(SolrInputDocument doc, OWLClass owlClass, OntologyHelper helper) {
+			Map<String, List<String>> relatedClasses = helper.getRestrictions(owlClass);
+			
+			for (String relation : relatedClasses.keySet()) {
+				List<String> iris = relatedClasses.get(relation);
+				doc.addField(relation + getUriFieldSuffix(), iris);
+				doc.addField(relation + getLabelFieldSuffix(), helper.findLabelsForIRIs(iris));
 			}
 		}
 		

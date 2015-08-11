@@ -18,22 +18,30 @@ package uk.co.flax.biosolr;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -118,10 +126,16 @@ public class OntologyHelper {
 	 * Get the OWL class for an IRI.
 	 * @param iri the IRI of the required class.
 	 * @return the class from the ontology, or <code>null</code> if no such
-	 * class can be found.
+	 * class can be found, or the IRI string is null.
 	 */
 	public OWLClass getOwlClass(String iri) {
-		return owlClassMap.get(IRI.create(iri));
+		OWLClass ret = null;
+		
+		if (StringUtils.isNotBlank(iri)) {
+			ret = owlClassMap.get(IRI.create(iri));
+		}
+		
+		return ret;
 	}
 
 	/**
@@ -235,6 +249,48 @@ public class OntologyHelper {
     
     private boolean isClassSatisfiable(OWLClass owlClass) {
     	return !owlClass.isAnonymous() && !owlClass.getIRI().equals(owlNothingIRI);
+    }
+    
+    /**
+     * Retrieve a map of related classes for a particular class.
+     * @param owlClass
+     * @return a map of relation type to a list of IRIs for nodes with that relationship.
+     */
+    public Map<String, List<String>> getRestrictions(OWLClass owlClass) {
+    	RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
+		for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
+			OWLClassExpression superCls = ax.getSuperClass();
+			// Ask our superclass to accept a visit from the RestrictionVisitor
+			// - if it is an existential restriction then our restriction visitor
+			// will answer it - if not our visitor will ignore it
+			superCls.accept(visitor);
+		}
+		
+		Map<String, List<String>> restrictions = new HashMap<>();
+		for (OWLObjectSomeValuesFrom val : visitor.getSomeValues()) {
+			OWLClassExpression exp = val.getFiller();
+			
+			// Get the shortname of the property expression
+			String shortForm = null;
+			Set<OWLObjectProperty> signatureProps = val.getProperty().getObjectPropertiesInSignature();
+			for (OWLObjectProperty sigProp : signatureProps) {
+				Collection<String> labels = findLabels(sigProp.getIRI());
+				if (labels.size() > 0) {
+					shortForm = new ArrayList<String>(labels).get(0);
+				}
+			}
+
+			if (shortForm != null && !exp.isAnonymous()) {
+				IRI iri = exp.asOWLClass().getIRI();
+				
+				if (!restrictions.containsKey(shortForm)) {
+					restrictions.put(shortForm, new ArrayList<String>());
+				}
+				restrictions.get(shortForm).add(iri.toString());
+			}
+		}
+		
+		return restrictions;
     }
     
 }
