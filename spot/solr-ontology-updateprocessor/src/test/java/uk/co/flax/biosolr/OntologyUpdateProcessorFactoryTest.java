@@ -64,7 +64,7 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void addDoc_checkLabel() throws Exception {
 		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperTest.TEST_IRI), 
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
@@ -73,6 +73,32 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find label", req, "//result[@numFound=1]",
 				"//str[@name='ontology_label'][.='experimental factor']");
+	}
+
+	@Test
+	public void addDoc_checkChildren() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperTest.TEST_IRI), 
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find child", req, "//result[@numFound=1]",
+				"//arr[@name='child_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_CHILD_IRI + "']",
+				"//arr[@name='child_labels_t']/str[1][.='material entity']");
+	}
+
+	@Test
+	public void addDoc_checkParents() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperMethodsTest.TEST_CHILD_IRI), 
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find parent", req, "//result[@numFound=1]",
+				"//arr[@name='parent_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_IRI + "']",
+				"//arr[@name='parent_labels_t']/str[1][.='experimental factor']");
 	}
 
 	static void addDoc(String doc, String chain) throws Exception {

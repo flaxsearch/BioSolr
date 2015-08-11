@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.AfterClass;
@@ -56,12 +57,12 @@ public class OntologyHelperMethodsTest {
 	}
 
 	@Test(expected=java.lang.NullPointerException.class)
-	public void getLabels_nullClass() throws Exception {
+	public void findLabels_nullClass() throws Exception {
 		helper.findLabels(null);
 	}
 
 	@Test
-	public void getLabels() throws Exception {
+	public void findLabels() throws Exception {
 		OWLClass testClass = helper.getOwlClass(TEST_IRI);
 		Collection<String> labels = helper.findLabels(testClass);
 		assertNotNull(labels);
@@ -139,6 +140,26 @@ public class OntologyHelperMethodsTest {
 		assertEquals(2, ancestorUris.size());
 		assertTrue(ancestorUris.contains(TEST_IRI));
 		assertTrue(ancestorUris.contains(ROOT_IRI));
+	}
+	
+	@Test(expected=java.lang.NullPointerException.class)
+	public void findLabelsForIRIs_nullCollection() {
+		helper.findLabelsForIRIs(null);
+	}
+	
+	@Test
+	public void findLabelsForIRIs_notIRIs() {
+		final String iri = "blah";
+		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(iri));
+		assertNotNull(labels);
+		assertEquals(0, labels.size());
+	}
+	
+	@Test
+	public void findLabelsForIRIs() {
+		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(TEST_IRI, TEST_CHILD_IRI));
+		assertNotNull(labels);
+		assertEquals(2, labels.size());
 	}
 	
 }

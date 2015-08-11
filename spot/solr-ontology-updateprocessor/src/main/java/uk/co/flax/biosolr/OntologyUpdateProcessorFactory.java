@@ -47,14 +47,47 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyUpdateProcessorFactory.class);
 	
 	private static final String ENABLED_PARAM = "enabled";
+	
+	/*
+	 * Field configuration parameters
+	 */
 	private static final String ANNOTATION_FIELD_PARAM = "annotationField";
 	private static final String LABEL_FIELD_PARAM = "labelField";
-	private static final String ONTOLOGY_URI = "ontologyURI";
+	private static final String ONTOLOGY_URI_PARAM = "ontologyURI";
+	private static final String URI_FIELD_SUFFIX_PARAM = "uriFieldSuffix";
+	private static final String LABEL_FIELD_SUFFIX_PARAM = "labelFieldSuffix";
+	private static final String CHILD_FIELD_PARAM = "childField";
+	private static final String PARENT_FIELD_PARAM = "parentField";
+	private static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
+	private static final String DESCENDENT_FIELD_PARAM = "descendentsField";
+	private static final String ANCESTOR_FIELD_PARAM = "ancestorsField";
+	
+	
+	/*
+	 * Default field values
+	 */
+	private static final String URI_FIELD_SUFFIX = "_uris_s";
+	private static final String LABEL_FIELD_SUFFIX = "_labels_t";
+	private static final String CHILD_FIELD_DEFAULT = "child";
+	private static final String PARENT_FIELD_DEFAULT = "parent";
+	private static final String DESCENDENT_FIELD_DEFAULT = "descendents";
+	private static final String ANCESTOR_FIELD_DEFAULT = "ancestors";
 	
 	private boolean enabled;
 	private String annotationField;
 	private String labelField;
 	private String ontologyUri;
+	private String uriFieldSuffix;
+	private String labelFieldSuffix;
+	private String childUriField;
+	private String childLabelField;
+	private String parentUriField;
+	private String parentLabelField;
+	private boolean includeIndirect;
+	private String descendentUriField;
+	private String descendentLabelField;
+	private String ancestorUriField;
+	private String ancestorLabelField;
 	
 	private OntologyHelper helper;
 
@@ -65,7 +98,22 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.enabled = params.getBool(ENABLED_PARAM, true);
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
 			this.labelField = params.get(LABEL_FIELD_PARAM);
-			this.ontologyUri = params.get(ONTOLOGY_URI);
+			this.ontologyUri = params.get(ONTOLOGY_URI_PARAM);
+			this.uriFieldSuffix = params.get(URI_FIELD_SUFFIX_PARAM, URI_FIELD_SUFFIX);
+			this.labelFieldSuffix = params.get(LABEL_FIELD_SUFFIX_PARAM, LABEL_FIELD_SUFFIX);
+			String childField = params.get(CHILD_FIELD_PARAM, CHILD_FIELD_DEFAULT);
+			this.childUriField = childField + uriFieldSuffix;
+			this.childLabelField = childField + labelFieldSuffix;
+			String parentField = params.get(PARENT_FIELD_PARAM, PARENT_FIELD_DEFAULT);
+			this.parentUriField = parentField + uriFieldSuffix;
+			this.parentLabelField = parentField + labelFieldSuffix;
+			this.includeIndirect = params.getBool(INCLUDE_INDIRECT_PARAM, true);
+			String descendentField = params.get(DESCENDENT_FIELD_PARAM, DESCENDENT_FIELD_DEFAULT);
+			this.descendentUriField = descendentField + uriFieldSuffix;
+			this.descendentLabelField = descendentField + labelFieldSuffix;
+			String ancestorField = params.get(ANCESTOR_FIELD_PARAM, ANCESTOR_FIELD_DEFAULT);
+			this.ancestorUriField = ancestorField + uriFieldSuffix;
+			this.ancestorLabelField = ancestorField + labelFieldSuffix;
 		}
 	}
 
@@ -94,6 +142,42 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 
 	public String getLabelField() {
 		return labelField;
+	}
+	
+	public String getChildUriField() {
+		return childUriField;
+	}
+
+	public String getChildLabelField() {
+		return childLabelField;
+	}
+
+	public String getParentUriField() {
+		return parentUriField;
+	}
+
+	public String getParentLabelField() {
+		return parentLabelField;
+	}
+	
+	public boolean isIncludeIndirect() {
+		return includeIndirect;
+	}
+	
+	public String getDescendentUriField() {
+		return descendentUriField;
+	}
+	
+	public String getDescendentLabelField() {
+		return descendentLabelField; 
+	}
+	
+	public String getAncestorUriField() {
+		return ancestorUriField;
+	}
+	
+	public String getAncestorLabelField() {
+		return ancestorLabelField;
 	}
 	
 	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
@@ -131,6 +215,24 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					} else {
 						Collection<String> labels = helper.findLabels(owlClass);
 						cmd.getSolrInputDocument().addField(getLabelField(), labels);
+
+						// Add child and parent URIs and labels
+						Collection<String> childUris = helper.getChildUris(owlClass);
+						Collection<String> parentUris = helper.getParentUris(owlClass);
+						cmd.getSolrInputDocument().addField(getChildUriField(), childUris);
+						cmd.getSolrInputDocument().addField(getChildLabelField(), helper.findLabelsForIRIs(childUris));
+						cmd.getSolrInputDocument().addField(getParentUriField(), parentUris);
+						cmd.getSolrInputDocument().addField(getParentLabelField(), helper.findLabelsForIRIs(parentUris));
+						
+						if (isIncludeIndirect()) {
+							// Add descendent and ancestor URIs and labels
+							Collection<String> descendentUris = helper.getDescendentUris(owlClass);
+							Collection<String> ancestorUris = helper.getAncestorUris(owlClass);
+							cmd.getSolrInputDocument().addField(getDescendentUriField(), descendentUris);
+							cmd.getSolrInputDocument().addField(getDescendentLabelField(), helper.findLabelsForIRIs(descendentUris));
+							cmd.getSolrInputDocument().addField(getAncestorUriField(), ancestorUris);
+							cmd.getSolrInputDocument().addField(getAncestorLabelField(), helper.findLabelsForIRIs(ancestorUris));
+						}
 					}
 				} catch (OWLOntologyCreationException | URISyntaxException e) {
 					throw new SolrException(ErrorCode.SERVER_ERROR, 

@@ -132,6 +132,17 @@ public class OntologyHelper {
 	public Collection<String> findLabels(OWLClass owlClass) {
 		return findLabels(owlClass.getIRI());
 	}
+	
+	/**
+	 * Find all of the labels for a collection of OWL class IRIs.
+	 * @param iris the IRIs whose labels should be looked up.
+	 * @return a collection of labels. Never <code>null</code>.
+	 */
+	public Collection<String> findLabelsForIRIs(Collection<String> iris) {
+		Set<String> labels = new HashSet<>();
+		iris.stream().map(iri -> findLabels(IRI.create(iri))).forEach(labels::addAll);
+		return labels;
+	}
 
 	private Collection<String> findLabels(IRI iri) {
 		Set<String> classNames = new HashSet<>();
@@ -213,16 +224,17 @@ public class OntologyHelper {
     	
     	for (Node<OWLClass> node : nodeSet) {
     		for (OWLClass expr : node.getEntities()) {
-    			if (!expr.isAnonymous()) {
-    				IRI iri = expr.asOWLClass().getIRI();
-    				if (!iri.equals(owlNothingIRI)) {
-	    				uris.add(iri.toURI().toString());
-    				}
+    			if (isClassSatisfiable(expr)) {
+    				uris.add(expr.getIRI().toURI().toString());
     			}
     		}
     	}
     	
     	return uris;
     }
-
+    
+    private boolean isClassSatisfiable(OWLClass owlClass) {
+    	return !owlClass.isAnonymous() && !owlClass.getIRI().equals(owlNothingIRI);
+    }
+    
 }
