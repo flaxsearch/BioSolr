@@ -9,3 +9,7 @@ The solr-hierarchical-facet directory contains a Solr plugin for generating hier
 facets from a set of results. This can be used to present ontology facets, for example,
 in a tree structure.
 
+The solr-ontology-updateprocessor directory contains a Solr plugin for adding data to
+documents annotated with ontology references. This will look up data in an external
+ontology and add fields to the record, including labels, synonyms, parent/child details, 
+and additional relationships.
