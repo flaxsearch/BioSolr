@@ -16,9 +16,11 @@
 
 package uk.co.flax.biosolr;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +76,8 @@ public class OntologyConfiguration {
 	 * @throws IOException 
 	 */
 	public static OntologyConfiguration fromPropertiesFile(String propFile) throws IOException {
-		Reader reader = new FileReader(propFile);
+		Path path = FileSystems.getDefault().getPath(propFile);
+		Reader reader = Files.newBufferedReader(path);
 		ResourceBundle rb = new PropertyResourceBundle(reader);
 		
 		String labels = getResourceString(rb, LABEL_PROPERTY_KEY, LABEL_PROPERTY_URI);
