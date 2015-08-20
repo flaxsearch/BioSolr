@@ -81,7 +81,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String LABEL_FIELD_SUFFIX = "_labels_t";
 	private static final String CHILD_FIELD_DEFAULT = "child";
 	private static final String PARENT_FIELD_DEFAULT = "parent";
-	private static final String DESCENDANT_FIELD_DEFAULT = "descendents";
+	private static final String DESCENDANT_FIELD_DEFAULT = "descendants";
 	private static final String ANCESTOR_FIELD_DEFAULT = "ancestors";
 	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
 	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
