@@ -59,7 +59,9 @@ import org.slf4j.LoggerFactory;
 public class OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHelper.class);
-
+	
+	private final OntologyConfiguration config;
+	
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
 //	private final ShortFormProvider shortFormProvider;
@@ -73,22 +75,28 @@ public class OntologyHelper {
 	 * Construct a new ontology helper instance with a string representing
 	 * the ontology URI.
 	 * @param ontologyUriString the URI.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read
 	 * for some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
-	public OntologyHelper(String ontologyUriString) throws OWLOntologyCreationException, URISyntaxException {
-		this(new URI(ontologyUriString));
+	public OntologyHelper(String ontologyUriString, OntologyConfiguration config) throws OWLOntologyCreationException, URISyntaxException {
+		this(new URI(ontologyUriString), config);
 	}
 
 	/**
 	 * Construct a new ontology helper instance.
 	 * @param ontologyUri the URI giving the location of the ontology.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read
 	 * for some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
-	public OntologyHelper(URI ontologyUri) throws OWLOntologyCreationException, URISyntaxException {
+	public OntologyHelper(URI ontologyUri, OntologyConfiguration config) throws OWLOntologyCreationException, URISyntaxException {
+		this.config = config;
+		
 		if (!ontologyUri.isAbsolute()) {
 			// Try to read as a file from the resource path
 			LOGGER.debug("Ontology URI {} is not absolute - loading from classpath", ontologyUri);

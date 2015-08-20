@@ -43,24 +43,24 @@ public class OntologyHelperTest {
 	@Test(expected=java.net.URISyntaxException.class)
 	public void constructString_withBadURI() throws Exception {
 		final String dummyUri = "http://blah<.com:8080/dummy.owl";
-		new OntologyHelper(dummyUri);
+		new OntologyHelper(dummyUri, null);
 	}
 	
 	@Test
 	public void constructString() throws Exception {
-		OntologyHelper helper = new OntologyHelper(TEST_ONTOLOGY);
+		OntologyHelper helper = new OntologyHelper(TEST_ONTOLOGY, null);
 		assertNotNull(helper.getOwlClass(TEST_IRI));
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)
 	public void construct_withNullUri() throws Exception {
 		final URI ontologyUri = null;
-		new OntologyHelper(ontologyUri);
+		new OntologyHelper(ontologyUri, null);
 	}
 	
 	@Test
 	public void construct() throws Exception {
-		OntologyHelper helper = new OntologyHelper(testOntologyUri);
+		OntologyHelper helper = new OntologyHelper(testOntologyUri, null);
 		assertNotNull(helper.getOwlClass(TEST_IRI));
 	}
 	
