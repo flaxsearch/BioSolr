@@ -113,25 +113,25 @@ public class OntologyHelperMethodsTest {
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)
-	public void getDescendentUris_nullClass() {
-		helper.getDescendentUris(null);
+	public void getDescendantUris_nullClass() {
+		helper.getDescendantUris(null);
 	}
 	
 	@Test
-	public void getDescendentUris_noDescendentren() {
+	public void getDescendantUris_noDescendentren() {
 		OWLClass testClass = helper.getOwlClass(TEST_CHILD_IRI);
-		Collection<String> descendentUris = helper.getDescendentUris(testClass);
-		assertNotNull(descendentUris);
-		assertEquals(0, descendentUris.size());
+		Collection<String> descendantUris = helper.getDescendantUris(testClass);
+		assertNotNull(descendantUris);
+		assertEquals(0, descendantUris.size());
 	}
 	
 	@Test
-	public void getDescendentUris() {
+	public void getDescendantUris() {
 		OWLClass testClass = helper.getOwlClass(TEST_IRI);
-		Collection<String> descendentUris = helper.getDescendentUris(testClass);
-		assertNotNull(descendentUris);
-		assertEquals(1, descendentUris.size());
-		assertTrue(descendentUris.contains(TEST_CHILD_IRI));
+		Collection<String> descendantUris = helper.getDescendantUris(testClass);
+		assertNotNull(descendantUris);
+		assertEquals(1, descendantUris.size());
+		assertTrue(descendantUris.contains(TEST_CHILD_IRI));
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)

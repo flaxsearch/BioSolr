@@ -260,12 +260,12 @@ public class OntologyHelper {
 	}
 
 	/**
-	 * Get all descendent URIs for an OWL class, including direct children.
+	 * Get all descendant URIs for an OWL class, including direct children.
 	 * 
 	 * @param owlClass
-	 * @return the descendent URIs, as strings. Never <code>null</code>.
+	 * @return the descendant URIs, as strings. Never <code>null</code>.
 	 */
-	public Collection<String> getDescendentUris(OWLClass owlClass) {
+	public Collection<String> getDescendantUris(OWLClass owlClass) {
 		return getSubclassUris(owlClass, false);
 	}
 

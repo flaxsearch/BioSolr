@@ -62,7 +62,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String CHILD_FIELD_PARAM = "childField";
 	private static final String PARENT_FIELD_PARAM = "parentField";
 	private static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
-	private static final String DESCENDENT_FIELD_PARAM = "descendentsField";
+	private static final String DESCENDANT_FIELD_PARAM = "descendantsField";
 	private static final String ANCESTOR_FIELD_PARAM = "ancestorsField";
 	private static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 	
@@ -75,7 +75,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String LABEL_FIELD_SUFFIX = "_labels_t";
 	private static final String CHILD_FIELD_DEFAULT = "child";
 	private static final String PARENT_FIELD_DEFAULT = "parent";
-	private static final String DESCENDENT_FIELD_DEFAULT = "descendents";
+	private static final String DESCENDANT_FIELD_DEFAULT = "descendents";
 	private static final String ANCESTOR_FIELD_DEFAULT = "ancestors";
 	
 	private boolean enabled;
@@ -89,8 +89,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String parentUriField;
 	private String parentLabelField;
 	private boolean includeIndirect;
-	private String descendentUriField;
-	private String descendentLabelField;
+	private String descendantUriField;
+	private String descendantLabelField;
 	private String ancestorUriField;
 	private String ancestorLabelField;
 	private boolean includeRelations;
@@ -114,9 +114,9 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.parentUriField = parentField + uriFieldSuffix;
 			this.parentLabelField = parentField + labelFieldSuffix;
 			this.includeIndirect = params.getBool(INCLUDE_INDIRECT_PARAM, true);
-			String descendentField = params.get(DESCENDENT_FIELD_PARAM, DESCENDENT_FIELD_DEFAULT);
-			this.descendentUriField = descendentField + uriFieldSuffix;
-			this.descendentLabelField = descendentField + labelFieldSuffix;
+			String descendentField = params.get(DESCENDANT_FIELD_PARAM, DESCENDANT_FIELD_DEFAULT);
+			this.descendantUriField = descendentField + uriFieldSuffix;
+			this.descendantLabelField = descendentField + labelFieldSuffix;
 			String ancestorField = params.get(ANCESTOR_FIELD_PARAM, ANCESTOR_FIELD_DEFAULT);
 			this.ancestorUriField = ancestorField + uriFieldSuffix;
 			this.ancestorLabelField = ancestorField + labelFieldSuffix;
@@ -165,12 +165,12 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return includeIndirect;
 	}
 	
-	public String getDescendentUriField() {
-		return descendentUriField;
+	public String getDescendantUriField() {
+		return descendantUriField;
 	}
 	
-	public String getDescendentLabelField() {
-		return descendentLabelField; 
+	public String getDescendantLabelField() {
+		return descendantLabelField; 
 	}
 	
 	public String getAncestorUriField() {
@@ -239,10 +239,10 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 						
 						if (isIncludeIndirect()) {
 							// Add descendent and ancestor URIs and labels
-							Collection<String> descendentUris = helper.getDescendentUris(owlClass);
+							Collection<String> descendentUris = helper.getDescendantUris(owlClass);
 							Collection<String> ancestorUris = helper.getAncestorUris(owlClass);
-							cmd.getSolrInputDocument().addField(getDescendentUriField(), descendentUris);
-							cmd.getSolrInputDocument().addField(getDescendentLabelField(), helper.findLabelsForIRIs(descendentUris));
+							cmd.getSolrInputDocument().addField(getDescendantUriField(), descendentUris);
+							cmd.getSolrInputDocument().addField(getDescendantLabelField(), helper.findLabelsForIRIs(descendentUris));
 							cmd.getSolrInputDocument().addField(getAncestorUriField(), ancestorUris);
 							cmd.getSolrInputDocument().addField(getAncestorLabelField(), helper.findLabelsForIRIs(ancestorUris));
 						}
