@@ -101,6 +101,30 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 				"//arr[@name='parent_labels_t']/str[1][.='experimental factor']");
 	}
 
+	@Test
+	public void addDoc_checkSynonyms() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperMethodsTest.TEST_IRI), 
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find synonyms", req, "//result[@numFound=1]",
+				"//arr[@name='synonyms_t']/str[1][.='ExperimentalFactor']");
+	}
+
+	@Test
+	public void addDoc_checkDefinition() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", OntologyHelperMethodsTest.TEST_IRI), 
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find definition", req, "//result[@numFound=1]",
+				"//arr[@name='definition_t']/str[1][.='An experimental factor in Array Express which are essentially the variable aspects of an experiment design which can be used to describe an experiment, or set of experiments, in an increasingly detailed manner. This upper level class is really used to give a root class from which applications can rely on and not be tied to upper ontology classses which do change.']");
+	}
+
 	static void addDoc(String doc, String chain) throws Exception {
 		Map<String, String[]> params = new HashMap<>();
 		MultiMapSolrParams mmparams = new MultiMapSolrParams(params);

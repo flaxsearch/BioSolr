@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.SolrInputDocument;
@@ -65,6 +66,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String DESCENDANT_FIELD_PARAM = "descendantsField";
 	private static final String ANCESTOR_FIELD_PARAM = "ancestorsField";
 	private static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
+	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
+	private static final String DEFINITION_FIELD_PARAM = "definitionField";
 	
 	
 	/*
@@ -77,6 +80,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String PARENT_FIELD_DEFAULT = "parent";
 	private static final String DESCENDANT_FIELD_DEFAULT = "descendents";
 	private static final String ANCESTOR_FIELD_DEFAULT = "ancestors";
+	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
+	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
 	
 	private boolean enabled;
 	private String annotationField;
@@ -94,6 +99,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String ancestorUriField;
 	private String ancestorLabelField;
 	private boolean includeRelations;
+	private String synonymsField;
+	private String definitionField;
 	
 	private OntologyHelper helper;
 
@@ -121,6 +128,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.ancestorUriField = ancestorField + uriFieldSuffix;
 			this.ancestorLabelField = ancestorField + labelFieldSuffix;
 			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
+			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, SYNONYMS_FIELD_DEFAULT);
+			this.definitionField = params.get(DEFINITION_FIELD_PARAM, DEFINITION_FIELD_DEFAULT);
 		}
 	}
 
@@ -193,6 +202,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return labelFieldSuffix;
 	}
 	
+	public String getSynonymsField() {
+		return synonymsField;
+	}
+
+	public String getDefinitionField() {
+		return definitionField;
+	}
+
 	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
 		if (helper == null) {
 			helper = new OntologyHelper(ontologyUri, OntologyConfiguration.getDefaultConfiguration());
@@ -249,6 +266,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 						
 						if (isIncludeRelations()) {
 							addRelationships(cmd.getSolrInputDocument(), owlClass, helper);
+						}
+						
+						if (StringUtils.isNotBlank(getSynonymsField())) {
+							cmd.getSolrInputDocument().addField(getSynonymsField(), helper.findSynonyms(owlClass));
+						}
+						
+						if (StringUtils.isNotBlank(getDefinitionField())) {
+							cmd.getSolrInputDocument().addField(getDefinitionField(), helper.findDefinitions(owlClass));
 						}
 					}
 				} catch (OWLOntologyCreationException | URISyntaxException e) {
