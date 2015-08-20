@@ -65,7 +65,7 @@ public class OntologyHelper {
 
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
-//	private final ShortFormProvider shortFormProvider;
+	// private final ShortFormProvider shortFormProvider;
 	private final IRI owlNothingIRI;
 
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
@@ -78,16 +78,12 @@ public class OntologyHelper {
 	 * Construct a new ontology helper instance with a string representing the
 	 * ontology URI.
 	 * 
-	 * @param ontologyUriString
-	 *            the URI.
-	 * @param config
-	 *            the ontology configuration, containing the property URIs for
-	 *            labels, synonyms, etc.
-	 * @throws OWLOntologyCreationException
-	 *             if the ontology cannot be read for some reason - internal
-	 *             inconsistencies, etc.
-	 * @throws URISyntaxException
-	 *             if the URI cannot be parsed.
+	 * @param ontologyUriString the URI.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
+	 * @throws OWLOntologyCreationException if the ontology cannot be read for
+	 * some reason - internal inconsistencies, etc.
+	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
 	public OntologyHelper(String ontologyUriString, OntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
@@ -97,16 +93,12 @@ public class OntologyHelper {
 	/**
 	 * Construct a new ontology helper instance.
 	 * 
-	 * @param ontologyUri
-	 *            the URI giving the location of the ontology.
-	 * @param config
-	 *            the ontology configuration, containing the property URIs for
-	 *            labels, synonyms, etc.
-	 * @throws OWLOntologyCreationException
-	 *             if the ontology cannot be read for some reason - internal
-	 *             inconsistencies, etc.
-	 * @throws URISyntaxException
-	 *             if the URI cannot be parsed.
+	 * @param ontologyUri the URI giving the location of the ontology.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
+	 * @throws OWLOntologyCreationException if the ontology cannot be read for
+	 * some reason - internal inconsistencies, etc.
+	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
 	public OntologyHelper(URI ontologyUri, OntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
@@ -124,7 +116,7 @@ public class OntologyHelper {
 		this.ontology = manager.loadOntologyFromOntologyDocument(iri);
 		// Use a buffering reasoner - not interested in ongoing changes
 		this.reasoner = new StructuralReasonerFactory().createReasoner(ontology);
-//		this.shortFormProvider = new SimpleShortFormProvider();
+		// this.shortFormProvider = new SimpleShortFormProvider();
 		this.owlNothingIRI = manager.getOWLDataFactory().getOWLNothing().getIRI();
 
 		// Initialise the class map
@@ -148,10 +140,9 @@ public class OntologyHelper {
 	/**
 	 * Get the OWL class for an IRI.
 	 * 
-	 * @param iri
-	 *            the IRI of the required class.
+	 * @param iri the IRI of the required class.
 	 * @return the class from the ontology, or <code>null</code> if no such
-	 *         class can be found, or the IRI string is null.
+	 * class can be found, or the IRI string is null.
 	 */
 	public OWLClass getOwlClass(String iri) {
 		OWLClass ret = null;
@@ -166,9 +157,8 @@ public class OntologyHelper {
 	/**
 	 * Find the labels for a single OWL class.
 	 * 
-	 * @param owlClass
-	 *            the class whose labels are required.
-	 * @return a collection of labels for the class.
+	 * @param owlClass the class whose labels are required.
+	 * @return a collection of labels for the class. Never <code>null</code>.
 	 */
 	public Collection<String> findLabels(OWLClass owlClass) {
 		return findLabels(owlClass.getIRI());
@@ -177,8 +167,7 @@ public class OntologyHelper {
 	/**
 	 * Find all of the labels for a collection of OWL class IRIs.
 	 * 
-	 * @param iris
-	 *            the IRIs whose labels should be looked up.
+	 * @param iris the IRIs whose labels should be looked up.
 	 * @return a collection of labels. Never <code>null</code>.
 	 */
 	public Collection<String> findLabelsForIRIs(Collection<String> iris) {
@@ -187,22 +176,62 @@ public class OntologyHelper {
 		return labels;
 	}
 
+	/**
+	 * Find all of the synonyms for an OWL class.
+	 * 
+	 * @param owlClass
+	 * @return the synonyms. Never <code>null</code>.
+	 */
+	public Collection<String> findSynonyms(OWLClass owlClass) {
+		return findSynonyms(owlClass.getIRI());
+	}
+
+	/**
+	 * Find all of the definitions for an OWL class.
+	 * 
+	 * @param owlClass
+	 * @return the definitions. Never <code>null</code>.
+	 */
+	public Collection<String> findDefinitions(OWLClass owlClass) {
+		return findDefinitions(owlClass.getIRI());
+	}
+
 	private Collection<String> findLabels(IRI iri) {
-		Set<String> classNames = new HashSet<>();
-
 		if (!labels.containsKey(iri)) {
-			OWLDataFactory odf = ontology.getOWLOntologyManager().getOWLDataFactory();
-
-			// For every label property URI, find the annotations for this entry
-			config.getLabelPropertyUris().parallelStream().map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
-					.map(prop -> findAnnotationNames(iri, prop)).forEach(classNames::addAll);
-
+			Collection<String> classNames = findPropertyValueStrings(config.getLabelPropertyUris(), iri);
 			labels.put(iri, classNames);
 		}
-
 		return labels.get(iri);
 	}
-	
+
+	private Collection<String> findSynonyms(IRI iri) {
+		if (!synonyms.containsKey(iri)) {
+			Collection<String> classNames = findPropertyValueStrings(config.getSynonymPropertyUris(), iri);
+			synonyms.put(iri, classNames);
+		}
+		return synonyms.get(iri);
+	}
+
+	private Collection<String> findDefinitions(IRI iri) {
+		if (!definitions.containsKey(iri)) {
+			Collection<String> classNames = findPropertyValueStrings(config.getDefinitionPropertyUris(), iri);
+			definitions.put(iri, classNames);
+		}
+		return definitions.get(iri);
+	}
+
+	private Collection<String> findPropertyValueStrings(List<String> propertyUris, IRI iri) {
+		Collection<String> classNames = new HashSet<>();
+
+		OWLDataFactory odf = ontology.getOWLOntologyManager().getOWLDataFactory();
+
+		// For every property URI, find the annotations for this entry
+		propertyUris.parallelStream().map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
+				.map(prop -> findAnnotationNames(iri, prop)).forEach(classNames::addAll);
+
+		return classNames;
+	}
+
 	private Collection<String> findAnnotationNames(IRI iri, OWLAnnotationProperty annotationType) {
 		Collection<String> classNames = new HashSet<String>();
 
@@ -291,15 +320,14 @@ public class OntologyHelper {
 	 * 
 	 * @param owlClass
 	 * @return a map of relation type to a list of IRIs for nodes with that
-	 *         relationship.
+	 * relationship.
 	 */
 	public Map<String, List<String>> getRestrictions(OWLClass owlClass) {
 		RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
 		for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
 			OWLClassExpression superCls = ax.getSuperClass();
 			// Ask our superclass to accept a visit from the RestrictionVisitor
-			// - if it is an existential restriction then our restriction
-			// visitor
+			// - if it is an existential restriction then our restriction visitor
 			// will answer it - if not our visitor will ignore it
 			superCls.accept(visitor);
 		}

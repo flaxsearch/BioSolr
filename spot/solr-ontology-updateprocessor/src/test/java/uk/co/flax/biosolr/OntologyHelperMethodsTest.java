@@ -183,4 +183,46 @@ public class OntologyHelperMethodsTest {
 		assertEquals(2, labels.size());
 	}
 	
+	@Test(expected=java.lang.NullPointerException.class)
+	public void findSynonyms_nullClass() {
+		helper.findSynonyms(null);
+	}
+	
+	@Test
+	public void findSynonyms_noSynonymsInClass() {
+		OWLClass owlClass = helper.getOwlClass(TEST_CHILD_IRI);
+		Collection<String> synonyms = helper.findSynonyms(owlClass);
+		assertNotNull(synonyms);
+		assertEquals(0, synonyms.size());
+	}
+	
+	@Test
+	public void findSynonyms() {
+		OWLClass owlClass = helper.getOwlClass(TEST_IRI);
+		Collection<String> synonyms = helper.findSynonyms(owlClass);
+		assertNotNull(synonyms);
+		assertEquals(1, synonyms.size());
+	}
+	
+	@Test(expected=java.lang.NullPointerException.class)
+	public void findDefinitions_nullClass() {
+		helper.findDefinitions(null);
+	}
+	
+	@Test
+	public void findDefinitions_noDefinitionsInClass() {
+		OWLClass owlClass = helper.getOwlClass(TEST_CHILD_IRI);
+		Collection<String> synonyms = helper.findDefinitions(owlClass);
+		assertNotNull(synonyms);
+		assertEquals(0, synonyms.size());
+	}
+	
+	@Test
+	public void findDefinitions() {
+		OWLClass owlClass = helper.getOwlClass(TEST_IRI);
+		Collection<String> synonyms = helper.findDefinitions(owlClass);
+		assertNotNull(synonyms);
+		assertEquals(1, synonyms.size());
+	}
+	
 }
