@@ -16,10 +16,17 @@
 
 package uk.co.flax.biosolr;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.MissingResourceException;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
+import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
@@ -32,55 +39,81 @@ public class OntologyConfiguration {
 	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
 	public static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
+	
+	public static final String LABEL_PROPERTY_KEY = "label_properties";
+	public static final String SYNONYM_PROPERTY_KEY = "synonym_properties";
+	public static final String DEFINITION_PROPERTY_KEY = "definition_properties";
+	public static final String IGNORE_PROPERTY_KEY = "ignore_properties";
 
-	private List<String> labelPropertyUris;
-	private List<String> synonymPropertyUris;
-	private List<String> definitionPropertyUris;
-	private List<String> obsoletePropertyUris;
+	private final List<String> labelPropertyUris;
+	private final List<String> synonymPropertyUris;
+	private final List<String> definitionPropertyUris;
+	private final List<String> ignorePropertyUris;
+	
+	public OntologyConfiguration(List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
+		this.labelPropertyUris = labelUris;
+		this.synonymPropertyUris = synonymUris;
+		this.definitionPropertyUris = definitionUris;
+		this.ignorePropertyUris = ignoreUris;
+	}
 	
 	/**
 	 * Build an ontology configuration using sensible defaults.
 	 * @return the default ontology configuration.
 	 */
 	public static OntologyConfiguration defaultConfiguration() {
-		OntologyConfiguration config = new OntologyConfiguration();
-		config.setLabelPropertyUris(Arrays.asList(LABEL_PROPERTY_URI));
-		config.setSynonymPropertyUris(Arrays.asList(SYNONYM_PROPERTY_URI));
-		config.setDefinitionPropertyUris(Arrays.asList(DEFINITION_PROPERTY_URI));
-		config.setObsoletePropertyUris(Collections.emptyList());
-		return config;
+		return new OntologyConfiguration(Arrays.asList(LABEL_PROPERTY_URI), Arrays.asList(SYNONYM_PROPERTY_URI),
+				Arrays.asList(DEFINITION_PROPERTY_URI), Collections.emptyList());
+	}
+	
+	/**
+	 * Build an ontology configuration using a properties file. Any missing
+	 * properties will be replaced with the equivalent default value(s).
+	 * @param propFile the properties file to read.
+	 * @return the ontology configuration for the properties file.
+	 * @throws IOException 
+	 */
+	public static OntologyConfiguration fromPropertiesFile(String propFile) throws IOException {
+		Reader reader = new FileReader(propFile);
+		ResourceBundle rb = new PropertyResourceBundle(reader);
+		
+		String labels = getResourceString(rb, LABEL_PROPERTY_KEY, LABEL_PROPERTY_URI);
+		String definitions = getResourceString( rb, DEFINITION_PROPERTY_KEY, DEFINITION_PROPERTY_URI);
+		String synonyms = getResourceString(rb, SYNONYM_PROPERTY_KEY, SYNONYM_PROPERTY_URI);
+		String ignores = getResourceString(rb, IGNORE_PROPERTY_KEY, "");
+		
+		List<String> labelUris = Arrays.asList(labels.split(",\\s*"));
+		List<String> definitionUris = Arrays.asList(definitions.split(",\\s*"));
+		List<String> synonymUris = Arrays.asList(synonyms.split(",\\s*"));
+		List<String> ignoreUris = StringUtils.isNotBlank(ignores) ? Arrays.asList(ignores.split(",\\s*")) : Collections.emptyList();
+		
+		return new OntologyConfiguration(labelUris, synonymUris, definitionUris, ignoreUris);
+	}
+	
+	private static String getResourceString(ResourceBundle rb, String key, String defaultValue) {
+		String ret;
+		try {
+			ret = rb.getString(key);
+		} catch (MissingResourceException mre) {
+			ret = defaultValue == null ? "" : defaultValue;
+		}
+		return ret;
 	}
 
 	public List<String> getLabelPropertyUris() {
 		return labelPropertyUris;
 	}
 
-	public void setLabelPropertyUris(List<String> labelPropertyUris) {
-		this.labelPropertyUris = labelPropertyUris;
-	}
-
 	public List<String> getSynonymPropertyUris() {
 		return synonymPropertyUris;
-	}
-
-	public void setSynonymPropertyUris(List<String> synonymPropertyUris) {
-		this.synonymPropertyUris = synonymPropertyUris;
 	}
 
 	public List<String> getDefinitionPropertyUris() {
 		return definitionPropertyUris;
 	}
 
-	public void setDefinitionPropertyUris(List<String> definitionPropertyUris) {
-		this.definitionPropertyUris = definitionPropertyUris;
-	}
-
-	public List<String> getObsoletePropertyUris() {
-		return obsoletePropertyUris;
-	}
-
-	public void setObsoletePropertyUris(List<String> obsoletePropertyUris) {
-		this.obsoletePropertyUris = obsoletePropertyUris;
+	public List<String> getIgnorePropertyUris() {
+		return ignorePropertyUris;
 	}
 
 }
