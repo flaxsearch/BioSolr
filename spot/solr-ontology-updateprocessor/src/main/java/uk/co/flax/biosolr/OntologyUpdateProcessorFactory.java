@@ -136,10 +136,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.definitionField = params.get(DEFINITION_FIELD_PARAM, DEFINITION_FIELD_DEFAULT);
 			this.configurationFile = params.get(CONFIG_FILE_PARAM);
 			
-			if (StringUtils.isNotBlank(configurationFile)) {
-				Path path = FileSystems.getDefault().getPath(configurationFile);
-				if (!path.toFile().exists()) {
-					throw new SolrException(ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
+			if (enabled) {
+				if (StringUtils.isNotBlank(configurationFile)) {
+					Path path = FileSystems.getDefault().getPath(configurationFile);
+					if (!path.toFile().exists()) {
+						throw new SolrException(ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
+					}
+				} else if (StringUtils.isBlank(ontologyUri)) {
+					throw new SolrException(ErrorCode.SERVER_ERROR, "No ontology URI - cannot read annotations.");
 				}
 			}
 		}
