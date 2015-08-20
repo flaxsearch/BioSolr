@@ -212,7 +212,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 
 	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
 		if (helper == null) {
-			helper = new OntologyHelper(ontologyUri, OntologyConfiguration.getDefaultConfiguration());
+			helper = new OntologyHelper(ontologyUri, OntologyConfiguration.defaultConfiguration());
 		}
 		
 		return helper;

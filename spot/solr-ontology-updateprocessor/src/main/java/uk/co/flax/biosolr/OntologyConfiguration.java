@@ -17,7 +17,10 @@
 package uk.co.flax.biosolr;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * JavaDoc for OntologyConfiguration.
@@ -26,23 +29,25 @@ import java.util.List;
  */
 public class OntologyConfiguration {
 	
-	public static final String LABEL_PROPERTY_URI = "http://www.w3.org/2000/01/rdf-schema#label";
+	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
 	public static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
 
 	private List<String> labelPropertyUris;
 	private List<String> synonymPropertyUris;
 	private List<String> definitionPropertyUris;
+	private List<String> obsoletePropertyUris;
 	
 	/**
 	 * Build an ontology configuration using sensible defaults.
 	 * @return the default ontology configuration.
 	 */
-	public static OntologyConfiguration getDefaultConfiguration() {
+	public static OntologyConfiguration defaultConfiguration() {
 		OntologyConfiguration config = new OntologyConfiguration();
 		config.setLabelPropertyUris(Arrays.asList(LABEL_PROPERTY_URI));
 		config.setSynonymPropertyUris(Arrays.asList(SYNONYM_PROPERTY_URI));
 		config.setDefinitionPropertyUris(Arrays.asList(DEFINITION_PROPERTY_URI));
+		config.setObsoletePropertyUris(Collections.emptyList());
 		return config;
 	}
 
@@ -68,6 +73,14 @@ public class OntologyConfiguration {
 
 	public void setDefinitionPropertyUris(List<String> definitionPropertyUris) {
 		this.definitionPropertyUris = definitionPropertyUris;
+	}
+
+	public List<String> getObsoletePropertyUris() {
+		return obsoletePropertyUris;
+	}
+
+	public void setObsoletePropertyUris(List<String> obsoletePropertyUris) {
+		this.obsoletePropertyUris = obsoletePropertyUris;
 	}
 
 }
