@@ -18,6 +18,8 @@ package uk.co.flax.biosolr;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
 	private static final String DEFINITION_FIELD_PARAM = "definitionField";
+	private static final String CONFIG_FILE_PARAM = "configurationFile";
 	
 	
 	/*
@@ -101,6 +104,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private boolean includeRelations;
 	private String synonymsField;
 	private String definitionField;
+	private String configurationFile;
 	
 	private OntologyHelper helper;
 
@@ -130,6 +134,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
 			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, SYNONYMS_FIELD_DEFAULT);
 			this.definitionField = params.get(DEFINITION_FIELD_PARAM, DEFINITION_FIELD_DEFAULT);
+			this.configurationFile = params.get(CONFIG_FILE_PARAM);
+			
+			if (StringUtils.isNotBlank(configurationFile)) {
+				Path path = FileSystems.getDefault().getPath(configurationFile);
+				if (!path.toFile().exists()) {
+					throw new SolrException(ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
+				}
+			}
 		}
 	}
 
@@ -209,10 +221,17 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public String getDefinitionField() {
 		return definitionField;
 	}
-
-	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException {
+	
+	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
 		if (helper == null) {
-			helper = new OntologyHelper(ontologyUri, OntologyConfiguration.defaultConfiguration());
+			OntologyConfiguration config;
+			if (StringUtils.isNotBlank(configurationFile)) {
+				config = OntologyConfiguration.fromPropertiesFile(configurationFile);
+			} else {
+				config = OntologyConfiguration.defaultConfiguration();
+			}
+			
+			helper = new OntologyHelper(ontologyUri, config);
 		}
 		
 		return helper;
