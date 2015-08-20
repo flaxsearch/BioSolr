@@ -13,7 +13,7 @@ along with the default update processors.
 To build the plugin, navigate to this directory, and execute
 
 ```
-% mvn -PshadeProfile clean package
+% mvn clean package
 ```
 
 This will generate a jar file in the `target` directory containing the OWLAPI
