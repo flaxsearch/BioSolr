@@ -23,6 +23,10 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
@@ -38,6 +42,7 @@ import org.apache.solr.schema.SchemaField;
 import org.apache.solr.update.AddUpdateCommand;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorFactory;
+import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -52,6 +57,8 @@ import org.slf4j.LoggerFactory;
 public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyUpdateProcessorFactory.class);
+	
+	public static final long DELETE_CHECK_DELAY_SECS = 2 * 60; // 2 minutes 
 	
 	private static final String ENABLED_PARAM = "enabled";
 	
@@ -108,6 +115,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String configurationFile;
 	
 	private OntologyHelper helper;
+	private ScheduledThreadPoolExecutor executor;
 
 	@Override
 	public void init(@SuppressWarnings("rawtypes") final NamedList args) {
@@ -158,20 +166,43 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					"Cannot use annotation field which does not exist in schema: " + getAnnotationField());
 		}
 		
+		initialiseOntologyCheckScheduler(core);
+	}
+
+	private void initialiseOntologyCheckScheduler(SolrCore core) {
+		executor = new ScheduledThreadPoolExecutor(1, new DefaultSolrThreadFactory("ontologyUpdate"),
+				new RejectedExecutionHandler() {
+					@Override
+					public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+						LOGGER.warn("Skipping execution of '{}' using '{}'", r, e);
+					}
+				});
+		
+	    executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+	    executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+		
 		// Add CloseHook to tidy up if core closes
 		core.addCloseHook(new CloseHook() {
 			@Override
 			public void preClose(SolrCore core) {
+				LOGGER.info("Triggering graceful shutdown of OntologyUpdate executor");
+				if (getHelper() != null) {
+					getHelper().resetLastCallTime();
+				}
+				executor.shutdown();
 			}
 			
 			@Override
 			public void postClose(SolrCore core) {
-				if (helper != null) {
-					LOGGER.info("Disposing of ontology data");
-					helper.dispose();
+				if (executor.isTerminating()) {
+					LOGGER.info("Forcing shutdown of OntologyUpdate executor");
+					executor.shutdownNow();
 				}
 			}
 		});
+		
+		executor.scheduleAtFixedRate(new OntologyCheckRunnable(this), DELETE_CHECK_DELAY_SECS, DELETE_CHECK_DELAY_SECS,
+				TimeUnit.SECONDS);
 	}
 
 	public boolean isEnabled() {
@@ -242,7 +273,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return definitionField;
 	}
 	
-	public synchronized OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
 		if (helper == null) {
 			OntologyConfiguration config;
 			if (StringUtils.isNotBlank(configurationFile)) {
@@ -256,7 +287,16 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		
 		return helper;
 	}
-
+	
+	public synchronized OntologyHelper getHelper() {
+		return helper;
+	}
+	
+	public synchronized void disposeHelper() {
+		helper.dispose();
+		helper = null;
+	}
+	
 	@Override
 	public UpdateRequestProcessor getInstance(SolrQueryRequest req, SolrQueryResponse rsp, UpdateRequestProcessor next) {
 		return new OntologyUpdateProcessor(next);
@@ -274,7 +314,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			if (isEnabled()) {
 				try {
 					// Look up ontology data for document
-					OntologyHelper helper = getHelper();
+					OntologyHelper helper = initialiseHelper();
 					
 					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
 					OWLClass owlClass = helper.getOwlClass(iri);
@@ -314,6 +354,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 						if (StringUtils.isNotBlank(getDefinitionField())) {
 							cmd.getSolrInputDocument().addField(getDefinitionField(), helper.findDefinitions(owlClass));
 						}
+						
+						helper.updateLastCallTime();
 					}
 				} catch (OWLOntologyCreationException | URISyntaxException e) {
 					throw new SolrException(ErrorCode.SERVER_ERROR, 
@@ -334,6 +376,27 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 				List<String> iris = relatedClasses.get(relation);
 				doc.addField(relation + getUriFieldSuffix(), iris);
 				doc.addField(relation + getLabelFieldSuffix(), helper.findLabelsForIRIs(iris));
+			}
+		}
+		
+	}
+	
+	
+	private final class OntologyCheckRunnable implements Runnable {
+		
+		final OntologyUpdateProcessorFactory updateProcessor;
+		
+		public OntologyCheckRunnable(OntologyUpdateProcessorFactory processor) {
+			this.updateProcessor = processor;
+		}
+
+		@Override
+		public void run() {
+			OntologyHelper helper = updateProcessor.getHelper();
+			if (helper != null) {
+				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_SECS > helper.getLastCallTime()) {
+					updateProcessor.disposeHelper();
+				}
 			}
 		}
 		
