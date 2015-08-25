@@ -62,6 +62,7 @@ public class OntologyHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHelper.class);
 
 	private final OntologyConfiguration config;
+	private final URI ontologyUri;
 
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
@@ -73,6 +74,8 @@ public class OntologyHelper {
 	private Map<IRI, Collection<String>> labels = new HashMap<>();
 	private Map<IRI, Collection<String>> synonyms = new HashMap<>();
 	private Map<IRI, Collection<String>> definitions = new HashMap<>();
+	
+	private long lastCallTime;
 
 	/**
 	 * Construct a new ontology helper instance with a string representing the
@@ -109,6 +112,7 @@ public class OntologyHelper {
 			LOGGER.debug("Ontology URI {} is not absolute - loading from classpath", ontologyUri);
 			ontologyUri = this.getClass().getClassLoader().getResource(ontologyUri.toString()).toURI();
 		}
+		this.ontologyUri = ontologyUri;
 		LOGGER.info("Loading ontology from " + ontologyUri + "...");
 
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
@@ -134,6 +138,7 @@ public class OntologyHelper {
 	 * use.
 	 */
 	public void dispose() {
+		LOGGER.info("Disposing of ontology reasoner for {}", ontologyUri);
 		reasoner.dispose();
 	}
 
@@ -399,6 +404,18 @@ public class OntologyHelper {
 			LOGGER.trace("No rules to shorten this URI could be found (" + termURI + ")");
 			return Optional.empty();
 		}
+	}
+	
+	public void updateLastCallTime() {
+		this.lastCallTime = System.currentTimeMillis();
+	}
+	
+	public void resetLastCallTime() {
+		this.lastCallTime = 0;
+	}
+	
+	public long getLastCallTime() {
+		return lastCallTime;
 	}
 
 }
