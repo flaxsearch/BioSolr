@@ -30,6 +30,7 @@ import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CloseHook;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
@@ -156,6 +157,21 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			throw new SolrException(ErrorCode.SERVER_ERROR, 
 					"Cannot use annotation field which does not exist in schema: " + getAnnotationField());
 		}
+		
+		// Add CloseHook to tidy up if core closes
+		core.addCloseHook(new CloseHook() {
+			@Override
+			public void preClose(SolrCore core) {
+			}
+			
+			@Override
+			public void postClose(SolrCore core) {
+				if (helper != null) {
+					LOGGER.info("Disposing of ontology data");
+					helper.dispose();
+				}
+			}
+		});
 	}
 
 	public boolean isEnabled() {
@@ -226,7 +242,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return definitionField;
 	}
 	
-	public OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+	public synchronized OntologyHelper getHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
 		if (helper == null) {
 			OntologyConfiguration config;
 			if (StringUtils.isNotBlank(configurationFile)) {

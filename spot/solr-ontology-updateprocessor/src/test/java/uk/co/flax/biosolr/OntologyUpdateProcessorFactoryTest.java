@@ -54,7 +54,7 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 		// Initialise a single Solr core
 		initCore("solrconfig.xml", "schema.xml", "ontologyUpdate/solr", "documents");
 	}
-
+	
 	@Override
 	@Before
 	public void setUp() throws Exception {
