@@ -6,8 +6,7 @@ including labels for child, parent and related ontology nodes.
 
 It uses the Solr Ontology update processor plugin to handle the ontology
 look-ups, so this will need to be installed in your Solr instance.
-Instructions for this can be found in the project directory, at
-[https://github.com/flaxsearch/BioSolr/tree/master/spot/solr-ontology-updateprocessor](../../solr-ontology-update-processor).
+Instructions for this can be found in the [solr-ontology-updateprocessor project directory](https://github.com/flaxsearch/BioSolr/tree/master/spot/solr-ontology-updateprocessor).
 
 The `mvn package` command will build a fat jar containing all
 of the libraries required to run the indexer.
