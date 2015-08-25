@@ -34,6 +34,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
+ * Unit tests for the OntologyUpdateProcessorFactory, using SolrTestCaseJ4
+ * to add and check some example records.
+ * 
  * @author mlp
  */
 public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
