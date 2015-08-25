@@ -50,15 +50,115 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JavaDoc for OntologyUpdateProcessorFactory.
+ * This is an update processor for adding ontology data to documents annotated
+ * with ontology references. It expects the location of the ontology and the
+ * field containing the ontology reference to be passed in as configuration
+ * parameters, as well as a number of optional parameters.
+ * 
+ * <p>
+ * The full set of configuration options are:
+ * </p>
+ * <ul>
+ * <li>
+ * <b>enabled</b> - boolean value to enable/disable the plugin. Default:
+ * <code>true</code>.</li>
+ * <li>
+ * <b>annotationField</b> [REQUIRED] - the field in the input document that
+ * contains the annotation URI. This is used as the reference when looking up
+ * details in the ontology.</li>
+ * <li>
+ * <b>ontologyURI</b> [REQUIRED] - the location of the ontology being
+ * referenced. Eg. <code>http://www.ebi.ac.uk/efo/efo.owl</code> or
+ * <code>file:///home/mlp/Downloads/efo.owl</code>.</li>
+ * <li>
+ * <b>labelField</b> - the field in your schema that should be used for the
+ * annotation's label(s). Default: <code>label_t</code>.</li>
+ * <li>
+ * <b>uriFieldSuffix</b> - the suffix to use for referenced URI fields, such as
+ * parent or child URI references. Default: <code>_uri_s</code>.</li>
+ * <li>
+ * <b>labelFieldSuffix</b> - the suffix to use for referenced label fields, such
+ * as the labels for parent or child references. Default: <code>_labels_t</code>
+ * .</li>
+ * <li>
+ * <b>childField</b> - the field to use for child document references. These are
+ * direct (ie. single-step) relationships *down* the hierarchy. This will be
+ * combined with the URI and label field suffixes, so the field names will be
+ * `child_uri_s` and `child_labels_t` (for example). Default: <code>child</code>
+ * .</li>
+ * <li>
+ * <b>parentField</b> - the field to use for parent document references. These
+ * are direct relationships *up* the hierarchy. Field name follows the same
+ * conventions as `childField`, above. Default: <code>parent</code>.</li>
+ * <li>
+ * <b>includeIndirect</b> - (boolean) should indirect parent/child relationships
+ * also be indexed? If this is set to `true`, *all* ancestor and descendant
+ * relationships will also be stored in the index. Default: <code>true</code>.</li>
+ * <li>
+ * <b>descendantsField</b> - the field to use for the full set of descendant
+ * references. These are indirect relationships *down* the hierarchy. Field name
+ * follows the same conventions as `childField`, above. Default:
+ * <code>descendants</code>.</li>
+ * <li>
+ * <b>ancestorssField</b> - the field to use for the full set of ancestor
+ * references. These are indirect relationships *up* the hierarchy. Field name
+ * follows the same conventions as `childField`, above. Default:
+ * <code>ancestors</code>.</li>
+ * <li>
+ * <b>includeRelations</b> (boolean) - should other relationships between nodes
+ * (eg. "has disease location", "is part of") be indexed. The fields will be
+ * named using the short form of the field name, plus the URI and label field
+ * suffixes - for example, <code>has_disease_location_uris_s</code>,
+ * <code>has_disease_location_labels_t</code>. Default: <code>true</code>.</li>
+ * <li>
+ * <b>synonymsField</b> - the field which should be used to store synonyms. If
+ * left empty, synonyms will not be indexed. Default: <code>synonyms_t</code>.</li>
+ * <li>
+ * <b>definitionField</b> - the field to use to store definitions. If left
+ * empty, definitions will not be indexed. Default: <code>definition_t</code>.</li>
+ * <li>
+ * <b>configurationFile</b> - the path to a properties-style file containing
+ * additional, ontology-specific configuration, such as the property annotation
+ * to use for synonyms, definitions, etc. See below for the format of this file,
+ * and the default values used when not defined. There is no default value for
+ * this configuration option.</li>
+ * </ul>
  *
+ * <p>
+ * The plugin attempts to use sensible defaults for the property annotations for
+ * labels, synonyms and definitions. However, if the ontology being referenced
+ * uses different annotations for these properties, you will need to specify
+ * them in an external properties file, referenced by the
+ * <code>configurationFile</code> config option described above. This follows
+ * the standard Java properties file format, with the following options
+ * (including default values):
+ * </p>
+ * 
+ * <pre>
+ * label_properties = http://www.w3.org/2000/01/rdf-schema#label
+ * definition_properties = http://purl.obolibrary.org/obo/IAO_0000115
+ * synonym_properties = http://www.geneontology.org/formats/oboInOwl#hasExactSynonym
+ * ignore_properties =
+ * </pre>
+ * 
+ * <p>
+ * All of the properties above can be used to specify multiple values. These should
+ * be comma-separated - eg.:
+ * </p>
+ * <pre>
+ * definition_properties = http://www.ebi.ac.uk/efo/definition,http://purl.obolibrary.org/obo/IAO_0000115
+ * </pre>
+ *
+ * <p>The <code>ignore_properties</code> property can be used to specify parts
+ * of the hierarchy that should be ignored - references that are now obsolete,
+ * for example.</p>
  * @author mlp
  */
 public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyUpdateProcessorFactory.class);
 	
-	public static final long DELETE_CHECK_DELAY_SECS = 2 * 60; // 2 minutes 
+	public static final long DELETE_CHECK_DELAY_MS = 2 * 60 * 1000; // 2 minutes 
 	
 	private static final String ENABLED_PARAM = "enabled";
 	
@@ -187,7 +287,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			public void preClose(SolrCore core) {
 				LOGGER.info("Triggering graceful shutdown of OntologyUpdate executor");
 				if (getHelper() != null) {
-					getHelper().resetLastCallTime();
+					disposeHelper();
 				}
 				executor.shutdown();
 			}
@@ -201,8 +301,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			}
 		});
 		
-		executor.scheduleAtFixedRate(new OntologyCheckRunnable(this), DELETE_CHECK_DELAY_SECS, DELETE_CHECK_DELAY_SECS,
-				TimeUnit.SECONDS);
+		executor.scheduleAtFixedRate(new OntologyCheckRunnable(this), DELETE_CHECK_DELAY_MS, DELETE_CHECK_DELAY_MS,
+				TimeUnit.MILLISECONDS);
 	}
 
 	public boolean isEnabled() {
@@ -355,6 +455,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 							cmd.getSolrInputDocument().addField(getDefinitionField(), helper.findDefinitions(owlClass));
 						}
 						
+						// Update the helper's last call time
 						helper.updateLastCallTime();
 					}
 				} catch (OWLOntologyCreationException | URISyntaxException e) {
@@ -394,7 +495,9 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		public void run() {
 			OntologyHelper helper = updateProcessor.getHelper();
 			if (helper != null) {
-				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_SECS > helper.getLastCallTime()) {
+				// Check if the last call time was longer ago than the maximum
+				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
+					// Assume helper is out of use - dispose of it to allow memory to be freed
 					updateProcessor.disposeHelper();
 				}
 			}

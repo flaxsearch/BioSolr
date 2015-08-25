@@ -406,14 +406,17 @@ public class OntologyHelper {
 		}
 	}
 	
+	/**
+	 * Update the record of the last time this class was used. This
+	 * method should be called every time the helper class is accessed.
+	 */
 	public void updateLastCallTime() {
 		this.lastCallTime = System.currentTimeMillis();
 	}
 	
-	public void resetLastCallTime() {
-		this.lastCallTime = 0;
-	}
-	
+	/**
+	 * @return the last time the helper was called.
+	 */
 	public long getLastCallTime() {
 		return lastCallTime;
 	}
