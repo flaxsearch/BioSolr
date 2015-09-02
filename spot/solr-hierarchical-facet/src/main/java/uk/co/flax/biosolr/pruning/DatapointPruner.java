@@ -34,10 +34,14 @@ import uk.co.flax.biosolr.TreeFacetField;
  */
 public class DatapointPruner implements Pruner {
 	
+	public static final String DEFAULT_MORE_LABEL = "Others";
+	
 	private final int datapoints;
+	private final String moreLabel;
 
-	public DatapointPruner(int datapoints) {
+	public DatapointPruner(int datapoints, String moreLabel) {
 		this.datapoints = datapoints;
+		this.moreLabel = moreLabel;
 	}
 
 	@Override
@@ -190,9 +194,9 @@ public class DatapointPruner implements Pruner {
 	private TreeFacetField buildOtherNode(Collection<TreeFacetField> otherNodes) {
 		// Prune the other nodes - use the SimplePruner
 		SortedSet<TreeFacetField> pruned = new TreeSet<>(Comparator.reverseOrder());
-		pruned.addAll(new SimplePruner().prune(otherNodes));
+		pruned.addAll(new SimplePruner(SimplePruner.MIN_CHILD_COUNT).prune(otherNodes));
 		
-		TreeFacetField other = new TreeFacetField("More", "", 0, 0, pruned);
+		TreeFacetField other = new TreeFacetField(moreLabel, "", 0, 0, pruned);
 		other.recalculateChildCount();
 		
 		return other;

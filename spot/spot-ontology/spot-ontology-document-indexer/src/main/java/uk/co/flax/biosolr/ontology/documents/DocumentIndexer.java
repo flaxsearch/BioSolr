@@ -22,32 +22,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.ebi.fgpt.owl2json.OntologyHierarchyNode;
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
 import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.config.loaders.YamlConfigurationLoader;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
-import uk.co.flax.biosolr.ontology.indexer.RelatedItem;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Matt Pearce
@@ -62,13 +53,13 @@ public class DocumentIndexer {
 	
 	private final IndexerConfiguration config;
 	
-	private final SolrServer solrServer;
-	private final OntologyHandler ontologyHandler;
+	private final SolrClient solrServer;
+//	private final OntologyHandler ontologyHandler;
 	
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
 		this.config = readConfig(configFilepath);
-		solrServer = new HttpSolrServer(config.getDocumentsSolrUrl());
-		ontologyHandler = new OntologyHandler(config.getOntologyUri());
+		solrServer = new HttpSolrClient(config.getDocumentsSolrUrl());
+//		ontologyHandler = new OntologyHandler(config.getOntologyUri());
 	}
 
 	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
@@ -150,20 +141,20 @@ public class DocumentIndexer {
 				doc.setEfoUriHash(uriHash);
 				doc.setUriKey(uriHash.hashCode());
 				
-				OWLClass efoClass = findEfoClass(efoUri);
-				if (efoClass != null) {
-					doc.setEfoLabels(lookupEfoLabels(efoClass));
-					
-					List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
-					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
-					doc.setChildLabels(extractLabels(childHierarchy));
-					doc.setParentLabels(lookupParentLabels(efoClass));
-					List<String> facetLabels = new ArrayList<String>();
-					facetLabels.addAll(doc.getEfoLabels());
-					facetLabels.addAll(doc.getParentLabels());
-					doc.setFacetLabels(facetLabels);
-					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
-				}
+//				OWLClass efoClass = findEfoClass(efoUri);
+//				if (efoClass != null) {
+//					doc.setEfoLabels(lookupEfoLabels(efoClass));
+//					
+//					List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
+//					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
+//					doc.setChildLabels(extractLabels(childHierarchy));
+//					doc.setParentLabels(lookupParentLabels(efoClass));
+//					List<String> facetLabels = new ArrayList<String>();
+//					facetLabels.addAll(doc.getEfoLabels());
+//					facetLabels.addAll(doc.getParentLabels());
+//					doc.setFacetLabels(facetLabels);
+//					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
+//				}
 				
 				documents.add(doc);
 			}
@@ -172,77 +163,11 @@ public class DocumentIndexer {
 		return documents;
 	}
 	
-	private OWLClass findEfoClass(String uri) {
-		return ontologyHandler.findOWLClass(uri);
-	}
-	
-	private List<String> lookupEfoLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findLabels(efoClass));
-	}
-	
-	private List<String> lookupParentLabels(OWLClass efoClass) {
-		return new ArrayList<String>(ontologyHandler.findParentLabels(efoClass, false));
-	}
-	
-	private Map<String, List<RelatedItem>> lookupRelatedItems(OWLClass efoClass) {
-		return ontologyHandler.getRestrictions(efoClass);
-	}
-	
-	private void addRelatedItemsToDocument(Map<String, List<RelatedItem>> relatedItems, Document doc) {
-		Map<String, List<String>> iriMap = new HashMap<>();
-		Map<String, List<String>> labelMap = new HashMap<>();
-		
-		for (String relation : relatedItems.keySet()) {
-			List<RelatedItem> items = relatedItems.get(relation);
-			List<String> iris = new ArrayList<>(items.size());
-			List<String> labels = new ArrayList<>();
-			
-			for (RelatedItem item : relatedItems.get(relation)) {
-				iris.add(item.getIri().toString());
-				labels.addAll(item.getLabels());
-			}
-			
-			iriMap.put(relation + Document.RELATED_IRI_SUFFIX, iris);
-			labelMap.put(relation + Document.RELATED_LABEL_SUFFIX, labels);
-		}
-		
-		doc.setRelatedIris(iriMap);
-		doc.setRelatedLabels(labelMap);
-	}
-	
     private void indexDocuments(List<Document> documents) throws IOException, SolrServerException {
     	UpdateResponse response = solrServer.addBeans(documents, COMMIT_WITHIN);
 		if (response.getStatus() != 0) {
 			throw new OntologyIndexingException("Solr error adding records: " + response);
 		}
-    }
-    
-    private String convertHierarchyToJson(List<OntologyHierarchyNode> hierarchy) {
-    	String json = null;
-    	
-    	if (hierarchy.size() > 0) {
-    		try {
-    			ObjectMapper mapper = new ObjectMapper();
-    			json = mapper.writeValueAsString(hierarchy);
-    		} catch (JsonProcessingException e) {
-    			LOGGER.error("Caught JSON processing exception converting hierarchy: {}", e.getMessage());
-    		}
-    	}
-    	
-    	return json;
-    }
-    
-    private List<String> extractLabels(Collection<OntologyHierarchyNode> hierarchy) {
-    	List<String> labels = new ArrayList<>();
-    	
-    	for (OntologyHierarchyNode node : hierarchy) {
-    		if (node.getSize() > 0) {
-    			labels.add(node.getName());
-        		labels.addAll(extractLabels(node.getChildren()));
-    		}
-    	}
-    	
-    	return labels;
     }
     
 	public static void main(String[] args) {

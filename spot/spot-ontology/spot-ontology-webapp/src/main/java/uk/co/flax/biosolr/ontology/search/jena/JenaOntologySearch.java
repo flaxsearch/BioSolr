@@ -46,9 +46,9 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
-import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * Search engine providing SPARQL search through Apache Jena, using
@@ -59,9 +59,6 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 public class JenaOntologySearch {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(JenaOntologySearch.class);
-	
-	private static final String URI_FIELD = "uri";
-	private static final String LABEL_FIELD = "label";
 	
 	private final JenaConfiguration jenaConfig;
 	private final SolrConfiguration solrConfig;
@@ -75,22 +72,47 @@ public class JenaOntologySearch {
 	}
 	
 	private Dataset buildDataSet() {
+		Dataset ds;
+		
 		LOGGER.info("Construct a dataset backed by Solr");
 		Dataset jenaData = buildBaseDataset();
 
-		// Define the index mapping
-		EntityDefinition entDef = new EntityDefinition(URI_FIELD, LABEL_FIELD, RDFS.label.asNode());
-		// Define the Solr server
-		SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
-		// Join together into a dataset
-		Dataset ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
+		if (StringUtils.isNotBlank(jenaConfig.getAssemblerFile())) {
+			// The assembler file contains the full mapping detail
+			ds = jenaData;
+		} else {
+			// Define the index mapping
+			EntityDefinition entDef = buildEntityDefinition();
+			// Define the Solr server
+			SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
+			// Join together into a dataset
+			ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
+		}
+		
 		return ds;
+	}
+	
+	private EntityDefinition buildEntityDefinition() {
+		// Build the base definition
+		EntityDefinition entity = new EntityDefinition(jenaConfig.getEntityField(), jenaConfig.getPrimaryField());
+		
+		// And add the field mappings
+		for (String field : jenaConfig.getFieldMappings().keySet()) {
+			for (String mapping : jenaConfig.getFieldMappings().get(field)) {
+				entity.set(field, ResourceFactory.createProperty(mapping).asNode());
+			}
+		}
+		
+		return entity;
 	}
 	
 	private Dataset buildBaseDataset() {
 		Dataset jenaData;
 		
-		if (StringUtils.isNotBlank(jenaConfig.getTdbPath())) {
+		if (StringUtils.isNotBlank(jenaConfig.getAssemblerFile())) {
+			LOGGER.debug("Building dataset from assembler file {}", jenaConfig.getAssemblerFile());
+			jenaData = DatasetFactory.assemble(jenaConfig.getAssemblerFile(), jenaConfig.getAssemblerDataset());
+		} else if (StringUtils.isNotBlank(jenaConfig.getTdbPath())) {
 			LOGGER.debug("Building dataset from TDB data at {}", jenaConfig.getTdbPath());
 			jenaData = TDBFactory.createDataset(jenaConfig.getTdbPath());
 		} else {

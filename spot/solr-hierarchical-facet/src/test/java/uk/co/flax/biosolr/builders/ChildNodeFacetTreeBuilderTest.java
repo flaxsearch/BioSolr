@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.impl;
+package uk.co.flax.biosolr.builders;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -24,8 +24,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QueryParsing;
 import org.junit.Test;
 
-import uk.co.flax.biosolr.HierarchicalFacets;
-import uk.co.flax.biosolr.builders.ChildNodeFacetTreeBuilder;
+import uk.co.flax.biosolr.FacetTreeParameters;
 
 /**
  * Unit tests for ChildNodeFacetTreeBuilder.
@@ -45,13 +44,13 @@ public class ChildNodeFacetTreeBuilderTest {
 	@Test(expected=org.apache.solr.search.SyntaxError.class)
 	public void initialiseParameters_missingNodeFieldParam() throws Exception {
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.NODE_FIELD_PARAM)).thenReturn(null);
+		when(params.get(FacetTreeParameters.NODE_FIELD_PARAM)).thenReturn(null);
 		when(params.get(QueryParsing.V)).thenReturn(null);
 		
 		ChildNodeFacetTreeBuilder ftb = new ChildNodeFacetTreeBuilder();
 		ftb.initialiseParameters(params);
 		
-		verify(params).get(HierarchicalFacets.NODE_FIELD_PARAM);
+		verify(params).get(FacetTreeParameters.NODE_FIELD_PARAM);
 		verify(params).get(QueryParsing.V);
 	}
 
@@ -60,16 +59,16 @@ public class ChildNodeFacetTreeBuilderTest {
 		final String nodeField = "node";
 		final String childField = null;
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.NODE_FIELD_PARAM)).thenReturn(null);
+		when(params.get(FacetTreeParameters.NODE_FIELD_PARAM)).thenReturn(null);
 		when(params.get(QueryParsing.V)).thenReturn(nodeField);
-		when(params.get(HierarchicalFacets.CHILD_FIELD_PARAM)).thenReturn(childField);
+		when(params.get(FacetTreeParameters.CHILD_FIELD_PARAM)).thenReturn(childField);
 		
 		ChildNodeFacetTreeBuilder ftb = new ChildNodeFacetTreeBuilder();
 		ftb.initialiseParameters(params);
 		
-		verify(params).get(HierarchicalFacets.NODE_FIELD_PARAM);
+		verify(params).get(FacetTreeParameters.NODE_FIELD_PARAM);
 		verify(params).get(QueryParsing.V);
-		verify(params).get(HierarchicalFacets.CHILD_FIELD_PARAM);
+		verify(params).get(FacetTreeParameters.CHILD_FIELD_PARAM);
 	}
 
 	@Test
@@ -77,16 +76,16 @@ public class ChildNodeFacetTreeBuilderTest {
 		final String nodeField = "node";
 		final String childField = "child";
 		final SolrParams params = mock(SolrParams.class);
-		when(params.get(HierarchicalFacets.NODE_FIELD_PARAM)).thenReturn(nodeField);
-		when(params.get(HierarchicalFacets.CHILD_FIELD_PARAM)).thenReturn(childField);
+		when(params.get(FacetTreeParameters.NODE_FIELD_PARAM)).thenReturn(nodeField);
+		when(params.get(FacetTreeParameters.CHILD_FIELD_PARAM)).thenReturn(childField);
 		
 		ChildNodeFacetTreeBuilder ftb = new ChildNodeFacetTreeBuilder();
 		ftb.initialiseParameters(params);
 		
-		verify(params).get(HierarchicalFacets.NODE_FIELD_PARAM);
-		verify(params).get(HierarchicalFacets.CHILD_FIELD_PARAM);
-		verify(params).get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
-		verify(params).getInt(HierarchicalFacets.LEVELS_PARAM, 0);
+		verify(params).get(FacetTreeParameters.NODE_FIELD_PARAM);
+		verify(params).get(FacetTreeParameters.CHILD_FIELD_PARAM);
+		verify(params).get(FacetTreeParameters.LABEL_FIELD_PARAM, null);
+		verify(params).getInt(FacetTreeParameters.LEVELS_PARAM, 0);
 	}
 
 }

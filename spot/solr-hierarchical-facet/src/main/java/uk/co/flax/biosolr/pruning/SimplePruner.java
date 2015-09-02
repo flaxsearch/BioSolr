@@ -34,10 +34,21 @@ import uk.co.flax.biosolr.TreeFacetField;
 public class SimplePruner implements Pruner {
 	
 	/** 
-	 * The minimum number of child nodes with content required for a parent
+	 * The default number of child nodes with content required for a parent
 	 * node to be considered "relevant".
 	 */
-	public static final int MIN_CHILD_COUNT = 4;
+	public static final int MIN_CHILD_COUNT = 3;
+	
+	/**
+	 * The parameter used to pass the child count into the component.
+	 */
+	public static final String CHILD_COUNT_PARAM = "childCount";
+	
+	private final int minChildCount;
+	
+	public SimplePruner(int minChildCount) {
+		this.minChildCount = minChildCount;
+	}
 
 	@Override
 	public Collection<TreeFacetField> prune(Collection<TreeFacetField> unprunedTrees) {
@@ -127,7 +138,7 @@ public class SimplePruner implements Pruner {
 			hitCount = tree.getHierarchy().stream().filter(t -> t.getCount() > 0).count();
 		}
 		
-		return hitCount >= MIN_CHILD_COUNT;
+		return hitCount >= minChildCount;
 	}
 	
 }

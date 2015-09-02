@@ -41,8 +41,9 @@ public class FacetTreeProcessorTest {
 		rb.doFacets = false;
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
+		FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
 		
-		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb, ftParams);
 		assertNull(ftp.process(new String[]{ "blah" }));
 	}
 
@@ -53,8 +54,9 @@ public class FacetTreeProcessorTest {
 		rb.doFacets = true;
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
+		FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
 		
-		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb, ftParams);
 		assertNull(ftp.process(null));
 	}
 
@@ -67,9 +69,10 @@ public class FacetTreeProcessorTest {
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
 		SolrParams params = mock(SolrParams.class);
 		when(req.getParams()).thenReturn(params);
+		FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
 
-		final String[] facetTrees = new String[] { "{!" + HierarchicalFacets.LOCAL_PARAM_TYPE + " x=y}uri" };
-		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
+		final String[] facetTrees = new String[] { "{!" + FacetTreeParameters.LOCAL_PARAM_TYPE + " x=y}uri" };
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb, ftParams);
 		ftp.process(facetTrees);
 	}
 
@@ -80,9 +83,10 @@ public class FacetTreeProcessorTest {
 		rb.doFacets = true;
 		
 		SolrQueryRequest req = mock(SolrQueryRequest.class);
+		FacetTreeParameters ftParams = mock(FacetTreeParameters.class);
 
-		final String[] facetTrees = new String[] { "{!" + HierarchicalFacets.LOCAL_PARAM_TYPE + HierarchicalFacets.CHILD_FIELD_PARAM + "=child_uris}uri" };
-		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb);
+		final String[] facetTrees = new String[] { "{!" + FacetTreeParameters.LOCAL_PARAM_TYPE + FacetTreeParameters.CHILD_FIELD_PARAM + "=child_uris}uri" };
+		HierarchicalFacets ftp = new HierarchicalFacets(req, null, null, rb, ftParams);
 		assertNotNull(ftp.process(facetTrees));
 	}
 

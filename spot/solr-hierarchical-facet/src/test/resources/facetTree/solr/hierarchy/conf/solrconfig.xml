@@ -691,6 +691,10 @@
   
   <!-- Override the facet component with TreeFacetComponent -->
   <searchComponent class="uk.co.flax.biosolr.TreeFacetComponent" name="facet">
+    <lst name="defaults">
+      <str name="datapoints">5</str>
+      <str name="datapoints.moreLabel">More...</str>
+    </lst>
   </searchComponent>
   
   <!-- Update Processors

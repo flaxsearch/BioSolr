@@ -33,7 +33,7 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 
-import uk.co.flax.biosolr.HierarchicalFacets;
+import uk.co.flax.biosolr.FacetTreeParameters;
 
 /**
  * Abstract base class for FacetTreeBuilder implementations.
@@ -55,7 +55,7 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 		}
 		
 		// Initialise the node field - REQUIRED
-		nodeField = localParams.get(HierarchicalFacets.NODE_FIELD_PARAM);
+		nodeField = localParams.get(FacetTreeParameters.NODE_FIELD_PARAM);
 		if (StringUtils.isBlank(nodeField)) {
 			// Not specified in localParams - use the key value instead
 			nodeField = localParams.get(QueryParsing.V);
@@ -67,7 +67,7 @@ public abstract class AbstractFacetTreeBuilder implements FacetTreeBuilder {
 		}
 
 		//  Initialise the optional fields
-		labelField = localParams.get(HierarchicalFacets.LABEL_FIELD_PARAM, null);
+		labelField = localParams.get(FacetTreeParameters.LABEL_FIELD_PARAM, null);
 	}
 	
 	protected void checkFieldsInSchema(SolrIndexSearcher searcher, Collection<String> fields) throws SolrException {

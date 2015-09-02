@@ -92,6 +92,11 @@
 	<!-- catchall text field that indexes tokens both normally and in reverse for efficient leading wildcard queries. -->
 	<field name="text_rev" type="text_general_rev" indexed="true" stored="false" multiValued="true" />
 
+    <!-- Dynamic field(s), named for relation type and holding IRIs -->
+    <dynamicField name="*_s" type="string" indexed="true" stored="true" multiValued="true" />
+    <!-- Dynamic field(s) holding relation labels -->
+    <dynamicField name="*_t" type="text_general" indexed="true" stored="true" multiValued="true" />
+
 	<!-- Field to use to determine and enforce document uniqueness. Unless this field is marked with required="false", it will be a required field -->
 	<uniqueKey>id</uniqueKey>
 	

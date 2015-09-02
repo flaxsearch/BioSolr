@@ -43,13 +43,18 @@ public class TreeFacetComponent extends FacetComponent {
 
 	public static final String FACET_TREE = FacetParams.FACET + ".tree";
 	public static final String FACET_TREE_FIELD = FACET_TREE + ".field";
-
+	
+	public static final String FACET_TREE_SIMPLE_PRUNE_NODES = FACET_TREE + ".prune.simple.nodes";
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeFacetComponent.class);
 	
-	@SuppressWarnings("rawtypes")
+	private FacetTreeParameters parameters;
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void init(NamedList args) {
 		super.init(args);
+		this.parameters = new FacetTreeParameters(args);
 	}
 	
 	@Override
@@ -104,7 +109,7 @@ public class TreeFacetComponent extends FacetComponent {
 
 		// And do the facet tree, if required
 		if (rb.doFacets && rb.req.getParams().getBool(FACET_TREE, false)) {
-			HierarchicalFacets ftp = new HierarchicalFacets(rb.req, rb.getResults().docSet, rb.req.getParams(), rb);
+			HierarchicalFacets ftp = new HierarchicalFacets(rb.req, rb.getResults().docSet, rb.req.getParams(), rb, parameters);
 			@SuppressWarnings("rawtypes")
 			SimpleOrderedMap<NamedList> ftpResponse = ftp.process(rb.req.getParams().getParams(FACET_TREE_FIELD));
 			

@@ -46,7 +46,7 @@ import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.HierarchicalFacets;
+import uk.co.flax.biosolr.FacetTreeParameters;
 import uk.co.flax.biosolr.TreeFacetField;
 
 /**
@@ -77,13 +77,13 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 		super.initialiseParameters(localParams);
 
 		// Initialise the parent field - REQUIRED
-		parentField = localParams.get(HierarchicalFacets.PARENT_FIELD_PARAM);
+		parentField = localParams.get(FacetTreeParameters.PARENT_FIELD_PARAM);
 		if (StringUtils.isBlank(parentField)) {
 			throw new SyntaxError("Missing parent field definition in " + localParams);
 		}
 		
 		//  Initialise the optional fields
-		maxLevels = localParams.getInt(HierarchicalFacets.LEVELS_PARAM, 0);
+		maxLevels = localParams.getInt(FacetTreeParameters.LEVELS_PARAM, 0);
 		
 		docFields.addAll(Arrays.asList(getNodeField(), parentField));
 		if (hasLabelField()) {

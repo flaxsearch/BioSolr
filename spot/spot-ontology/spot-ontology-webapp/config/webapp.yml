@@ -96,12 +96,30 @@ solr:
     # Number of datapoints to generate for datapoint hierarchy
     datapoints: 6
 
-# Apache Jena configuration
+# Apache Jena configuration - requires either the ontology URI or a TDB
+# data store to be set up.
 jena:
 
-  # The URI for the ontology to be read
+  # Assembler file settings.
+  # If these are supplied, all other parameters are ignored, all configuration
+  # is expected to be in the assembler file.
+  assemblerFile: config/assembler.ttl
+  assemblerDataset: "http://localhost/jena_example/#text_dataset"
+  
+  # The directory containing the TDB database.
+  tdbPath: /home/mlp/flax/tdb
+  
+  # If no TDB database is available, search a single ontology from its URI
   ontologyUri: /home/mlp/Downloads/efo.owl
   
-  # The directory containing the TDB database (OPTIONAL)
-  tdbPath: /home/mlp/flax/tdb
+  # The entity field - used to map the field in the TDB
+  entityField: uri
+  # The primary field - node mapping
+  primaryField: label
+  
+  # Field mappings
+  fieldMappings:
+    label: [ "http://www.w3.org/2000/01/rdf-schema#label" ]
+    synonyms: [ "http://www.ebi.ac.uk/efo/alternative_term", "http://purl.obolibrary.org/obo#Synonym", "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym" ]
+    
   
