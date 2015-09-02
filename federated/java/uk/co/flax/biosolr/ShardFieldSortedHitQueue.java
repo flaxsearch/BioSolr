@@ -133,11 +133,6 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     System.out.println("*******");
   }
   
-  @Override
-  protected ShardDoc getSentinelObject() {
-    return null;
-  }
-  
   Comparator<ShardDoc> getCachedComparator(SortField sortField, IndexSearcher searcher) {
     SortField.Type type = sortField.getType();
     if (type == SortField.Type.SCORE) {
