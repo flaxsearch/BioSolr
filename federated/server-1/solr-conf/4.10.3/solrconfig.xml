@@ -912,7 +912,7 @@
        </arr>
       -->
     <arr name="last-components">
-       <str>djoin</str>
+       <!-- str>djoin</str -->
     </arr>
   </requestHandler>
   

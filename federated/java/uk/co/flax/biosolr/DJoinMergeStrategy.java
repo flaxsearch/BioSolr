@@ -151,9 +151,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
           shardDoc.score = score;
         }
 
-        System.out.println("INSERTING " + shardDoc);
         queue.insertWithReplacement(shardDoc);
-        queue.print();
       } // end for-each-doc-in-response
     } // end for-each-response
 

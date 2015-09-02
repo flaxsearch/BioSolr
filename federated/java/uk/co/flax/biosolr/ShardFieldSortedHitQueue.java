@@ -58,23 +58,11 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
         this.fields[i] = new SortField(fieldname, fields[i].getType(),
             fields[i].getReverse());
       }
-
-      // System.out.println("%%%%%%%%%%%%%%%%%% got "+fields[i].getType()
-      // +"   for "+ fieldname
-      // +"  fields[i].getReverse(): "+fields[i].getReverse());
     }
   }
 
   @Override
   protected boolean lessThan(ShardDoc docA, ShardDoc docB) {
-    // watch out for sentinel objects
-    if (docA == null) {
-      return true;
-    }
-    if (docB == null) {
-      return false;
-    }
-    
     // If these docs are from the same shard, then the relative order
     // is how they appeared in the response from that shard.
     if (docA.shard == docB.shard) {
@@ -113,7 +101,8 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
             heap[j] = heap[j - 1];
           }
           pop();
-          assert insertWithOverflow(doc) == null;
+          Object overflow = insertWithOverflow(doc);
+          assert overflow == null;
           return old;
         } else {
           return doc;
