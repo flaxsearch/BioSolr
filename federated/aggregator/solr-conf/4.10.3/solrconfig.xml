@@ -907,9 +907,6 @@
          <str>nameOfCustomComponent2</str>
        </arr>
       -->
-    <arr name="last-components">
-       <str>djoin</str>
-    </arr>
   </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
@@ -927,6 +924,25 @@
     <bool name="ignoreConversionErrors">true</bool>
   </searchComponent>
   
+  <requestHandler name="/djoin" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">all</str>
+      <str name="wt">xml</str>
+      <bool name="indent">true</bool>
+      <str name="df">name</str>
+      <str name="shards">http://localhost:8984/solr/pdb_entity_db1,http://localhost:8985/solr/pdb_entity_db1,http://localhost:8986/solr/pdb_entity_db1</str>
+      <!-- bool name="shards.info">true</bool -->
+      <bool name="shards.tolerant">true</bool>
+      <str name="fl">*,score,[djoin]</str>
+      <str name="sort">score desc,name asc</str>
+    </lst>
+    <arr name="last-components">
+       <str>djoin</str>
+    </arr>
+  </requestHandler>
+  
+  <queryParser name="djoin" class="uk.co.flax.biosolr.DJoinQParserPlugin" />
+  
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
       <str name="echoParams">all</str>
@@ -936,15 +952,9 @@
       <str name="shards">http://localhost:8984/solr/pdb_entity_db1,http://localhost:8985/solr/pdb_entity_db1,http://localhost:8986/solr/pdb_entity_db1</str>
       <!-- bool name="shards.info">true</bool -->
       <bool name="shards.tolerant">true</bool>
-      <bool name="group">true</bool> <!-- could/should the grouping parameters be set up by the djoin component? (YES) -->
-      <str name="group.limit">3</str> <!-- same as number of shards, but could/should be 'unlimited' -->
-      <str name="group.field">name</str> <!-- same as join field -->
-      <str name="fl">*,score,[djoin]</str>
+      <str name="fl">*,score</str>
       <str name="sort">score desc,name asc</str>
     </lst>
-    <arr name="last-components">
-       <str>djoin</str>
-    </arr>
   </requestHandler>
 
 

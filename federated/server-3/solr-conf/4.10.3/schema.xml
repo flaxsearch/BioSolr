@@ -119,6 +119,7 @@
 <field name="id" type="string" indexed="true" stored="true" multiValued="false"  required="true"/>
 <field name="name" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="value" type="boolean" indexed="true" stored="true" multiValued="false" />
+<field name="foo" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="baz" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="letter" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="z" type="string" indexed="true" stored="true" multiValued="false" />
@@ -143,7 +144,7 @@
  <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field
    -->
-   <uniqueKey>id</uniqueKey>
+   <uniqueKey>name</uniqueKey>
 
 
 

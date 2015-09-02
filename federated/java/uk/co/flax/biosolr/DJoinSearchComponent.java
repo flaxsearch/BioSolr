@@ -3,19 +3,15 @@ package uk.co.flax.biosolr;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.search.grouping.GroupDocs;
-import org.apache.lucene.search.grouping.TopGroups;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.BytesRefBuilder;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -39,8 +35,12 @@ public class DJoinSearchComponent extends SearchComponent {
 	
 	public static final String DJOIN_FIELD = "[" + COMPONENT_NAME + "]";
 
+	// initialisation parameters
 	public static final String INIT_JOIN_FIELD = "joinField";
 	public static final String INIT_IGNORE_CONVERSION_ERRORS = "ignoreConversionErrors";
+	
+	// request parameters
+	public static final String DEBUG_PARAMETER = COMPONENT_NAME + ".debug";
 	
 	private String joinField;
 	
@@ -64,12 +64,20 @@ public class DJoinSearchComponent extends SearchComponent {
 
 	@Override
 	public void prepare(ResponseBuilder rb) throws IOException {
-		// do nothing
 		System.out.println("===== PREPARE =====");
 		System.out.println("shards=" + rb.shards);
 
+		// only do this on aggregator
+		if (rb.shards == null) return;
+
 		List<String> fl = getFieldList(rb.req.getParams());
 		rb.req.getContext().put(COMPONENT_NAME + CommonParams.FL, fl);
+		
+		Map<String, Long> numFounds = new HashMap<>();
+		rb.req.getContext().put(COMPONENT_NAME + "numFounds", numFounds);
+		
+		Set<Object> joinIds = new HashSet<>();
+		rb.req.getContext().put(COMPONENT_NAME + "joinIds", joinIds);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -77,14 +85,21 @@ public class DJoinSearchComponent extends SearchComponent {
 		List<String> fl = (List<String>)rb.req.getContext().get(COMPONENT_NAME + CommonParams.FL);
 		return fl.contains(fieldName);
 	}
+	
+	private static boolean isDebug(ResponseBuilder rb) {
+		return rb.req.getParams().getBool(DEBUG_PARAMETER, false);
+	}
 
-	/** called for each shard request */
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void process(ResponseBuilder rb) throws IOException {
 		System.out.println("===== PROCESS =====");
+		System.out.println("shards=" + rb.shards);
 		
-		/*// output list of all group values
+		// only do this on shards
+		if (rb.shards != null) return;
+		
+		// output list of all group values
 		NamedList federated = new NamedList();
 		rb.rsp.getValues().add("federated_counts", federated);
 		
@@ -105,8 +120,10 @@ public class DJoinSearchComponent extends SearchComponent {
 			}
 		}
 		
-		// remove the unfederated results
-		//rb.rsp.getValues().remove("facet_counts");*/
+		// remove the unfederated results?
+		if (! isDebug(rb)) {
+			rb.rsp.getValues().remove("facet_counts");
+		}
 	}
 	
 	/** not called on shards, i.e. only aggregator */
@@ -120,12 +137,17 @@ public class DJoinSearchComponent extends SearchComponent {
 	public void modifyRequest(ResponseBuilder rb, SearchComponent who, ShardRequest sreq) {
 		System.out.println("===== MODIFY REQUEST =====");
 		System.out.println("who=" + who);
-		if (sreq.purpose == ShardRequest.PURPOSE_GET_FIELDS) {
+		System.out.println("purpose=" + sreq.purpose);
+		if ((sreq.purpose & ShardRequest.PURPOSE_GET_FIELDS) > 0) {
 			if (fieldListIncludes(rb, DJOIN_FIELD)) {
 				Set<String> fl = new HashSet<>(getFieldList(sreq.params));
 				fl.add(SHARD_FIELD);
 				sreq.params.set(CommonParams.FL, String.join(",", fl));
 			}
+			
+			// enable faceting on shards to get join ids
+			sreq.params.set("facet", true);
+			sreq.params.set("facet.field", joinField);
 		}
 	}
 	
@@ -141,19 +163,16 @@ public class DJoinSearchComponent extends SearchComponent {
 		
 		boolean includeShardId = fieldListIncludes(rb, DJOIN_FIELD);
 		boolean includeShard = fieldListIncludes(rb, SHARD_FIELD);
+
+		// only do this in final stage
+		if (rb.stage != 3000) return;
 		
-		// for each group in the results, collect fields from each document in
-		// the group and combine
-		NamedList grouped = (NamedList)rb.rsp.getValues().get("grouped");
-		if (grouped == null) return;
-		
-		// remove the unfederated results
-		rb.rsp.getValues().remove("grouped");
+		System.out.println("*** Federating results ***");
 		
 		SolrDocumentList feds = new SolrDocumentList();
-		rb.rsp.getValues().add("federated", feds);
+		//rb.rsp.getValues().add("federated", feds);
 
-		NamedList results = (NamedList)grouped.get(joinField);
+		/*NamedList results = (NamedList)grouped.get(joinField);
 		feds.setNumFound((Integer)results.get("matches"));
 		feds.setStart(rb.getQueryCommand().getOffset());
 		List<NamedList> groups = (List<NamedList>)results.get("groups");
@@ -188,7 +207,20 @@ public class DJoinSearchComponent extends SearchComponent {
 				}
 			}
 			feds.add(superDoc);
-		}
+		}*/
+		
+		// for now, just add the numFounds for each shard to the results...
+		/*NamedList details = new NamedList();
+		rb.rsp.getValues().add("federated", details);
+		Map<String, Long> numFounds = (Map<String, Long>)rb.req.getContext().get(COMPONENT_NAME + "numFounds");
+		details.add("numFounds", numFounds);*/
+
+		// ... and the size of joinIds
+		/*Set<Object> joinIds = (Set<Object>)rb.req.getContext().get(COMPONENT_NAME + "joinIds");
+		details.add("joinIds", joinIds);
+		SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
+		//docs.setNumFound((long)joinIds.size());
+		numFounds.put("total", (long)joinIds.size());*/
 	}
 	
 	private void addConvertedFieldValue(SolrDocument superDoc, Object value, SchemaField field) {
@@ -227,24 +259,29 @@ public class DJoinSearchComponent extends SearchComponent {
 		return true;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void handleResponses(ResponseBuilder rb, ShardRequest req) {
 		System.out.println("===== HANDLE RESPONSES =====");
 		System.out.println("purpose=" + req.purpose);
 		System.out.println("Shards: " + (req.shards != null ? String.join(" ", req.shards) : "(null)"));
-		/*if ((req.purpose & ShardRequest.PURPOSE_GET_FACETS) > 0) {
+		if ((req.purpose & ShardRequest.PURPOSE_GET_FIELDS) > 0) {
+			Map<String, Long> numFounds = (Map<String, Long>)rb.req.getContext().get(COMPONENT_NAME + "numFounds");
+			Set<Object> joinIds = (Set<Object>)rb.req.getContext().get(COMPONENT_NAME + "joinIds");
 			for (ShardResponse rsp : req.responses) {
 				NamedList response = rsp.getSolrResponse().getResponse();
-				NamedList federated = (NamedList)response.get("federated_counts");
-				if (federated == null) return;
-				
-				for (int i = 0; i < federated.size(); ++i) {
-					String field = federated.getName(i);
-					List values = (List)federated.getVal(i);
-					System.out.println("*** " + rsp.getNodeName() + " - " + field + ": " + String.join(",", values));
+				SolrDocumentList results = (SolrDocumentList)response.get("response");
+				numFounds.put(rsp.getShard(), results.getNumFound());
+				NamedList counts = (NamedList)response.get("facet_counts");
+				if (counts != null) {
+					NamedList fields = (NamedList)counts.get("facet_fields");
+					NamedList values = (NamedList)fields.get(joinField);
+					for (int i = 0; i < values.size(); ++i) {
+						joinIds.add(values.getName(i));
+					}
 				}
 			}
-		}*/
+		}
 	}
 	
 	@Override
