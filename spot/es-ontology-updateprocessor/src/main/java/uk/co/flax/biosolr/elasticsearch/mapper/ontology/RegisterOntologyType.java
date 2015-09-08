@@ -22,6 +22,7 @@ import org.elasticsearch.index.AbstractIndexComponent;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.index.settings.IndexSettings;
+import org.elasticsearch.threadpool.ThreadPool;
 
 /**
  * Register the ontology type with ElasticSearch.
@@ -33,9 +34,9 @@ public class RegisterOntologyType extends AbstractIndexComponent {
 	public static final String ONTOLOGY_TYPE = "ontology";
 
 	@Inject
-	public RegisterOntologyType(Index index, @IndexSettings Settings indexSettings, MapperService mapperService) {
+	public RegisterOntologyType(Index index, @IndexSettings Settings indexSettings, MapperService mapperService, ThreadPool threadPool) {
 		super(index, indexSettings);
-		mapperService.documentMapperParser().putTypeParser(ONTOLOGY_TYPE, new OntologyMapper.TypeParser());
+		mapperService.documentMapperParser().putTypeParser(ONTOLOGY_TYPE, new OntologyMapper.TypeParser(threadPool));
 	}
 
 }
