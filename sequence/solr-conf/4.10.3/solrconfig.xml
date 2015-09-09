@@ -1753,14 +1753,13 @@
   </valueSourceParser>
 
   <searchComponent name="xjoin_fasta" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">uk.co.flax.biosolr.pdbe.FastaXJoinResultsFactory</str>
+    <str name="factoryClass">uk.co.flax.biosolr.pdbe.fasta.FastaXJoinResultsFactory</str>
     <str name="joinField">entry_entity</str>
     <lst name="external">
       <str name="email">sameer@ebi.ac.uk</str>
       <str name="program">ssearch</str>
       <str name="database">pdb</str>
       <str name="stype">protein</str>
-      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/src/test/uk/co/flax/biosolr/pdbe/result</str>
     </lst>
   </searchComponent>
   

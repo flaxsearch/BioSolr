@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe;
+package uk.co.flax.biosolr.pdbe.fasta;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

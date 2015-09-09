@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe;
+package uk.co.flax.biosolr.pdbe.fasta;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

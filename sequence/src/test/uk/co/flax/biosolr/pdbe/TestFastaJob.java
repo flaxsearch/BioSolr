@@ -17,6 +17,10 @@ import org.junit.Test;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
+import uk.co.flax.biosolr.pdbe.fasta.Alignment;
+import uk.co.flax.biosolr.pdbe.fasta.FastaJob;
+import uk.co.flax.biosolr.pdbe.fasta.FastaJobResults;
+import uk.co.flax.biosolr.pdbe.fasta.FastaStatus;
 
 public class TestFastaJob {
 
