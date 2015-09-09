@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -110,7 +111,10 @@ public class OntologyHelper {
 		if (!ontologyUri.isAbsolute()) {
 			// Try to read as a file from the resource path
 			LOGGER.debug("Ontology URI {} is not absolute - loading from classpath", ontologyUri);
-			ontologyUri = this.getClass().getClassLoader().getResource(ontologyUri.toString()).toURI();
+			URL url = this.getClass().getClassLoader().getResource(ontologyUri.toString());
+			if (url != null) {
+				ontologyUri = url.toURI();
+			}
 		}
 		this.ontologyUri = ontologyUri;
 		LOGGER.info("Loading ontology from " + ontologyUri + "...");
@@ -138,8 +142,10 @@ public class OntologyHelper {
 	 * use.
 	 */
 	public void dispose() {
-		LOGGER.info("Disposing of ontology reasoner for {}", ontologyUri);
-		reasoner.dispose();
+		if (reasoner != null) {
+			LOGGER.info("Disposing of ontology reasoner for {}", ontologyUri);
+			reasoner.dispose();
+		}
 	}
 
 	/**

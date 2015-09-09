@@ -17,9 +17,8 @@
 package uk.co.flax.biosolr.elasticsearch;
 
 import java.util.Collection;
+import java.util.Collections;
 
-import org.elasticsearch.common.collect.Lists;
-import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.plugins.AbstractPlugin;
 
@@ -33,11 +32,6 @@ public class OntologyUpdatePlugin extends AbstractPlugin {
 	public static final String NAME = "ontology-update";
 	public static final String DESCRIPTION = "Ontology Update plugin";
 	
-	@Inject
-	public OntologyUpdatePlugin() {
-		
-	}
-
 	@Override
 	public String name() {
 		return NAME;
@@ -49,10 +43,8 @@ public class OntologyUpdatePlugin extends AbstractPlugin {
 	}
 	
 	@Override
-	public Collection<Class<? extends Module>> modules() {
-        Collection<Class<? extends Module>> modules = Lists.newArrayList();
-        modules.add(OntologyUpdateModule.class);
-        return modules;
+	public Collection<Class<? extends Module>> indexModules() {
+		return Collections.<Class<? extends Module>>singletonList(OntologyUpdateModule.class);
 	}
 	
 }

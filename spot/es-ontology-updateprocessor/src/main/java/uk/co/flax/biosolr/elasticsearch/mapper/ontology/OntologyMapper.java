@@ -17,21 +17,38 @@
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.common.collect.Maps;
+import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.FieldMapperListener;
 import org.elasticsearch.index.mapper.Mapper;
+import org.elasticsearch.index.mapper.MapperBuilders;
 import org.elasticsearch.index.mapper.MapperParsingException;
 import org.elasticsearch.index.mapper.MergeContext;
 import org.elasticsearch.index.mapper.MergeMappingException;
 import org.elasticsearch.index.mapper.ObjectMapperListener;
 import org.elasticsearch.index.mapper.ParseContext;
+import org.elasticsearch.threadpool.ThreadPool;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
  * JavaDoc for OntologyMapper.
@@ -39,96 +56,143 @@ import org.elasticsearch.index.mapper.ParseContext;
  * @author mlp
  */
 public class OntologyMapper implements Mapper {
+	
+	public static final long DELETE_CHECK_DELAY_MS = 2 * 60 * 1000; // 2 minutes 
+	
+    private static final ESLogger logger = ESLoggerFactory.getLogger(OntologyMapper.class.getName());
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.elasticsearch.common.xcontent.ToXContent#toXContent(org.elasticsearch
-	 * .common.xcontent.XContentBuilder,
-	 * org.elasticsearch.common.xcontent.ToXContent.Params)
-	 */
+    private final String name;
+	private final OntologySettings ontologySettings;
+	private final FieldSettings fieldSettings;
+	private volatile ImmutableOpenMap<FieldMappings, Mapper> fieldMappers = ImmutableOpenMap.of();
+	private final ThreadPool threadPool;
+	
+	private OntologyHelper helper;
+	private OntologyCheckRunnable ontologyCheck;
+	
+	public OntologyMapper(String name, OntologySettings oSettings, FieldSettings fSettings, Map<FieldMappings, Mapper> fieldMappers, ThreadPool threadPool) {
+		this.name = name;
+		this.ontologySettings = oSettings;
+		this.fieldSettings = fSettings;
+		this.fieldMappers = ImmutableOpenMap.builder(this.fieldMappers).putAll(fieldMappers).build();
+		this.threadPool = threadPool;
+	}
+	
+
 	@Override
 	public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		builder.startObject(name());
+		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
+		
+		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
+		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
+		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
+		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
+		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		builder.endObject();
+		
+		for (ObjectObjectCursor<FieldMappings, Mapper> cursor : fieldMappers) {
+			cursor.value.toXContent(builder, params);
+		}
+		
+		builder.endObject();
+		
+		return builder;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.elasticsearch.index.mapper.Mapper#name()
-	 */
 	@Override
 	public String name() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.elasticsearch.index.mapper.Mapper#parse(org.elasticsearch.index.mapper
-	 * .ParseContext)
-	 */
 	@Override
 	public void parse(ParseContext context) throws IOException {
-		// TODO Auto-generated method stub
-
+		String iri;
+		XContentParser parser = context.parser();
+        XContentParser.Token token = parser.currentToken();
+        if (token == XContentParser.Token.VALUE_STRING) {
+            iri =  parser.text();
+        } else {
+        	throw new MapperParsingException(name() + " does not contain String value");
+        }
+        
+        try {
+			OntologyHelper helper = initialiseHelper();
+			
+			OWLClass owlClass = helper.getOwlClass(iri);
+			if (owlClass == null) {
+				logger.debug("Cannot find OWL class for IRI {}", iri);
+			} else {
+				context.doc().add(new StringField(FieldMappings.URI.getFieldName(), iri, Store.YES));
+				
+				// Look up the labels
+				Collection<String> labels = helper.findLabels(owlClass);
+				for (String label : labels) {
+					context.doc().add(new TextField(FieldMappings.LABEL.getFieldName(), label, Store.YES));
+				}
+				fieldMappers.get(FieldMappings.LABEL).parse(context);
+			}
+			
+			helper.updateLastCallTime();
+		} catch (OWLOntologyCreationException | URISyntaxException e) {
+			throw new ElasticsearchException("Could not initialise ontology helper", e);
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.elasticsearch.index.mapper.Mapper#merge(org.elasticsearch.index.mapper
-	 * .Mapper, org.elasticsearch.index.mapper.MergeContext)
-	 */
 	@Override
 	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
-		// TODO Auto-generated method stub
-
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.elasticsearch.index.mapper.Mapper#traverse(org.elasticsearch.index
-	 * .mapper.FieldMapperListener)
-	 */
 	@Override
 	public void traverse(FieldMapperListener fieldMapperListener) {
-		// TODO Auto-generated method stub
-
+		for (ObjectObjectCursor<FieldMappings, Mapper> cursor : fieldMappers) {
+			cursor.value.traverse(fieldMapperListener);
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.elasticsearch.index.mapper.Mapper#traverse(org.elasticsearch.index
-	 * .mapper.ObjectMapperListener)
-	 */
 	@Override
 	public void traverse(ObjectMapperListener objectMapperListener) {
-		// TODO Auto-generated method stub
-
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.elasticsearch.index.mapper.Mapper#close()
-	 */
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		for (ObjectObjectCursor<FieldMappings, Mapper> cursor : fieldMappers) {
+			cursor.value.close();
+		}
+//		disposeHelper();
 	}
-
+	
+	
+	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+		if (helper == null) {
+			helper = new OntologyHelper(ontologySettings);
+			if (ontologyCheck == null) {
+				ontologyCheck = new OntologyCheckRunnable(this);
+				threadPool.scheduleWithFixedDelay(ontologyCheck, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			}
+		}
+		
+		return helper;
+	}
+	
+	public synchronized OntologyHelper getHelper() {
+		return helper;
+	}
+	
+	public synchronized void disposeHelper() {
+		if (helper != null) {
+			helper.dispose();
+			helper = null;
+		}
+	}
+	
 	public static class TypeParser implements Mapper.TypeParser {
+		
+		private final ThreadPool threadPool;
+		
+		public TypeParser(ThreadPool tPool) {
+			this.threadPool = tPool;
+		}
 
 		/**
 		 * Parse the mapping definition for the ontology type.
@@ -159,7 +223,7 @@ public class OntologyMapper implements Mapper {
 				throw new MapperParsingException("Ontology URI is required");
 			}
 
-			return new OntologyMapper.Builder(name, ontologySettings, fieldSettings);
+			return new OntologyMapper.Builder(name, ontologySettings, fieldSettings, threadPool);
 		}
 		
 		private OntologySettings parseOntologySettings(Map<String, Object> ontSettingsNode) {
@@ -204,7 +268,9 @@ public class OntologyMapper implements Mapper {
 				String key = entry.getKey();
 				String value = entry.getValue().toString();
 				
-				if (key.equals(FieldSettings.LABEL_FIELD_PARAM)) {
+				if (key.equals(FieldSettings.ANNOTATION_FIELD_PARAM)) {
+					settings.setAnnotationField(value);
+				} else if (key.equals(FieldSettings.LABEL_FIELD_PARAM)) {
 					settings.setLabelField(value);
 				} else if (key.equals(FieldSettings.URI_FIELD_SUFFIX_PARAM)) {
 					settings.setUriFieldSuffix(value);
@@ -236,21 +302,56 @@ public class OntologyMapper implements Mapper {
 
 	public static class Builder extends Mapper.Builder<Builder, OntologyMapper> {
 		
+		private Map<FieldMappings, Mapper> fieldMappers;
+		
 		private final OntologySettings ontologySettings;
 		private final FieldSettings fieldSettings;
+		private final ThreadPool threadPool;
 
-		public Builder(String name, OntologySettings ontSettings, FieldSettings fieldSettings) {
+		public Builder(String name, OntologySettings ontSettings, FieldSettings fieldSettings, ThreadPool threadPool) {
 			super(name);
 			this.ontologySettings = ontSettings;
 			this.fieldSettings = fieldSettings;
+			this.threadPool = threadPool;
 		}
 
 		@Override
 		public OntologyMapper build(BuilderContext context) {
-			// TODO Auto-generated method stub
-			return null;
+			fieldMappers = Maps.newHashMap();
+			
+			context.path().add(name);
+
+			for (FieldMappings mapping : FieldMappings.values()) {
+				fieldMappers.put(mapping, MapperBuilders.stringField(mapping.getFieldName()).store(true).index(true).build(context));
+			}
+			
+			context.path().remove(); // remove name
+			
+			return new OntologyMapper(name, ontologySettings, fieldSettings, fieldMappers, threadPool);
 		}
 
+	}
+
+	private final class OntologyCheckRunnable implements Runnable {
+		
+		final OntologyMapper updateProcessor;
+		
+		public OntologyCheckRunnable(OntologyMapper processor) {
+			this.updateProcessor = processor;
+		}
+
+		@Override
+		public void run() {
+			OntologyHelper helper = updateProcessor.getHelper();
+			if (helper != null) {
+				// Check if the last call time was longer ago than the maximum
+				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
+					// Assume helper is out of use - dispose of it to allow memory to be freed
+					updateProcessor.disposeHelper();
+				}
+			}
+		}
+		
 	}
 
 }

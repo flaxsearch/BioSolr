@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 
 
+
 /**
  * JavaDoc for OntologyMappingSettings.
  *
@@ -30,6 +31,7 @@ public class FieldSettings {
 	/*
 	 * Field configuration parameters
 	 */
+	static final String ANNOTATION_FIELD_PARAM= "annotationField";
 	static final String LABEL_FIELD_PARAM = "labelField";
 	static final String URI_FIELD_SUFFIX_PARAM = "uriFieldSuffix";
 	static final String LABEL_FIELD_SUFFIX_PARAM = "labelFieldSuffix";
@@ -45,7 +47,8 @@ public class FieldSettings {
 	/*
 	 * Default field values
 	 */
-	private static final String LABEL_FIELD_DEFAULT = "label_t";
+	private static final String ANNOTATION_FIELD_DEFAULT = "uri";
+	private static final String LABEL_FIELD_DEFAULT = "label";
 	private static final String URI_FIELD_SUFFIX = "_uris_s";
 	private static final String LABEL_FIELD_SUFFIX = "_labels_t";
 	private static final String CHILD_FIELD_DEFAULT = "child";
@@ -55,6 +58,7 @@ public class FieldSettings {
 	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
 	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
 	
+	private String annotationField = ANNOTATION_FIELD_DEFAULT;
 	private String labelField = LABEL_FIELD_DEFAULT;
 	private String uriFieldSuffix = URI_FIELD_SUFFIX;
 	private String labelFieldSuffix = LABEL_FIELD_SUFFIX;
@@ -236,6 +240,14 @@ public class FieldSettings {
 
 	public void setDefinitionField(String definitionField) {
 		this.definitionField = definitionField;
+	}
+
+	public String getAnnotationField() {
+		return annotationField;
+	}
+
+	public void setAnnotationField(String annotationField) {
+		this.annotationField = annotationField;
 	}
 
 }
