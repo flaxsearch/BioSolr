@@ -35,7 +35,9 @@ public class PhmmerJob {
       JsonObject hit = hits.getJsonObject(i);
       String pdbIdChain = hit.getString("acc");
       double eValue = Double.parseDouble(hit.getString("evalue"));
-      Alignment a = new Alignment(pdbIdChain, eValue);
+      float score = Float.parseFloat(hit.getString("score"));
+      String species = hit.getString("species");
+      Alignment a = new Alignment(pdbIdChain, eValue, score, species);
       phmmer.addAlignment(a);
     }
     return phmmer;

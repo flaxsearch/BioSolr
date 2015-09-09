@@ -1810,7 +1810,7 @@
 
         <bool name="xjoin_phmmer">false</bool>
         <str name="xjoin_phmmer.results">num_entries</str>
-        <str name="xjoin_phmmer.fl">pdb_id_chain,e_value</str>
+        <str name="xjoin_phmmer.fl">pdb_id_chain,e_value,score,species</str>
         
         <bool name="xjoin_test">true</bool>
         <str name="xjoin_test.results">test</str>

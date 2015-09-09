@@ -6,9 +6,15 @@ public class Alignment {
 
   private double eValue;
   
-  public Alignment(String pdbIdChain, double eValue) {
+  private float score;
+  
+  private String species;
+  
+  public Alignment(String pdbIdChain, double eValue, float score, String species) {
     this.pdbIdChain = pdbIdChain;
     this.eValue = eValue;
+    this.score = score;
+    this.species = species;
   }
 
   public String getPdbIdChain() {
@@ -17,6 +23,14 @@ public class Alignment {
   
   public double getEValue() {
     return eValue;
+  }
+  
+  public float getScore() {
+    return score;
+  }
+  
+  public String getSpecies() {
+    return species;
   }
   
 }
