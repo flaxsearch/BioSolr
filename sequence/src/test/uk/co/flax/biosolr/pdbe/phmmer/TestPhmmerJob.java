@@ -56,6 +56,7 @@ public class TestPhmmerJob {
     Alignment a = results.getAlignment("3zkm_A");
     assertEquals("BETA-SECRETASE 2", a.getDescription());
     assertEquals("Homo sapiens", a.getSpecies());
+    assertEquals(78.2, a.getScore(), 0.1);
     assertEquals(16, a.getQuerySequenceStart());
     assertEquals(227, a.getQuerySequenceEnd());
     assertEquals(9, a.getTargetEnvelopeStart());

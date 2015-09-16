@@ -12,6 +12,8 @@ public class Alignment {
   private String species;
   
   private String description;
+  
+  private double score;
 
   private double eValue;
 
@@ -57,6 +59,7 @@ public class Alignment {
     pdbIdChain = hit.getString("acc");
     species = hit.getString("species");
     description = hit.getString("desc");
+    score = Double.parseDouble(hit.getString("score"));
     eValue = Double.parseDouble(hit.getString("evalue"));
 
     JsonArray domains = hit.getJsonArray("domains");
@@ -125,6 +128,10 @@ public class Alignment {
   
   public String getDescription() {
     return description;
+  }
+
+  public double getScore() {
+    return score;
   }
 
   public String getQuerySequence() {
