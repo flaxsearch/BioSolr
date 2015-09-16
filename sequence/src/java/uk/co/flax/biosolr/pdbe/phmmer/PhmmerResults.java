@@ -13,10 +13,10 @@ public class PhmmerResults {
   }
   
   public void addAlignment(Alignment alignment) {
-    alignments.put(alignment.getPdbIdChain(), alignment);
+    alignments.put(alignment.getTarget(), alignment);
   }
   
-  public Set<String> getPdbIdChains() {
+  public Set<String> getTargets() {
     return alignments.keySet();
   }
   

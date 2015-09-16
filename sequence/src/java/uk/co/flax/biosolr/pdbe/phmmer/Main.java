@@ -13,7 +13,7 @@ public class Main {
     PhmmerJob job = new PhmmerJob(client, "pdb", args[0]);
     try {
       PhmmerResults results = job.runJob();
-      for (String pdbIdChain : results.getPdbIdChains()) {
+      for (String pdbIdChain : results.getTargets()) {
         System.out.println(pdbIdChain);
       }
     } catch (IOException e) {

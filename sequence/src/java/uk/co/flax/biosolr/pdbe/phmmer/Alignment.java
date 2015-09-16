@@ -7,7 +7,7 @@ public class Alignment {
   
   public static double SIGNIFICANCE_THRESHOLD = 1.0d;
   
-  private String pdbIdChain;
+  private String target;
   
   private String species;
   
@@ -56,7 +56,7 @@ public class Alignment {
   private int similarityCount;
   
   public Alignment(JsonObject hit) {
-    pdbIdChain = hit.getString("acc");
+    target = hit.getString("acc");
     species = hit.getString("species");
     description = hit.getString("desc");
     score = Double.parseDouble(hit.getString("score"));
@@ -102,8 +102,8 @@ public class Alignment {
     }
   }
 
-  public String getPdbIdChain() {
-    return pdbIdChain;
+  public String getTarget() {
+    return target;
   }
   
   public double getEValue() {

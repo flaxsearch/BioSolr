@@ -54,7 +54,7 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
     @Override
     public Iterable<String> getJoinIds() {
       List<String> ids = new ArrayList<>();
-      for (String id : results.getPdbIdChains()) {
+      for (String id : results.getTargets()) {
         int chainId = (int)id.charAt(id.length() - 1) - (int)'A' + 1;
         ids.add(id.substring(0, id.length() - 1) + chainId);
       }

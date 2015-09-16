@@ -50,7 +50,7 @@ public class TestPhmmerJob {
         "2qzx_A", "2zjj_A", "1e5o_E", "1izd_A", "1wkr_A", "1b5f_B"
     };
     Set<String> pdbIdChainSet = new HashSet<>(Arrays.asList(pdbIdChains));
-    assertEquals(pdbIdChainSet, results.getPdbIdChains());
+    assertEquals(pdbIdChainSet, results.getTargets());
 
     // values checked from http://www.ebi.ac.uk/Tools/hmmer/results/7B8EF2BA-5C4B-11E5-BB6E-2FF0D26C98AD/score
     Alignment a = results.getAlignment("3zkm_A");
