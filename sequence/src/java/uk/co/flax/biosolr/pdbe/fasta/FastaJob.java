@@ -44,8 +44,7 @@ public class FastaJob implements Runnable {
   private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
 
   // sometimes an alignment appears twice in the results - need to ignore all
-  // but
-  // the first, so remember those we have completed
+  // but the first, so remember those we have completed
   private Set<Alignment> completeAlignments = new HashSet<>();
 
   public IOException getException() {

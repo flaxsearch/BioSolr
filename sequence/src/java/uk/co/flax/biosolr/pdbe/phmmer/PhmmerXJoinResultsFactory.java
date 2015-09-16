@@ -31,9 +31,9 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
     if (sequence == null || sequence.length() == 0) {
       throw new RuntimeException("Missing or empty sequence");
     }
- 
-    PhmmerJob job = new PhmmerJob(database);
-    return new Results(job.getResults(sequence));
+    PhmmerClient client = new PhmmerClient();
+    PhmmerJob job = new PhmmerJob(client, database, sequence);
+    return new Results(job.runJob());
   }
   
   public class Results implements XJoinResults<String> {
@@ -54,7 +54,7 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
     @Override
     public Iterable<String> getJoinIds() {
       List<String> ids = new ArrayList<>();
-      for (String id : results.getPdbIds()) {
+      for (String id : results.getPdbIdChains()) {
         int chainId = (int)id.charAt(id.length() - 1) - (int)'A' + 1;
         ids.add(id.substring(0, id.length() - 1) + chainId);
       }

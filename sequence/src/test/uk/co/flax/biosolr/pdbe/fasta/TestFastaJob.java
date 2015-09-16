@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe;
+package uk.co.flax.biosolr.pdbe.fasta;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -40,11 +40,11 @@ public class TestFastaJob {
 		params.setProgram("ssearch");
 		params.setDatabase(new String[] { "pdb" });
 		params.setStype("protein");
-        params.setSequence("<DUMMY>");
-        params.setExplowlim(0.0d);
-        params.setExpupperlim(1.0d);
-        params.setScores(1000);
-        params.setAlignments(1000);
+    params.setSequence("<DUMMY>");
+    params.setExplowlim(0.0d);
+    params.setExpupperlim(1.0d);
+    params.setScores(1000);
+    params.setAlignments(1000);
 		
 		FastaJob job = new FastaJob(fasta, "sameer@ebi.ac.uk", params);
 		job.run();

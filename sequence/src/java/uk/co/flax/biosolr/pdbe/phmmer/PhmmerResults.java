@@ -16,7 +16,7 @@ public class PhmmerResults {
     alignments.put(alignment.getPdbIdChain(), alignment);
   }
   
-  public Set<String> getPdbIds() {
+  public Set<String> getPdbIdChains() {
     return alignments.keySet();
   }
   
