@@ -19,8 +19,6 @@ package uk.co.flax.biosolr.elasticsearch;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoFailures;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.elasticsearch.action.admin.indices.analyze.AnalyzeRequest;
-import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -87,17 +85,28 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		client().admin().indices().putMapping(new PutMappingRequest(INDEX_NAME).type(DOC_TYPE_NAME).source(mapping))
 				.actionGet();
 		
-		AnalyzeResponse aResponse = client().admin().indices().analyze(new AnalyzeRequest(INDEX_NAME, "{ \"" + ANNOTATION_FIELD + "\": \"" + TEST_IRI + "\" }")).actionGet();
-
 		XContentBuilder source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 				// XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).endObject());
 		String id = response.getId();
-
-		QueryBuilder query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
-		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setQuery(query).addFields("annotation.*").get();
+		flush();
+		
+		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id);
+		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
 		assertNoFailures(searchResponse);
 		SearchHits hits = searchResponse.getHits();
+		assertThat(hits.getTotalHits(), equalTo(1L));
+
+		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_IRI);
+		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		assertNoFailures(searchResponse);
+		hits = searchResponse.getHits();
+		assertThat(hits.getTotalHits(), equalTo(1L));
+
+		query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
+		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		assertNoFailures(searchResponse);
+		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
 	}
 
