@@ -88,10 +88,11 @@
   <!-- xjoin -->
   <lib path="/Users/tomjon/flax/BioSolr/sequence/xjoin.jar" />
 
-  <!-- FASTA -->
+  <!-- FASTA and PHMMER-->
   <lib dir="/Users/tomjon/flax/BioSolr/sequence/lib/" regex=".*\.jar" />
   <lib path="/Users/tomjon/flax/BioSolr/sequence/Fasta_Axis1.jar" />
   <lib path="/Users/tomjon/flax/BioSolr/sequence/fasta.jar" />
+  <lib path="/Users/tomjon/flax/BioSolr/sequence/phmmer.jar" />
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a
        specific jar file.  This will cause a serious error to be logged 
@@ -1739,11 +1740,16 @@
     </highlighting>
   </searchComponent>
   
-  <!-- BioSolr FASTA -->
+  <!-- BioSolr -->
   <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin" />
   
   <valueSourceParser name="fasta" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
     <str name="xJoinSearchComponent">xjoin_fasta</str>
+    <double name="defaultValue">1.0</double>
+  </valueSourceParser>
+  
+  <valueSourceParser name="phmmer" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="xJoinSearchComponent">xjoin_phmmer</str>
     <double name="defaultValue">1.0</double>
   </valueSourceParser>
 
@@ -1753,14 +1759,21 @@
   </valueSourceParser>
 
   <searchComponent name="xjoin_fasta" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">uk.co.flax.biosolr.pdbe.FastaXJoinResultsFactory</str>
+    <str name="factoryClass">uk.co.flax.biosolr.pdbe.fasta.FastaXJoinResultsFactory</str>
     <str name="joinField">entry_entity</str>
     <lst name="external">
       <str name="email">sameer@ebi.ac.uk</str>
       <str name="program">ssearch</str>
       <str name="database">pdb</str>
       <str name="stype">protein</str>
-      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/src/test/uk/co/flax/biosolr/pdbe/result</str>
+    </lst>
+  </searchComponent>
+
+  <searchComponent name="xjoin_phmmer" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">uk.co.flax.biosolr.pdbe.phmmer.PhmmerXJoinResultsFactory</str>
+    <str name="joinField">entry_entity</str>
+    <lst name="external">
+      <str name="database">pdb</str>
     </lst>
   </searchComponent>
   
@@ -1794,6 +1807,10 @@
         <int name="xjoin_fasta.external.alignments">1000</int>
         <str name="xjoin_fasta.results">num_chains,num_entries</str>
         <str name="xjoin_fasta.fl">pdb_id_chain,e_value,percent_identity,return_sequence_string,query_sequence_string,query_overlap_start,query_overlap_end,db_overlap_start,db_overlap_end,query_sequence_overlap,return_sequence_overlap</str>
+
+        <bool name="xjoin_phmmer">false</bool>
+        <str name="xjoin_phmmer.results">num_entries</str>
+        <str name="xjoin_phmmer.fl">pdb_id_chain,e_value,score,species</str>
         
         <bool name="xjoin_test">true</bool>
         <str name="xjoin_test.results">test</str>
@@ -1801,10 +1818,12 @@
       </lst>
       <arr name="first-components">
         <str>xjoin_fasta</str>
+        <str>xjoin_phmmer</str>
         <str>xjoin_test</str>
       </arr>
       <arr name="last-components">
         <str>xjoin_fasta</str>
+        <str>xjoin_phmmer</str>
         <str>xjoin_test</str>
       </arr>
   </requestHandler>

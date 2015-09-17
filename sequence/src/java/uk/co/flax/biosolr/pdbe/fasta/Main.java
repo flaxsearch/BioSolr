@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe;
+package uk.co.flax.biosolr.pdbe.fasta;
 
 import java.rmi.RemoteException;
 
@@ -20,8 +20,7 @@ public class Main {
     }
     try {
       JDispatcherService_Service service = new JDispatcherService_ServiceLocator();
-      JDispatcherService_PortType fasta = service
-          .getJDispatcherServiceHttpPort();
+      JDispatcherService_PortType fasta = service.getJDispatcherServiceHttpPort();
 
       String sequence = args[0];
       double eVal = new Double(args[1]);
@@ -44,7 +43,6 @@ public class Main {
       if (job.getException() != null) {
         System.err.println("Error during run()");
         job.getException().printStackTrace(System.err);
-        ;
       }
 
       System.out.println(new String(job.getRawResults()));

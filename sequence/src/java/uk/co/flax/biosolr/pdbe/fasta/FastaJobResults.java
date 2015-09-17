@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.pdbe;
+package uk.co.flax.biosolr.pdbe.fasta;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;

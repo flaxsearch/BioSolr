@@ -92,19 +92,20 @@ public class FieldAppender {
     NamedList<Object> list = new NamedList<>();
     target.add(name, list);
     for (Method method : object.getClass().getMethods()) {
-      if (method.getParameterTypes().length > 0) {
-        continue;
-      }
+      if (method.getParameterTypes().length > 0) continue;
       String fieldName = NameConverter.getFieldName(method.getName());
-      if (fieldName == null) {
-        continue;
+      if (fieldName == null) continue;
+      if (fieldNames == null) {
+        // return all get methods except getClass()
+        if (fieldName.equals("class")) continue;
+      } else {
+        // return named methods only
+        if (! fieldNames.contains(fieldName)) continue;
       }
-      if (fieldNames == null || fieldNames.contains(fieldName)) {
-        try {
-          list.add(fieldName, method.invoke(object));
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-          throw new RuntimeException(fieldName + ": " + e.getCause().getMessage(), e.getCause());
-        }
+      try {
+        list.add(fieldName, method.invoke(object));
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        throw new RuntimeException(fieldName + ": " + e.getMessage(), e.getCause());
       }
     }
     return list;
