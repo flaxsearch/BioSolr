@@ -28,10 +28,10 @@ import org.elasticsearch.plugins.AbstractPlugin;
  * @author mlp
  */
 public class OntologyUpdatePlugin extends AbstractPlugin {
-	
+
 	public static final String NAME = "ontology-update";
 	public static final String DESCRIPTION = "Ontology Update plugin";
-	
+
 	@Override
 	public String name() {
 		return NAME;
@@ -41,10 +41,10 @@ public class OntologyUpdatePlugin extends AbstractPlugin {
 	public String description() {
 		return DESCRIPTION;
 	}
-	
+
 	@Override
 	public Collection<Class<? extends Module>> indexModules() {
-		return Collections.<Class<? extends Module>>singletonList(OntologyUpdateModule.class);
+		return Collections.<Class<? extends Module>> singletonList(OntologyUpdateModule.class);
 	}
-	
+
 }

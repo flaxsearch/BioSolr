@@ -40,6 +40,7 @@ import org.junit.Test;
  *
  * @author mlp
  */
+@ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.SUITE)
 public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest {
 
 	public static final String ROOT_IRI = "http://www.w3.org/2002/07/owl#Thing";
@@ -81,18 +82,18 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		String mapping = Streams.copyToStringFromClasspath(MAPPING_FILE);
 		client().admin().indices().putMapping(new PutMappingRequest(INDEX_NAME).type(DOC_TYPE_NAME).source(mapping))
 				.actionGet();
-		
+
 		XContentBuilder source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 				// XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).endObject());
 		String id = response.getId();
-		
+
 		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id); // QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental factor");
 		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setQuery(query).get();
 		assertNoFailures(searchResponse);
 		SearchHits hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
 	}
-	
+
 
 }
