@@ -19,6 +19,8 @@ package uk.co.flax.biosolr.elasticsearch;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoFailures;
 import static org.hamcrest.Matchers.equalTo;
 
+import org.elasticsearch.action.admin.indices.analyze.AnalyzeRequest;
+import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -34,6 +36,8 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.Before;
 import org.junit.Test;
+
+import uk.co.flax.biosolr.elasticsearch.mapper.ontology.FieldMappings;
 
 /**
  * JavaDoc for OntologyUpdateIntegrationTests.
@@ -82,14 +86,16 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		String mapping = Streams.copyToStringFromClasspath(MAPPING_FILE);
 		client().admin().indices().putMapping(new PutMappingRequest(INDEX_NAME).type(DOC_TYPE_NAME).source(mapping))
 				.actionGet();
+		
+		AnalyzeResponse aResponse = client().admin().indices().analyze(new AnalyzeRequest(INDEX_NAME, "{ \"" + ANNOTATION_FIELD + "\": \"" + TEST_IRI + "\" }")).actionGet();
 
 		XContentBuilder source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 				// XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).endObject());
 		String id = response.getId();
 
-		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id); // QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental factor");
-		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setQuery(query).get();
+		QueryBuilder query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
+		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setQuery(query).addFields("annotation.*").get();
 		assertNoFailures(searchResponse);
 		SearchHits hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));

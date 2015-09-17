@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,131 +59,40 @@ public class OntologyMapper implements Mapper {
 
     private static final ESLogger logger = ESLoggerFactory.getLogger(OntologyMapper.class.getName());
 
-    private final String name;
-	private final OntologySettings ontologySettings;
-	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> fieldMappers = ImmutableOpenMap.of();
-	private final ThreadPool threadPool;
 
-	private OntologyHelper helper;
-	private OntologyCheckRunnable ontologyCheck;
+	public static class Builder extends Mapper.Builder<Builder, OntologyMapper> {
 
-	public OntologyMapper(String name, OntologySettings oSettings, Map<FieldMappings, FieldMapper<String>> fieldMappers, ThreadPool threadPool) {
-		this.name = name;
-		this.ontologySettings = oSettings;
-		this.fieldMappers = ImmutableOpenMap.builder(this.fieldMappers).putAll(fieldMappers).build();
-		this.threadPool = threadPool;
-	}
+		private final OntologySettings ontologySettings;
+		private final ThreadPool threadPool;
 
-
-	@Override
-	public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-		builder.startObject(name());
-		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
-
-		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
-		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
-		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
-		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
-		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
-		builder.endObject();
-
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.toXContent(builder, params);
+		public Builder(String name, OntologySettings ontSettings, ThreadPool threadPool) {
+			super(name);
+			this.ontologySettings = ontSettings;
+			this.threadPool = threadPool;
 		}
 
-		builder.endObject();  // name
+		@Override
+		public OntologyMapper build(BuilderContext context) {
+			Map<FieldMappings, FieldMapper<String>> fieldMappers = Maps.newHashMap();
 
-		return builder;
-	}
+			context.path().add(name);
 
-	@Override
-	public String name() {
-		return name;
-	}
-
-	@Override
-	public void parse(ParseContext context) throws IOException {
-		String iri;
-		XContentParser parser = context.parser();
-        XContentParser.Token token = parser.currentToken();
-        if (token == XContentParser.Token.VALUE_STRING) {
-            iri =  parser.text();
-        } else {
-        	throw new MapperParsingException(name() + " does not contain String value");
-        }
-
-        try {
-			OntologyHelper helper = initialiseHelper();
-
-			OWLClass owlClass = helper.getOwlClass(iri);
-			if (owlClass == null) {
-				logger.debug("Cannot find OWL class for IRI {}", iri);
-			} else {
-				FieldMapper<String> mapper = fieldMappers.get(FieldMappings.URI);
-				context.externalValue(iri);
-				mapper.parse(context);
-//				context.doc().add(new StringField(mapper.names().indexName(), iri, Store.YES));
-
-				// Look up the labels
-//				Collection<String> labels = helper.findLabels(owlClass);
-//				for (String label : labels) {
-//					context.doc().add(new TextField(FieldMappings.LABEL.getFieldName(), label, Store.YES));
-//				}
-//				fieldMappers.get(FieldMappings.LABEL).parse(context);
+			for (FieldMappings mapping : new FieldMappings[]{ FieldMappings.URI, FieldMappings.LABEL }) {
+				FieldMapper<String> mapper = MapperBuilders.stringField(mapping.getFieldName())
+						.store(true)
+						.index(true)
+						.tokenized(!mapping.isUriField())
+						.build(context);
+				fieldMappers.put(mapping, mapper);
 			}
 
-			helper.updateLastCallTime();
-		} catch (OWLOntologyCreationException | URISyntaxException e) {
-			throw new ElasticsearchException("Could not initialise ontology helper", e);
-		}
-	}
+			context.path().remove(); // remove name
 
-	@Override
-	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
-	}
-
-	@Override
-	public void traverse(FieldMapperListener fieldMapperListener) {
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.traverse(fieldMapperListener);
-		}
-	}
-
-	@Override
-	public void traverse(ObjectMapperListener objectMapperListener) {
-	}
-
-	@Override
-	public void close() {
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.close();
-		}
-//		disposeHelper();
-	}
-
-
-	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
-		if (helper == null) {
-			helper = new OntologyHelper(ontologySettings);
-			if (ontologyCheck == null) {
-				ontologyCheck = new OntologyCheckRunnable(this);
-				threadPool.scheduleWithFixedDelay(ontologyCheck, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
-			}
+			return new OntologyMapper(name, ontologySettings, fieldMappers, threadPool);
 		}
 
-		return helper;
 	}
 
-	public synchronized OntologyHelper getHelper() {
-		return helper;
-	}
-
-	public synchronized void disposeHelper() {
-		if (helper != null) {
-			helper.dispose();
-			helper = null;
-		}
-	}
 
 	public static class TypeParser implements Mapper.TypeParser {
 
@@ -258,38 +168,135 @@ public class OntologyMapper implements Mapper {
 
 	}
 
-	public static class Builder extends Mapper.Builder<Builder, OntologyMapper> {
 
-		private final OntologySettings ontologySettings;
-		private final ThreadPool threadPool;
+    private final String name;
+	private final OntologySettings ontologySettings;
+	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> fieldMappers = ImmutableOpenMap.of();
+	private final ThreadPool threadPool;
 
-		public Builder(String name, OntologySettings ontSettings, ThreadPool threadPool) {
-			super(name);
-			this.ontologySettings = ontSettings;
-			this.threadPool = threadPool;
-		}
+	private OntologyHelper helper;
+	private OntologyCheckRunnable ontologyCheck;
 
-		@Override
-		public OntologyMapper build(BuilderContext context) {
-			Map<FieldMappings, FieldMapper<String>> fieldMappers = Maps.newHashMap();
+	public OntologyMapper(String name, OntologySettings oSettings, Map<FieldMappings, FieldMapper<String>> fieldMappers, ThreadPool threadPool) {
+		this.name = name;
+		this.ontologySettings = oSettings;
+		this.fieldMappers = ImmutableOpenMap.builder(this.fieldMappers).putAll(fieldMappers).build();
+		this.threadPool = threadPool;
+	}
 
-			context.path().add(name);
 
-			for (FieldMappings mapping : FieldMappings.values()) {
-				FieldMapper<String> mapper = MapperBuilders.stringField(mapping.getFieldName())
-						.store(true)
-						.index(true)
-						.tokenized(!mapping.isUriField())
-						.build(context);
-				fieldMappers.put(mapping, mapper);
+	@Override
+	public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
+		builder.startObject(name());
+		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
+
+		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
+		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
+		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
+		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
+		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		builder.endObject();
+
+//		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
+//			cursor.value.toXContent(builder, params);
+//		}
+
+		builder.endObject();  // name
+
+		return builder;
+	}
+
+	@Override
+	public String name() {
+		return name;
+	}
+
+	@Override
+	public void parse(ParseContext context) throws IOException {
+		String iri;
+		XContentParser parser = context.parser();
+        XContentParser.Token token = parser.currentToken();
+        if (token == XContentParser.Token.VALUE_STRING) {
+            iri =  parser.text();
+        } else {
+        	throw new MapperParsingException(name() + " does not contain String value");
+        }
+
+        try {
+			OntologyHelper helper = initialiseHelper();
+
+			OWLClass owlClass = helper.getOwlClass(iri);
+			if (owlClass == null) {
+				logger.debug("Cannot find OWL class for IRI {}", iri);
+			} else {
+				FieldMapper<String> mapper = fieldMappers.get(FieldMappings.URI);
+				context.externalValue(iri);
+				mapper.parse(context);
+//				context.doc().add(new StringField(mapper.names().indexName(), iri, Store.YES));
+
+				// Look up the labels
+				Collection<String> labels = helper.findLabels(owlClass);
+				for (String label : labels) {
+					context.externalValue(label);
+					fieldMappers.get(FieldMappings.LABEL).parse(context);
+//					context.doc().add(new TextField(FieldMappings.LABEL.getFieldName(), label, Store.YES));
+				}
+//				fieldMappers.get(FieldMappings.LABEL).parse(context);
 			}
 
-			context.path().remove(); // remove name
+			helper.updateLastCallTime();
+		} catch (OWLOntologyCreationException | URISyntaxException e) {
+			throw new ElasticsearchException("Could not initialise ontology helper", e);
+		}
+	}
 
-			return new OntologyMapper(name, ontologySettings, fieldMappers, threadPool);
+	@Override
+	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
+	}
+
+	@Override
+	public void traverse(FieldMapperListener fieldMapperListener) {
+		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
+			cursor.value.traverse(fieldMapperListener);
+		}
+	}
+
+	@Override
+	public void traverse(ObjectMapperListener objectMapperListener) {
+	}
+
+	@Override
+	public void close() {
+		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
+			cursor.value.close();
+		}
+//		disposeHelper();
+	}
+
+
+	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+		if (helper == null) {
+			helper = new OntologyHelper(ontologySettings);
+			if (ontologyCheck == null) {
+				ontologyCheck = new OntologyCheckRunnable(this);
+				threadPool.scheduleWithFixedDelay(ontologyCheck, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			}
 		}
 
+		return helper;
 	}
+
+	public synchronized OntologyHelper getHelper() {
+		return helper;
+	}
+
+	public synchronized void disposeHelper() {
+		if (helper != null) {
+			helper.dispose();
+			helper = null;
+		}
+	}
+
 
 	private final class OntologyCheckRunnable implements Runnable {
 
