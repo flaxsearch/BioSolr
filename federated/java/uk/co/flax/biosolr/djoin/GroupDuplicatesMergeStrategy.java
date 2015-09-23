@@ -40,8 +40,8 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
     return true;
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void merge(ResponseBuilder rb, ShardRequest sreq) {
     SortSpec ss = rb.getSortSpec();
     Sort sort = ss.getSort();
@@ -203,6 +203,7 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
     }
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void populateNextCursorMarkFromMergedShards(ResponseBuilder rb, Map<String, NamedList> sortFieldValuesMap) {
     final CursorMark lastCursorMark = rb.getCursorMark();
     if (null == lastCursorMark) {
@@ -236,7 +237,7 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
       } else {
         assert null != sf.getField() : "SortField has null field";
         NamedList sortFieldValues = sortFieldValuesMap.get(lastDoc.shard);
-        List<Object> fieldVals = (List<Object>) sortFieldValues.get(sf.getField());
+        List<Object> fieldVals = (List<Object>)sortFieldValues.get(sf.getField());
         nextCursorMarkValues.add(fieldVals.get(lastDoc.orderInShard));
       }
     }
@@ -245,6 +246,7 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
     rb.setNextCursorMark(nextCursorMark);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private NamedList unmarshalSortValues(SortSpec sortSpec, NamedList sortFieldValues, IndexSchema schema) {
     NamedList unmarshalledSortValsPerField = new NamedList();
 

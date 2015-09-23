@@ -31,6 +31,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
    */
   protected List<String> fieldNames = new ArrayList<>();
   
+  @SuppressWarnings("rawtypes")
   private Map<String, NamedList> sortFieldValuesMap;
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -155,6 +156,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       this.fieldNum = fieldNum;
     }
 
+    @SuppressWarnings("rawtypes")
     Object sortVal(ShardDoc shardDoc) {
       NamedList sortFieldValues = sortFieldValuesMap.get(shardDoc.shard);
       assert (sortFieldValues.getName(fieldNum).equals(fieldName));
@@ -178,6 +180,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     };
   }
 
+  @SuppressWarnings("rawtypes")
   Comparator<ShardDoc> comparatorFieldComparator(SortField sortField) {
     final FieldComparator fieldComparator;
     try {
@@ -193,6 +196,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       // smallest elements are kept instead of the largest... hence
       // the negative sign.
       @Override
+      @SuppressWarnings("unchecked")
       public int compare(final ShardDoc o1, final ShardDoc o2) {
         // noinspection unchecked
         return -fieldComparator.compareValues(sortVal(o1), sortVal(o2));
