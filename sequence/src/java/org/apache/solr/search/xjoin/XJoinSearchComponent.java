@@ -123,7 +123,7 @@ public class XJoinSearchComponent extends SearchComponent {
   @SuppressWarnings("rawtypes")
   public void process(ResponseBuilder rb) throws IOException {
     SolrParams params = rb.req.getParams();
-    if (!params.getBool(getName(), false)) {
+    if (! params.getBool(getName(), false)) {
       return;
     }
 

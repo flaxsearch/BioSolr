@@ -40,7 +40,7 @@ public class FastaJob implements Runnable {
   private Pattern pattern1 = Pattern.compile("^PDB:(.*?_.*?)\\s+(.+?)\\s+([0-9.e-]+?)$|^PRE_PDB:(\\w{4} Entity)\\s+(.+?)\\s+([0-9.e-]+?)$");
   private Pattern pattern2 = Pattern.compile("^>>PDB:(.*?_.*?)\\s+.*?$|^>>PRE_PDB:(\\w{4} Entity).*?$");
   private Pattern pattern3 = Pattern.compile("^Smith-Waterman score:.*?\\;(.*?)\\% .*? overlap \\((.*?)\\)$");
-  private Pattern pattern4 = Pattern.compile("^EMBOS  (\\s*.*?)$");
+  private Pattern pattern4 = Pattern.compile("^EMBOSS?\\s+(\\s*.*?)$");
   private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
 
   // sometimes an alignment appears twice in the results - need to ignore all
@@ -57,8 +57,7 @@ public class FastaJob implements Runnable {
 
   public FastaJobResults getResults() throws IOException {
     if (results == null) {
-      String id = fasta.getResultTypes(jobId)[0].getIdentifier();
-      byte[] result = fasta.getResult(jobId, id, null);
+      byte[] result = getRawResults();
       InputStream in = new ByteArrayInputStream(result);
       results = parseResults(new BufferedReader(new InputStreamReader(in)));
       results.chooseShownAlignments();

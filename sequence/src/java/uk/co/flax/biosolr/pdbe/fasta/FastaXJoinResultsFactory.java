@@ -166,7 +166,7 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
 
   }
 
-  private static String getEntryEntity(Alignment a) {
+  public static String getEntryEntity(Alignment a) {
     // pdb SOLR entry_entity: lower case, and numbers for chain instead of
     // letters
     if (a.getChain().length() == 1) {
