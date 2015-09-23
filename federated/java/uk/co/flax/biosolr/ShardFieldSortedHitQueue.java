@@ -33,11 +33,11 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
   
   private Map<String, NamedList> sortFieldValuesMap;
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public ShardFieldSortedHitQueue(Map<String, NamedList> sortFieldValuesMap, SortField[] fields, int size, IndexSearcher searcher) {
     super(size);
     this.sortFieldValuesMap = sortFieldValuesMap;
     final int n = fields.length;
-    // noinspection unchecked
     comparators = new Comparator[n];
     this.fields = new SortField[n];
     for (int i = 0; i < n; ++i) {
