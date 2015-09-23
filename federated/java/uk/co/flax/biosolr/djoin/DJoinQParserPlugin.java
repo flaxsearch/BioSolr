@@ -48,7 +48,7 @@ public class DJoinQParserPlugin extends QParserPlugin {
 
           @Override
           public MergeStrategy getMergeStrategy() {
-            return new DJoinMergeStrategy(qstr);
+            return new DJoinMergeStrategy();
           }
 
           @Override

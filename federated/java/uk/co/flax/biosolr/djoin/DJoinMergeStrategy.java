@@ -30,12 +30,6 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SortSpec;
 
 public class DJoinMergeStrategy implements MergeStrategy {
-
-  private String joinField;
-  
-  public DJoinMergeStrategy(String joinField) {
-    this.joinField = joinField;
-  }
   
   @Override
   public boolean mergesIds() {
