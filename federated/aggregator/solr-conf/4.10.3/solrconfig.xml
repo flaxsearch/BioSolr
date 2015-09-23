@@ -919,7 +919,7 @@
      </lst>
   </requestHandler>
   
-  <searchComponent name="djoin" class="uk.co.flax.biosolr.DJoinSearchComponent">
+  <searchComponent name="djoin" class="uk.co.flax.biosolr.merge.DJoinSearchComponent">
     <str name="joinField">name</str>
     <bool name="ignoreConversionErrors">true</bool>
   </searchComponent>
@@ -941,7 +941,7 @@
     </arr>
   </requestHandler>
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.DJoinQParserPlugin" />
+  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.DJoinQParserPlugin" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">

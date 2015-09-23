@@ -85,9 +85,6 @@
   
   <lib dir="${solr.install.dir:../../..}/dist/" regex="solr-dataimporthandler.*\.jar" />
 
-  <!-- djoin -->
-  <lib path="/Users/tomjon/flax/BioSolr/federated/djoin.jar" />  
-
   <!-- an exact 'path' can be used instead of a 'dir' to specify a
        specific jar file.  This will cause a serious error to be logged 
        if it can't be loaded.
@@ -833,10 +830,6 @@
           <str name="config">data-config.xml</str>
       </lst>
   </requestHandler>
-    
-  <searchComponent name="djoin" class="uk.co.flax.biosolr.DJoinSearchComponent">
-    <str name="joinField">name</str>
-  </searchComponent>
   
   <!-- SearchHandler
 
@@ -912,11 +905,8 @@
        </arr>
       -->
     <arr name="last-components">
-       <!-- str>djoin</str -->
     </arr>
   </requestHandler>
-
-  <queryParser name="djoin" class="uk.co.flax.biosolr.DJoinQParserPlugin" />
 
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
