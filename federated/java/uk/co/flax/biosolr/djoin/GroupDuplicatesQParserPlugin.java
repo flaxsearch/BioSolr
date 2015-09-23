@@ -20,7 +20,7 @@ import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SolrIndexSearcher.QueryCommand;
 import org.apache.solr.search.SyntaxError;
 
-public class DJoinQParserPlugin extends QParserPlugin {
+public class GroupDuplicatesQParserPlugin extends QParserPlugin {
 
   @Override @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
@@ -48,7 +48,7 @@ public class DJoinQParserPlugin extends QParserPlugin {
 
           @Override
           public MergeStrategy getMergeStrategy() {
-            return new DJoinMergeStrategy();
+            return new GroupDuplicatesMergeStrategy();
           }
 
           @Override

@@ -8,7 +8,8 @@ import org.apache.solr.common.SolrDocumentList;
  * of a parent, which is marked up with a field indicating that
  * it is a merge parent.
  */
-public class DJoinDocumentList extends SolrDocumentList {
+@SuppressWarnings("serial")
+public class DuplicateDocumentList extends SolrDocumentList {
   
   public static String MERGE_PARENT_FIELD = "__merge_parent__";
   

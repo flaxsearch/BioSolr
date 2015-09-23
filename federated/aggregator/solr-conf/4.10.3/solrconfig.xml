@@ -945,7 +945,7 @@
     </arr>
   </requestHandler>
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.DJoinQParserPlugin" />
+  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.GroupDuplicatesQParserPlugin" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">

@@ -29,7 +29,11 @@ import org.apache.solr.search.CursorMark;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SortSpec;
 
-public class DJoinMergeStrategy implements MergeStrategy {
+/**
+ * During merge, when encountering docs with the same id as seen before, do not
+ * ignore, rather, group together in results.
+ */
+public class GroupDuplicatesMergeStrategy implements MergeStrategy {
   
   @Override
   public boolean mergesIds() {
@@ -158,7 +162,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     queue.print();
     
     // build resultIds, which is used to request fields from each shard
-    Map<Object, ShardDoc> resultIds = new DJoinResultIds(sreq.actualShards);
+    Map<Object, ShardDoc> resultIds = new AllShardsResultIds(sreq.actualShards);
     for (int i = resultSize - 1; i >= 0; i--) {
       ShardDoc shardDoc = queue.pop();
       shardDoc.positionInResponse = i;
@@ -171,7 +175,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     // https://issues.apache.org/jira/browse/SOLR-3518
     rb.rsp.addToLog("hits", numFound);
 
-    SolrDocumentList responseDocs = new DJoinDocumentList();
+    SolrDocumentList responseDocs = new DuplicateDocumentList();
     if (maxScore != null) {
       responseDocs.setMaxScore(maxScore);
     }
