@@ -25,7 +25,7 @@ import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 
-public class DJoinSearchComponent extends SearchComponent {
+public class MergeSearchComponent extends SearchComponent {
 
 	public static final String COMPONENT_NAME = "djoin";
 	
