@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.djoin;
 
 import org.apache.lucene.search.SortField;
 import org.apache.solr.schema.SchemaField;
