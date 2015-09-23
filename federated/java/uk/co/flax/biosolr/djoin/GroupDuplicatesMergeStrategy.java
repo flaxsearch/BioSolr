@@ -158,8 +158,6 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
     // the docs offset -> queuesize
     int resultSize = queue.size() - ss.getOffset();
     resultSize = Math.max(0, resultSize); // there may not be any docs in range
-
-    queue.print();
     
     // build resultIds, which is used to request fields from each shard
     Map<Object, ShardDoc> resultIds = new AllShardsResultIds(sreq.actualShards);

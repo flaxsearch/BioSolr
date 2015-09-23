@@ -113,16 +113,6 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     return insertWithOverflow(doc);
   }
   
-  //FIXME: to remove
-  public void print() {
-    Object[] heap = getHeapArray();
-    System.out.println("***** " + size());
-    for (int i = 1; i < heap.length; ++i) {
-      System.out.println(heap[i]);
-    }
-    System.out.println("*******");
-  }
-  
   Comparator<ShardDoc> getCachedComparator(SortField sortField, IndexSearcher searcher) {
     SortField.Type type = sortField.getType();
     if (type == SortField.Type.SCORE) {
@@ -131,8 +121,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       try {
         sortField = sortField.rewrite(searcher);
       } catch (IOException e) {
-        throw new SolrException(SERVER_ERROR, "Exception rewriting sort field "
-            + sortField, e);
+        throw new SolrException(SERVER_ERROR, "Exception rewriting sort field " + sortField, e);
       }
     }
     return comparatorFieldComparator(sortField);
@@ -186,8 +175,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     try {
       fieldComparator = sortField.getComparator(0, 0);
     } catch (IOException e) {
-      throw new RuntimeException("Unable to get FieldComparator for sortField "
-          + sortField);
+      throw new RuntimeException("Unable to get FieldComparator for sortField " + sortField);
     }
 
     return new ShardComparator(sortField) {
