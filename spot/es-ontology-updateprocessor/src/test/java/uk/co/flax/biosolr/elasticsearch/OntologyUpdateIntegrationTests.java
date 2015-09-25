@@ -98,10 +98,19 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertThat(hits.getTotalHits(), equalTo(1L));
 
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_IRI);
-		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
+				.setFetchSource(true)
+				.addFields("annotation.uri", "annotation.label", 
+						"annotation.child_uris", "annotation.descendant_uris", 
+						"annotation.parent_uris", "annotation.ancestor_uris")
+				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
+		assertThat(hits.getHits()[0].field("annotation.child_uris").getValues().get(0), equalTo(TEST_CHILD_IRI));
+		assertThat(hits.getHits()[0].field("annotation.descendant_uris").getValues().get(0), equalTo(TEST_CHILD_IRI));
+		assertThat(hits.getHits()[0].field("annotation.parent_uris").getValues().size(), equalTo(0));
+		assertThat(hits.getHits()[0].field("annotation.ancestor_uris").getValues().size(), equalTo(0));
 
 		query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();

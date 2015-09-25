@@ -144,6 +144,8 @@ public class OntologyMapper implements Mapper {
 					settings.setSynonymPropertyUris(extractList(entry.getValue()));
 				} else if (key.equals(OntologySettings.DEFINITION_URI_PARAM)) {
 					settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+				} else if (key.equals(OntologySettings.INCLUDE_INDIRECT_PARAM)) {
+					settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
 				}
 			}
 
@@ -241,11 +243,49 @@ public class OntologyMapper implements Mapper {
 					context.externalValue(label);
 					fieldMappers.get(FieldMappings.LABEL).parse(context);
 				}
+				
+				// Look up the synonyms
+				for (String synonym : helper.findSynonyms(owlClass)) {
+					context.externalValue(synonym);
+					fieldMappers.get(FieldMappings.SYNONYMS).parse(context);
+				}
+				
+				// Add the child details
+				addRelatedNodesWithLabels(helper.getChildUris(owlClass), context,
+						fieldMappers.get(FieldMappings.CHILD_URI), fieldMappers.get(FieldMappings.CHILD_LABEL));
+				
+				// Add the parent details
+				addRelatedNodesWithLabels(helper.getParentUris(owlClass), context,
+						fieldMappers.get(FieldMappings.PARENT_URI), fieldMappers.get(FieldMappings.PARENT_LABEL));
+				
+				if (ontologySettings.isIncludeIndirect()) {
+					// Add the descendant details
+					addRelatedNodesWithLabels(helper.getDescendantUris(owlClass), context,
+							fieldMappers.get(FieldMappings.DESCENDANT_URI), fieldMappers.get(FieldMappings.DESCENDANT_LABEL));
+					
+					// Add the ancestor details
+					addRelatedNodesWithLabels(helper.getAncestorUris(owlClass), context,
+							fieldMappers.get(FieldMappings.ANCESTOR_URI), fieldMappers.get(FieldMappings.ANCESTOR_LABEL));
+				}
 			}
 
 			helper.updateLastCallTime();
 		} catch (OWLOntologyCreationException | URISyntaxException e) {
 			throw new ElasticsearchException("Could not initialise ontology helper", e);
+		}
+	}
+	
+	private void addRelatedNodesWithLabels(Collection<String> iris, ParseContext context,
+			FieldMapper<String> iriMapper, FieldMapper<String> labelMapper) throws IOException {
+		if (!iris.isEmpty()) {
+			for (String iri : iris) {
+				context.externalValue(iri);
+				iriMapper.parse(context);
+			}
+			for (String label : helper.findLabelsForIRIs(iris)) {
+				context.externalValue(label);
+				labelMapper.parse(context);
+			}
 		}
 	}
 

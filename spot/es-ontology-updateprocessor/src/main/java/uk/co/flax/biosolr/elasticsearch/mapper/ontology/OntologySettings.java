@@ -34,6 +34,8 @@ public class OntologySettings {
 	static final String LABEL_URI_PARAM = "labelURI";
 	static final String SYNONYM_URI_PARAM = "synonymURI";
 	static final String DEFINITION_URI_PARAM = "definitionURI";
+	
+	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 
 	/*
 	 * Default property annotation values.
@@ -46,6 +48,7 @@ public class OntologySettings {
 	private List<String> labelPropertyUris = Arrays.asList(LABEL_PROPERTY_URI);
 	private List<String> synonymPropertyUris = Arrays.asList(SYNONYM_PROPERTY_URI);
 	private List<String> definitionPropertyUris = Arrays.asList(DEFINITION_PROPERTY_URI);
+	private boolean includeIndirect = true;
 
 	public String getOntologyUri() {
 		return ontologyUri;
@@ -77,6 +80,14 @@ public class OntologySettings {
 
 	public void setDefinitionPropertyUris(List<String> definitionPropertyUris) {
 		this.definitionPropertyUris = definitionPropertyUris;
+	}
+
+	public boolean isIncludeIndirect() {
+		return includeIndirect;
+	}
+
+	public void setIncludeIndirect(boolean includeIndirect) {
+		this.includeIndirect = includeIndirect;
 	}
 
 }
