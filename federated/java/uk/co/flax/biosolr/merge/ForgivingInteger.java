@@ -1,9 +1,9 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.merge;
 
 import org.apache.lucene.search.SortField;
 import org.apache.solr.schema.SchemaField;
 
-public class DJoinForgivingInteger extends DJoinAbstractFieldType {
+public class ForgivingInteger extends MergeAbstractFieldType {
 	
 	@Override
 	public Object convert(String val) {

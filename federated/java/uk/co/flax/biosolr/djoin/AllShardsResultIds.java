@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.djoin;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,11 +7,15 @@ import java.util.List;
 
 import org.apache.solr.handler.component.ShardDoc;
 
-public class DJoinResultIds extends HashMap<Object, ShardDoc> {
+/**
+ * When asked for values(), return a ShardDoc for every doc id for every shard.
+ */
+@SuppressWarnings("serial")
+public class AllShardsResultIds extends HashMap<Object, ShardDoc> {
 
   private String[] shardAddresses;
   
-  public DJoinResultIds(String[] shardAddresses) {
+  public AllShardsResultIds(String[] shardAddresses) {
     this.shardAddresses = shardAddresses;
   }
   

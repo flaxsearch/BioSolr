@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.djoin;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,21 +29,19 @@ import org.apache.solr.search.CursorMark;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SortSpec;
 
-public class DJoinMergeStrategy implements MergeStrategy {
-
-  private String joinField;
-  
-  public DJoinMergeStrategy(String joinField) {
-    this.joinField = joinField;
-  }
+/**
+ * During merge, when encountering docs with the same id as seen before, do not
+ * ignore, rather, group together in results.
+ */
+public class GroupDuplicatesMergeStrategy implements MergeStrategy {
   
   @Override
   public boolean mergesIds() {
     return true;
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public void merge(ResponseBuilder rb, ShardRequest sreq) {
     SortSpec ss = rb.getSortSpec();
     Sort sort = ss.getSort();
@@ -160,11 +158,9 @@ public class DJoinMergeStrategy implements MergeStrategy {
     // the docs offset -> queuesize
     int resultSize = queue.size() - ss.getOffset();
     resultSize = Math.max(0, resultSize); // there may not be any docs in range
-
-    queue.print();
     
     // build resultIds, which is used to request fields from each shard
-    Map<Object, ShardDoc> resultIds = new DJoinResultIds(sreq.actualShards);
+    Map<Object, ShardDoc> resultIds = new AllShardsResultIds(sreq.actualShards);
     for (int i = resultSize - 1; i >= 0; i--) {
       ShardDoc shardDoc = queue.pop();
       shardDoc.positionInResponse = i;
@@ -177,7 +173,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     // https://issues.apache.org/jira/browse/SOLR-3518
     rb.rsp.addToLog("hits", numFound);
 
-    SolrDocumentList responseDocs = new DJoinDocumentList();
+    SolrDocumentList responseDocs = new DuplicateDocumentList();
     if (maxScore != null) {
       responseDocs.setMaxScore(maxScore);
     }
@@ -205,6 +201,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     }
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void populateNextCursorMarkFromMergedShards(ResponseBuilder rb, Map<String, NamedList> sortFieldValuesMap) {
     final CursorMark lastCursorMark = rb.getCursorMark();
     if (null == lastCursorMark) {
@@ -238,7 +235,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
       } else {
         assert null != sf.getField() : "SortField has null field";
         NamedList sortFieldValues = sortFieldValuesMap.get(lastDoc.shard);
-        List<Object> fieldVals = (List<Object>) sortFieldValues.get(sf.getField());
+        List<Object> fieldVals = (List<Object>)sortFieldValues.get(sf.getField());
         nextCursorMarkValues.add(fieldVals.get(lastDoc.orderInShard));
       }
     }
@@ -247,6 +244,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     rb.setNextCursorMark(nextCursorMark);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private NamedList unmarshalSortValues(SortSpec sortSpec, NamedList sortFieldValues, IndexSchema schema) {
     NamedList unmarshalledSortValsPerField = new NamedList();
 

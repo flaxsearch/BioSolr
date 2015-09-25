@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.merge;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -11,7 +11,7 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.solr.response.TextResponseWriter;
 import org.apache.solr.schema.FieldType;
 
-public abstract class DJoinAbstractFieldType extends FieldType {
+public abstract class MergeAbstractFieldType extends FieldType {
 
 	@Override
 	public void write(TextResponseWriter writer, String name, IndexableField f) throws IOException {

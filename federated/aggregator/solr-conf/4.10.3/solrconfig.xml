@@ -919,7 +919,11 @@
      </lst>
   </requestHandler>
   
-  <searchComponent name="djoin" class="uk.co.flax.biosolr.DJoinSearchComponent">
+  <searchComponent name="filterDJoin" class="uk.co.flax.biosolr.djoin.FilterQParserSearchComponent">
+    <str name="qParser">djoin</str>
+  </searchComponent>
+  
+  <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent">
     <str name="joinField">name</str>
     <bool name="ignoreConversionErrors">true</bool>
   </searchComponent>
@@ -937,11 +941,11 @@
       <str name="sort">score desc,name asc</str>
     </lst>
     <arr name="last-components">
-       <str>djoin</str>
+       <str>merge</str>
     </arr>
   </requestHandler>
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.DJoinQParserPlugin" />
+  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.GroupDuplicatesQParserPlugin" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
@@ -955,6 +959,9 @@
       <str name="fl">*,score</str>
       <str name="sort">score desc,name asc</str>
     </lst>
+    <arr name="last-components">
+       <str>filterDJoin</str>
+    </arr>
   </requestHandler>
 
 

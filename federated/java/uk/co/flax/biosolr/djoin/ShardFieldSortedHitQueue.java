@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.djoin;
 
 import static org.apache.solr.common.SolrException.ErrorCode.SERVER_ERROR;
 
@@ -31,13 +31,14 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
    */
   protected List<String> fieldNames = new ArrayList<>();
   
+  @SuppressWarnings("rawtypes")
   private Map<String, NamedList> sortFieldValuesMap;
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public ShardFieldSortedHitQueue(Map<String, NamedList> sortFieldValuesMap, SortField[] fields, int size, IndexSearcher searcher) {
     super(size);
     this.sortFieldValuesMap = sortFieldValuesMap;
     final int n = fields.length;
-    // noinspection unchecked
     comparators = new Comparator[n];
     this.fields = new SortField[n];
     for (int i = 0; i < n; ++i) {
@@ -112,16 +113,6 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     return insertWithOverflow(doc);
   }
   
-  //FIXME: to remove
-  public void print() {
-    Object[] heap = getHeapArray();
-    System.out.println("***** " + size());
-    for (int i = 1; i < heap.length; ++i) {
-      System.out.println(heap[i]);
-    }
-    System.out.println("*******");
-  }
-  
   Comparator<ShardDoc> getCachedComparator(SortField sortField, IndexSearcher searcher) {
     SortField.Type type = sortField.getType();
     if (type == SortField.Type.SCORE) {
@@ -130,8 +121,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       try {
         sortField = sortField.rewrite(searcher);
       } catch (IOException e) {
-        throw new SolrException(SERVER_ERROR, "Exception rewriting sort field "
-            + sortField, e);
+        throw new SolrException(SERVER_ERROR, "Exception rewriting sort field " + sortField, e);
       }
     }
     return comparatorFieldComparator(sortField);
@@ -155,6 +145,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       this.fieldNum = fieldNum;
     }
 
+    @SuppressWarnings("rawtypes")
     Object sortVal(ShardDoc shardDoc) {
       NamedList sortFieldValues = sortFieldValuesMap.get(shardDoc.shard);
       assert (sortFieldValues.getName(fieldNum).equals(fieldName));
@@ -178,13 +169,13 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
     };
   }
 
+  @SuppressWarnings("rawtypes")
   Comparator<ShardDoc> comparatorFieldComparator(SortField sortField) {
     final FieldComparator fieldComparator;
     try {
       fieldComparator = sortField.getComparator(0, 0);
     } catch (IOException e) {
-      throw new RuntimeException("Unable to get FieldComparator for sortField "
-          + sortField);
+      throw new RuntimeException("Unable to get FieldComparator for sortField " + sortField);
     }
 
     return new ShardComparator(sortField) {
@@ -193,6 +184,7 @@ class ShardFieldSortedHitQueue extends PriorityQueue<ShardDoc> {
       // smallest elements are kept instead of the largest... hence
       // the negative sign.
       @Override
+      @SuppressWarnings("unchecked")
       public int compare(final ShardDoc o1, final ShardDoc o2) {
         // noinspection unchecked
         return -fieldComparator.compareValues(sortVal(o1), sortVal(o2));
