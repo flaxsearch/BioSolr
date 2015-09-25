@@ -40,7 +40,7 @@ public class DynamicLabelFieldLookupResource {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(DynamicLabelFieldLookupResource.class);
 	
-	private static final String LABEL_FIELD_REGEX = ".*_rel_labels$";
+	private static final String LABEL_FIELD_REGEX = ".*_rel_labels_t$";
 	
 	private final SearchEngine searchEngine;
 

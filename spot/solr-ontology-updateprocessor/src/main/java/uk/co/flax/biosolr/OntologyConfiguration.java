@@ -32,7 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
- * JavaDoc for OntologyConfiguration.
+ * Ontology configuration details, as read from a properties file
+ * for each required ontology.
  *
  * @author mlp
  */
