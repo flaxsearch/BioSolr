@@ -43,14 +43,6 @@
 				<div ng-show="showTopLevelFacets()">
 					<span class="facet-field">{{getFacetLabel('facet_labels')}}</span>
 					<ul class="facet-list">
-						<li ng-repeat="facet in facets.facet_labels"><a
-							ng-click="addFilter('facet_labels', facet.label)">{{facet.label}}</a>
-							({{facet.count}})</li>
-					</ul>
-				</div>
-				<div ng-show="showSecondLevelFacets()">
-					<span class="facet-field">{{getFacetLabel('efo_labels_str')}}</span>
-					<ul class="facet-list">
 						<li ng-repeat="facet in facets.efo_labels_str"><a
 							ng-click="addFilter('efo_labels_str', facet.label)">{{facet.label}}</a>
 							({{facet.count}})</li>

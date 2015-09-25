@@ -115,7 +115,7 @@ ontologyApp
 	$scope.formatRelatedType = function(type) {
 		var ret = '';
 		var words = type.split('_');
-		for (var i = 0; i < words.length - 2; i ++) {
+		for (var i = 0; i < words.length - 3; i ++) {
 			ret = ret + (i > 0 ? ' ' : '') + words[i];
 		}
 		ret = ret.charAt(0).toUpperCase() + ret.slice(1);

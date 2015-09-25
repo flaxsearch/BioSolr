@@ -7,10 +7,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<name>Solr Ontology Update Processor</name>
-	<description>Update processor to look up ontology record details for annotated documents.</description>
+	<description>Solr update processor for adding ontology data to documents with ontology annotations.</description>
 
 	<properties>
+		<!-- use UTF-8 for everything -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<solr.version>5.0.0</solr.version>
 		<owlapi.version>3.5.2</owlapi.version>
 	</properties>
