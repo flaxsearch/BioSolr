@@ -146,6 +146,8 @@ public class OntologyMapper implements Mapper {
 					settings.setDefinitionPropertyUris(extractList(entry.getValue()));
 				} else if (key.equals(OntologySettings.INCLUDE_INDIRECT_PARAM)) {
 					settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+				} else if (key.equals(OntologySettings.INCLUDE_RELATIONS_PARAM)) {
+					settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
 				}
 			}
 
@@ -197,6 +199,8 @@ public class OntologyMapper implements Mapper {
 		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
 		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
 		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
+		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
 
 //		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
@@ -266,6 +270,11 @@ public class OntologyMapper implements Mapper {
 					// Add the ancestor details
 					addRelatedNodesWithLabels(helper.getAncestorUris(owlClass), context,
 							fieldMappers.get(FieldMappings.ANCESTOR_URI), fieldMappers.get(FieldMappings.ANCESTOR_LABEL));
+				}
+				
+				if (ontologySettings.isIncludeRelations()) {
+					Map<String, List<String>> relations = helper.getRestrictions(owlClass);
+					
 				}
 			}
 
