@@ -32,6 +32,7 @@ import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
+import org.elasticsearch.common.netty.util.internal.ConcurrentHashMap;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -56,6 +57,10 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 public class OntologyMapper implements Mapper {
 
 	public static final long DELETE_CHECK_DELAY_MS = 2 * 60 * 1000; // 2 minutes
+	
+	public static final String RELATION_SUFFIX = "_rel";
+	public static final String DYNAMIC_URI_FIELD_SUFFIX = "_rel_uris";
+	public static final String DYNAMIC_LABEL_FIELD_SUFFIX = "_rel_labels";
 
     private static final ESLogger logger = ESLoggerFactory.getLogger(OntologyMapper.class.getName());
 
@@ -77,7 +82,7 @@ public class OntologyMapper implements Mapper {
 
 			context.path().add(name);
 
-			for (FieldMappings mapping : new FieldMappings[]{ FieldMappings.URI, FieldMappings.LABEL }) {
+			for (FieldMappings mapping : FieldMappings.values()) {
 				FieldMapper<String> mapper = MapperBuilders.stringField(mapping.getFieldName())
 						.store(true)
 						.index(true)
@@ -85,10 +90,41 @@ public class OntologyMapper implements Mapper {
 						.build(context);
 				fieldMappers.put(mapping, mapper);
 			}
+			
+			// And build the dynamic field mappers
+			Map<String, FieldMapper<String>> dynamicMappers = Maps.newHashMap();
+			try {
+				OntologyHelper helper = getHelper(ontologySettings, threadPool);
+				dynamicMappers = buildDynamicMappers(context, helper);
+			} catch (OWLOntologyCreationException | URISyntaxException | IOException e) {
+				logger.error("Could not instantiate ontology: {}", e.getMessage());
+			}
 
 			context.path().remove(); // remove name
 
-			return new OntologyMapper(name, ontologySettings, fieldMappers, threadPool);
+			return new OntologyMapper(name, ontologySettings, fieldMappers, dynamicMappers, threadPool);
+		}
+		
+		private Map<String, FieldMapper<String>> buildDynamicMappers(BuilderContext context, OntologyHelper helper) {
+			Map<String, FieldMapper<String>> dynamicMappers = Maps.newHashMap();
+			
+			for (String relatedField : helper.getRestrictionProperties()) {
+				FieldMapper<String> uriMapper = MapperBuilders.stringField(relatedField + DYNAMIC_URI_FIELD_SUFFIX)
+						.store(true)
+						.index(true)
+						.tokenized(false)
+						.build(context);
+				FieldMapper<String> labelMapper = MapperBuilders.stringField(relatedField + DYNAMIC_LABEL_FIELD_SUFFIX)
+						.store(true)
+						.index(true)
+						.tokenized(true)
+						.build(context);
+
+				dynamicMappers.put(uriMapper.name(), uriMapper);
+				dynamicMappers.put(labelMapper.name(), labelMapper);
+			}
+			
+			return dynamicMappers;
 		}
 
 	}
@@ -127,7 +163,7 @@ public class OntologyMapper implements Mapper {
 			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())) {
 				throw new MapperParsingException("Ontology URI is required");
 			}
-
+			
 			return new OntologyMapper.Builder(name, ontologySettings, threadPool);
 		}
 
@@ -176,15 +212,16 @@ public class OntologyMapper implements Mapper {
     private final String name;
 	private final OntologySettings ontologySettings;
 	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> fieldMappers = ImmutableOpenMap.of();
+	private volatile ImmutableOpenMap<String, FieldMapper<String>> dynamicFieldMappers = ImmutableOpenMap.of();
 	private final ThreadPool threadPool;
+	
+	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
 
-	private OntologyHelper helper;
-	private OntologyCheckRunnable ontologyCheck;
-
-	public OntologyMapper(String name, OntologySettings oSettings, Map<FieldMappings, FieldMapper<String>> fieldMappers, ThreadPool threadPool) {
+	public OntologyMapper(String name, OntologySettings oSettings, Map<FieldMappings, FieldMapper<String>> fieldMappers, Map<String, FieldMapper<String>> dynamicMappers, ThreadPool threadPool) {
 		this.name = name;
 		this.ontologySettings = oSettings;
 		this.fieldMappers = ImmutableOpenMap.builder(this.fieldMappers).putAll(fieldMappers).build();
+		this.dynamicFieldMappers = ImmutableOpenMap.builder(this.dynamicFieldMappers).putAll(dynamicMappers).build();
 		this.threadPool = threadPool;
 	}
 
@@ -229,7 +266,7 @@ public class OntologyMapper implements Mapper {
         }
 
         try {
-			OntologyHelper helper = initialiseHelper();
+			OntologyHelper helper = getHelper(ontologySettings, threadPool);
 
 			OWLClass owlClass = helper.getOwlClass(iri);
 			if (owlClass == null) {
@@ -255,26 +292,50 @@ public class OntologyMapper implements Mapper {
 				}
 				
 				// Add the child details
-				addRelatedNodesWithLabels(helper.getChildUris(owlClass), context,
+				addRelatedNodesWithLabels(helper, helper.getChildUris(owlClass), context,
 						fieldMappers.get(FieldMappings.CHILD_URI), fieldMappers.get(FieldMappings.CHILD_LABEL));
 				
 				// Add the parent details
-				addRelatedNodesWithLabels(helper.getParentUris(owlClass), context,
+				addRelatedNodesWithLabels(helper, helper.getParentUris(owlClass), context,
 						fieldMappers.get(FieldMappings.PARENT_URI), fieldMappers.get(FieldMappings.PARENT_LABEL));
 				
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
-					addRelatedNodesWithLabels(helper.getDescendantUris(owlClass), context,
+					addRelatedNodesWithLabels(helper, helper.getDescendantUris(owlClass), context,
 							fieldMappers.get(FieldMappings.DESCENDANT_URI), fieldMappers.get(FieldMappings.DESCENDANT_LABEL));
 					
 					// Add the ancestor details
-					addRelatedNodesWithLabels(helper.getAncestorUris(owlClass), context,
+					addRelatedNodesWithLabels(helper, helper.getAncestorUris(owlClass), context,
 							fieldMappers.get(FieldMappings.ANCESTOR_URI), fieldMappers.get(FieldMappings.ANCESTOR_LABEL));
 				}
 				
 				if (ontologySettings.isIncludeRelations()) {
+					// Add the related nodes
 					Map<String, List<String>> relations = helper.getRestrictions(owlClass);
 					
+					for (String relation : relations.keySet()) {
+						String uriMapperName = relation + DYNAMIC_URI_FIELD_SUFFIX;
+						String labelMapperName = relation + DYNAMIC_LABEL_FIELD_SUFFIX;
+						FieldMapper<String> uriMapper = dynamicFieldMappers.get(uriMapperName);
+						FieldMapper<String> labelMapper = dynamicFieldMappers.get(labelMapperName);
+						
+						if (uriMapper == null) {
+							logger.warn("No mapper found for dynamic field {} - ignoring", relation);
+							continue;
+						}
+						
+						// Add the URI fields
+						for (String relIri : relations.get(relation)) {
+							context.externalValue(relIri);
+							uriMapper.parse(context);
+						}
+						
+						// Add the labels
+						for (String label : helper.findLabelsForIRIs(relations.get(relation))) {
+							context.externalValue(label);
+							labelMapper.parse(context);
+						}
+					}
 				}
 			}
 
@@ -284,7 +345,7 @@ public class OntologyMapper implements Mapper {
 		}
 	}
 	
-	private void addRelatedNodesWithLabels(Collection<String> iris, ParseContext context,
+	private void addRelatedNodesWithLabels(OntologyHelper helper, Collection<String> iris, ParseContext context,
 			FieldMapper<String> iriMapper, FieldMapper<String> labelMapper) throws IOException {
 		if (!iris.isEmpty()) {
 			for (String iri : iris) {
@@ -307,6 +368,9 @@ public class OntologyMapper implements Mapper {
 		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
 			cursor.value.traverse(fieldMapperListener);
 		}
+		for (ObjectObjectCursor<String, FieldMapper<String>> cursor : dynamicFieldMappers) {
+			cursor.value.traverse(fieldMapperListener);
+		}
 	}
 
 	@Override
@@ -321,47 +385,39 @@ public class OntologyMapper implements Mapper {
 //		disposeHelper();
 	}
 
-
-	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+	
+	public static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OWLOntologyCreationException, URISyntaxException, IOException {
+		OntologyHelper helper = helpers.get(settings.getOntologyUri());
+		
 		if (helper == null) {
-			helper = new OntologyHelper(ontologySettings);
-			if (ontologyCheck == null) {
-				ontologyCheck = new OntologyCheckRunnable(this);
-				threadPool.scheduleWithFixedDelay(ontologyCheck, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
-			}
+			helper = new OntologyHelper(settings);
+			OntologyCheckRunnable checker = new OntologyCheckRunnable(settings.getOntologyUri());
+			threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			helpers.put(settings.getOntologyUri(), helper);
+			helper.updateLastCallTime();
 		}
-
+		
 		return helper;
 	}
 
-	public synchronized OntologyHelper getHelper() {
-		return helper;
-	}
 
-	public synchronized void disposeHelper() {
-		if (helper != null) {
-			helper.dispose();
-			helper = null;
-		}
-	}
+	private static final class OntologyCheckRunnable implements Runnable {
 
+		final String ontologyUri;
 
-	private final class OntologyCheckRunnable implements Runnable {
-
-		final OntologyMapper updateProcessor;
-
-		public OntologyCheckRunnable(OntologyMapper processor) {
-			this.updateProcessor = processor;
+		public OntologyCheckRunnable(String ontologyUri) {
+			this.ontologyUri = ontologyUri;
 		}
 
 		@Override
 		public void run() {
-			OntologyHelper helper = updateProcessor.getHelper();
+			OntologyHelper helper = helpers.get(ontologyUri);
 			if (helper != null) {
 				// Check if the last call time was longer ago than the maximum
 				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
 					// Assume helper is out of use - dispose of it to allow memory to be freed
-					updateProcessor.disposeHelper();
+					helper.dispose();
+					helpers.remove(ontologyUri);
 				}
 			}
 		}

@@ -32,6 +32,12 @@
 	xmlns:go="http://purl.obolibrary.org/obo/go#" 
 	xmlns:span="http://www.ifomis.org/bfo/1.1/span#">
 	
+    <!-- http://www.obofoundry.org/ro/ro.owl#participates_in -->
+    <owl:ObjectProperty rdf:about="http://www.obofoundry.org/ro/ro.owl#participates_in">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">participates_in</rdfs:label>
+        <efo:definition rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Participates in is a primitive instance-level relation between a continuant and a process in which it participates. For example a scanner participates in a scanning process at some specific time.</efo:definition>
+    </owl:ObjectProperty>
+    
 	<owl:Class rdf:about="http://www.ebi.ac.uk/efo/EFO_0000001">
         <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">experimental factor</rdfs:label>
         <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">second label</rdfs:label>
@@ -62,6 +68,12 @@
         <efo:ArrayExpress_label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sample factor</efo:ArrayExpress_label>
         <efo:organizational_class rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</efo:organizational_class>
         <efo:alternative_term>material type</efo:alternative_term>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.obofoundry.org/ro/ro.owl#participates_in"/>
+                <owl:someValuesFrom rdf:resource="http://www.ebi.ac.uk/efo/EFO_0000001"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
 
 </rdf:RDF>

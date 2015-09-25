@@ -126,7 +126,7 @@ public class OntologyHelper {
 		this.reasoner = new StructuralReasonerFactory().createReasoner(ontology);
 		// this.shortFormProvider = new SimpleShortFormProvider();
 		this.owlNothingIRI = manager.getOWLDataFactory().getOWLNothing().getIRI();
-
+		
 		// Initialise the class map
 		initialiseClassMap();
 	}
@@ -425,6 +425,20 @@ public class OntologyHelper {
 	 */
 	public long getLastCallTime() {
 		return lastCallTime;
+	}
+	
+	public Set<String> getRestrictionProperties() {
+		Set<String> properties = new HashSet<>();
+		
+		Set<OWLObjectProperty> objectProperties = ontology.getObjectPropertiesInSignature();
+		for (OWLObjectProperty oop : objectProperties) {
+			Optional<String> shortForm = getShortForm(oop.getIRI());
+			if (shortForm.isPresent()) {
+				properties.add(shortForm.get());
+			}
+		}
+		
+		return properties;
 	}
 
 }
