@@ -107,9 +107,10 @@ import org.slf4j.LoggerFactory;
  * <li>
  * <b>includeRelations</b> (boolean) - should other relationships between nodes
  * (eg. "has disease location", "is part of") be indexed. The fields will be
- * named using the short form of the field name, plus the URI and label field
- * suffixes - for example, <code>has_disease_location_uris_s</code>,
- * <code>has_disease_location_labels_t</code>. Default: <code>true</code>.</li>
+ * named using the short form of the field name, followed by "_rel",
+ *  plus the URI and label field
+ * suffixes - for example, <code>has_disease_location_rel_uris_s</code>,
+ * <code>has_disease_location_rel_labels_t</code>. Default: <code>true</code>.</li>
  * <li>
  * <b>synonymsField</b> - the field which should be used to store synonyms. If
  * left empty, synonyms will not be indexed. Default: <code>synonyms_t</code>.</li>
@@ -193,6 +194,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String ANCESTOR_FIELD_DEFAULT = "ancestors";
 	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
 	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
+	private static final String RELATION_FIELD_INDICATOR = "_rel";
 	
 	private boolean enabled;
 	private String annotationField;
@@ -474,9 +476,11 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			Map<String, List<String>> relatedClasses = helper.getRestrictions(owlClass);
 			
 			for (String relation : relatedClasses.keySet()) {
+				String uriField = (relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
+				String labelField = (relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
 				List<String> iris = relatedClasses.get(relation);
-				doc.addField(relation + getUriFieldSuffix(), iris);
-				doc.addField(relation + getLabelFieldSuffix(), helper.findLabelsForIRIs(iris));
+				doc.addField(uriField, iris);
+				doc.addField(labelField, helper.findLabelsForIRIs(iris));
 			}
 		}
 		
