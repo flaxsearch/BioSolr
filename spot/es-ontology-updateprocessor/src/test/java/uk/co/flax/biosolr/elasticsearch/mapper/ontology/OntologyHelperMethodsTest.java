@@ -89,7 +89,7 @@ public class OntologyHelperMethodsTest {
 		OWLClass testClass = helper.getOwlClass(TEST_IRI);
 		Collection<String> labels = helper.findLabels(testClass);
 		assertNotNull(labels);
-		assertEquals(1, labels.size());
+		assertEquals(2, labels.size());
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)
@@ -182,7 +182,7 @@ public class OntologyHelperMethodsTest {
 	public void findLabelsForIRIs() {
 		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(TEST_IRI, TEST_CHILD_IRI));
 		assertNotNull(labels);
-		assertEquals(2, labels.size());
+		assertEquals(3, labels.size());
 	}
 	
 	@Test(expected=java.lang.NullPointerException.class)

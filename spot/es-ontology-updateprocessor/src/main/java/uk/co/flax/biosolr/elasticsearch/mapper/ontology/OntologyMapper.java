@@ -229,19 +229,18 @@ public class OntologyMapper implements Mapper {
 			if (owlClass == null) {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
-				FieldMapper<String> mapper = fieldMappers.get(FieldMappings.URI);
+				// We add the data as an external value, then use mapper.parse() to
+				// add the field to the record. We don't need to explicitly add the
+				// field - the mapper handles that.
 				context.externalValue(iri);
-				mapper.parse(context);
-//				context.doc().add(new StringField(mapper.names().indexName(), iri, Store.YES));
+				fieldMappers.get(FieldMappings.URI).parse(context);
 
-				// Look up the labels
+				// Look up the label(s)
 				Collection<String> labels = helper.findLabels(owlClass);
 				for (String label : labels) {
 					context.externalValue(label);
 					fieldMappers.get(FieldMappings.LABEL).parse(context);
-//					context.doc().add(new TextField(FieldMappings.LABEL.getFieldName(), label, Store.YES));
 				}
-//				fieldMappers.get(FieldMappings.LABEL).parse(context);
 			}
 
 			helper.updateLastCallTime();

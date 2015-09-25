@@ -108,6 +108,7 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
+		assertThat(hits.getHits()[0].field(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName()).getValues().size(), equalTo(2));
 	}
 
 
