@@ -54,12 +54,10 @@ public class DocumentIndexer {
 	private final IndexerConfiguration config;
 	
 	private final SolrClient solrServer;
-//	private final OntologyHandler ontologyHandler;
 	
 	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
 		this.config = readConfig(configFilepath);
 		solrServer = new HttpSolrClient(config.getDocumentsSolrUrl());
-//		ontologyHandler = new OntologyHandler(config.getOntologyUri());
 	}
 
 	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
@@ -140,21 +138,6 @@ public class DocumentIndexer {
 				String uriHash = DigestUtils.md5Hex(efoUri);
 				doc.setEfoUriHash(uriHash);
 				doc.setUriKey(uriHash.hashCode());
-				
-//				OWLClass efoClass = findEfoClass(efoUri);
-//				if (efoClass != null) {
-//					doc.setEfoLabels(lookupEfoLabels(efoClass));
-//					
-//					List<OntologyHierarchyNode> childHierarchy = ontologyHandler.getChildHierarchy(efoClass);
-//					doc.setChildHierarchy(convertHierarchyToJson(childHierarchy));
-//					doc.setChildLabels(extractLabels(childHierarchy));
-//					doc.setParentLabels(lookupParentLabels(efoClass));
-//					List<String> facetLabels = new ArrayList<String>();
-//					facetLabels.addAll(doc.getEfoLabels());
-//					facetLabels.addAll(doc.getParentLabels());
-//					doc.setFacetLabels(facetLabels);
-//					addRelatedItemsToDocument(lookupRelatedItems(efoClass), doc);
-//				}
 				
 				documents.add(doc);
 			}
