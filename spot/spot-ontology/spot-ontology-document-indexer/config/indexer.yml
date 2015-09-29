@@ -1,13 +1,4 @@
 
-# Ontology config details
-# URL of the Ontology SOLR endpoint
-ontologySolrUrl: http://localhost:8983/solr/ontology
-# URL of the document SOLR endpoint
-documentsSolrUrl: http://localhost:8983/solr/documents
-
-# URI for the ontology to reference against
-ontologyUri: http://www.ebi.ac.uk/efo/efo.owl
-
 # Database configuration
 database:
   # Driver details for the database
@@ -17,3 +8,20 @@ database:
   username: user
   password: password
 
+# Storage configuration
+storage:
+  # Storage engine type(s) to use
+  engineTypes: [ solr ]
+
+  # Solr configuration (if solr in engineTypes)
+  solr:
+    # Base URL for the document index
+    baseUrl: http://localhost:8983/solr/documents
+    
+    # Commit within time when storing items (in ms)
+    commitWithinMs: 60000
+    
+  # Configuration for other search engines, as applicable
+  other:
+    elasticsearch:
+      class: "uk.co.flax.biosolr.ontology.documents.storage.es.ESStorageEngine"

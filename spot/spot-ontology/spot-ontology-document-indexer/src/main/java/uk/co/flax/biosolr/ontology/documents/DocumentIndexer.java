@@ -25,20 +25,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.flax.biosolr.ontology.api.Document;
 import uk.co.flax.biosolr.ontology.config.DatabaseConfiguration;
 import uk.co.flax.biosolr.ontology.config.IndexerConfiguration;
+import uk.co.flax.biosolr.ontology.config.StorageConfiguration;
 import uk.co.flax.biosolr.ontology.config.loaders.ConfigurationLoader;
 import uk.co.flax.biosolr.ontology.config.loaders.YamlConfigurationLoader;
+import uk.co.flax.biosolr.ontology.documents.storage.StorageEngine;
+import uk.co.flax.biosolr.ontology.documents.storage.StorageEngineException;
+import uk.co.flax.biosolr.ontology.documents.storage.StorageEngineFactory;
 import uk.co.flax.biosolr.ontology.indexer.OntologyIndexingException;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Matt Pearce
@@ -49,15 +50,23 @@ public class DocumentIndexer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocumentIndexer.class);
 	
 	private static final int BATCH_SIZE = 1000;
-	private static final int COMMIT_WITHIN = 60000;
 	
 	private final IndexerConfiguration config;
+	private final List<StorageEngine> storageEngines;
 	
-	private final SolrClient solrServer;
-	
-	public DocumentIndexer(String configFilepath) throws IOException, OWLOntologyCreationException {
+	public DocumentIndexer(String configFilepath) throws IOException, StorageEngineException {
 		this.config = readConfig(configFilepath);
-		solrServer = new HttpSolrClient(config.getDocumentsSolrUrl());
+		this.storageEngines = Lists.newArrayListWithExpectedSize(config.getStorage().getEngineTypes().size());
+		initialiseStorageEngines(config.getStorage());
+	}
+	
+	private void initialiseStorageEngines(StorageConfiguration storageConfig) throws StorageEngineException {
+		StorageEngineFactory factory = new StorageEngineFactory(storageConfig);
+		
+		for (String type : storageConfig.getEngineTypes()) {
+			StorageEngine engine = factory.buildStorageEngine(type);
+			storageEngines.add(engine);
+		}
 	}
 
 	private IndexerConfiguration readConfig(String yamlFile) throws IOException {
@@ -65,7 +74,7 @@ public class DocumentIndexer {
 		return configLoader.loadConfiguration();
 	}
 	
-	public void run() throws SQLException, IOException, SolrServerException {
+	public void run() throws SQLException, IOException, StorageEngineException {
 		Connection dbConnection = createConnection(config.getDatabase());
 		if (dbConnection == null) {
 			throw new OntologyIndexingException("Connection could not be instantiated.");
@@ -83,8 +92,8 @@ public class DocumentIndexer {
 			documents = extractDocuments(rs);
 		}
 		
-		// Send a final commit() to Solr
-		solrServer.commit();
+		// Do a final commit
+		commitDocuments();
 	}
 	
 	private Connection createConnection(DatabaseConfiguration dbConfig) {
@@ -146,11 +155,16 @@ public class DocumentIndexer {
 		return documents;
 	}
 	
-    private void indexDocuments(List<Document> documents) throws IOException, SolrServerException {
-    	UpdateResponse response = solrServer.addBeans(documents, COMMIT_WITHIN);
-		if (response.getStatus() != 0) {
-			throw new OntologyIndexingException("Solr error adding records: " + response);
-		}
+    private void indexDocuments(List<Document> documents) throws StorageEngineException {
+    	for (StorageEngine engine : storageEngines) {
+    		engine.storeDocuments(documents);
+    	}
+    }
+    
+    private void commitDocuments() throws StorageEngineException {
+    	for (StorageEngine engine : storageEngines) {
+    		engine.flush();
+    	}
     }
     
 	public static void main(String[] args) {
@@ -165,12 +179,10 @@ public class DocumentIndexer {
 			indexer.run();
 		} catch (IOException e) {
 			LOGGER.error("IO Exception indexing documents: " + e.getMessage());
-		} catch (SolrServerException e) {
-			LOGGER.error("Solr exception indexing documents: " + e.getMessage());
 		} catch (SQLException e) {
 			LOGGER.error("SQL exception getting documents: {}", e.getMessage());
-		} catch (OWLOntologyCreationException e) {
-			LOGGER.error("Ontology creation exception: {}", e.getMessage());
+		} catch (StorageEngineException e) {
+			LOGGER.error("Storage engine exception: {}", e.getMessage());
 		}
 	}
 
