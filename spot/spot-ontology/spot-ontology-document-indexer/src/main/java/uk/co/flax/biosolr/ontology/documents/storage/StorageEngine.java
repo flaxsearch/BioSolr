@@ -65,4 +65,11 @@ public interface StorageEngine {
 	 */
 	void flush() throws StorageEngineException;
 	
+	/**
+	 * Close the connection to the storage engine. After calling this,
+	 * no further operations will be possible.
+	 * @throws StorageEngineException
+	 */
+	void close() throws StorageEngineException;
+	
 }

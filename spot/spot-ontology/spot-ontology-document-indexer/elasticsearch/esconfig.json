@@ -1,0 +1,19 @@
+{
+	"mappings":{
+		"document":{
+			"properties":{
+				"efoUri":{
+					"type": "ontology",
+					"ontology": {
+						"ontologyURI": "file:///home/mlp/Downloads/efo.owl",
+						"synonymURI": "http://www.ebi.ac.uk/efo/alternative_term",
+						"definitionURI": [
+							"http://www.ebi.ac.uk/efo/definition",
+							"http://purl.obolibrary.org/obo/IAO_0000115"
+						]
+					}
+				}
+			}
+		}
+	}
+}

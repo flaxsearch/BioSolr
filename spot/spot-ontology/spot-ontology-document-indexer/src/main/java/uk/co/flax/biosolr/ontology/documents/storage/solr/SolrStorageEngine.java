@@ -128,5 +128,10 @@ public class SolrStorageEngine implements StorageEngine {
 	public void initialise() throws StorageEngineException {
 		// NOP
 	}
+	
+	@Override
+	public void close() {
+		server.shutdown();
+	}
 
 }

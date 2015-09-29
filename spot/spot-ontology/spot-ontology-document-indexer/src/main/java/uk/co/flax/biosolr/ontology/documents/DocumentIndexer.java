@@ -164,6 +164,7 @@ public class DocumentIndexer {
     private void commitDocuments() throws StorageEngineException {
     	for (StorageEngine engine : storageEngines) {
     		engine.flush();
+    		engine.close();
     	}
     }
     

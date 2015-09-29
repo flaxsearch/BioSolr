@@ -24,4 +24,22 @@ storage:
   # Configuration for other search engines, as applicable
   other:
     elasticsearch:
-      class: "uk.co.flax.biosolr.ontology.documents.storage.es.ESStorageEngine"
+      # The ES storage engine class
+      class: "uk.co.flax.biosolr.ontology.documents.storage.elasticsearch.ESStorageEngine"
+      
+      # Additional configuration
+      configuration:
+        # Use the nodeClient (may have firewall issues)
+        nodeClient: false
+        
+        # List of servers, to be used if *not* using nodeClient
+        servers: 
+          - localhost:9300
+        
+        # Name of the cluster - defaults to elasticsearch
+        # clusterName: elasticsearch
+        
+        # Name of the index to use
+        indexName: spot
+        # Type of items being stored
+        indexType: document
