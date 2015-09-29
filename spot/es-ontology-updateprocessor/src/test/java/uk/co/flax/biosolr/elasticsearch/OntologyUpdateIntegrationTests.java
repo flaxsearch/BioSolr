@@ -127,8 +127,7 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("annotation.uri", "annotation.label", 
-						"annotation.participates_in_rel_uris", "annotation.participates_in_rel_labels") 
+				.addFields("*") 
 				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
