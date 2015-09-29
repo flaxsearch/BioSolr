@@ -13,38 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.config;
+package uk.co.flax.biosolr.ontology.documents.storage;
 
 /**
- * Configuration details for Ontology indexer application.
+ * Exception thrown by the storage engine to indicate issues storing
+ * items in the search engine.
  * 
  * @author Matt Pearce
  */
-public class IndexerConfiguration {
+public class StorageEngineException extends Exception {
 
-	private DatabaseConfiguration database;
-	private StorageConfiguration storage;
+	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @return the database
-	 */
-	public DatabaseConfiguration getDatabase() {
-		return database;
+	public StorageEngineException(String message) {
+		super(message);
 	}
 
-	/**
-	 * @param database the database to set
-	 */
-	public void setDatabase(DatabaseConfiguration database) {
-		this.database = database;
+	public StorageEngineException(Throwable cause) {
+		super(cause);
 	}
 
-	public StorageConfiguration getStorage() {
-		return storage;
-	}
-
-	public void setStorageEngine(StorageConfiguration storageEngine) {
-		this.storage = storageEngine;
+	public StorageEngineException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 }
