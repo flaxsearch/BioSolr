@@ -50,13 +50,14 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
- * JavaDoc for OntologyMapper.
+ * Mapper class to expand ontology details from an ontology
+ * annotation field value.
  *
  * @author mlp
  */
 public class OntologyMapper implements Mapper {
 
-	public static final long DELETE_CHECK_DELAY_MS = 2 * 60 * 1000; // 2 minutes
+	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 	
 	public static final String RELATION_SUFFIX = "_rel";
 	public static final String DYNAMIC_URI_FIELD_SUFFIX = "_rel_uris";
