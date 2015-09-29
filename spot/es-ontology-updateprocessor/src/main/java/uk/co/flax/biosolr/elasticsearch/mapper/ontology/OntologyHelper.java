@@ -432,9 +432,14 @@ public class OntologyHelper {
 		
 		Set<OWLObjectProperty> objectProperties = ontology.getObjectPropertiesInSignature();
 		for (OWLObjectProperty oop : objectProperties) {
-			Optional<String> shortForm = getShortForm(oop.getIRI());
-			if (shortForm.isPresent()) {
-				properties.add(shortForm.get());
+			List<String> labels = new ArrayList<>(findLabels(oop.getIRI()));
+			if (!labels.isEmpty()) {
+				properties.add(labels.get(0));
+			} else {
+				Optional<String> shortForm = getShortForm(oop.getIRI());
+				if (shortForm.isPresent()) {
+					properties.add(shortForm.get());
+				}
 			}
 		}
 		

@@ -109,12 +109,13 @@ public class OntologyMapper implements Mapper {
 			Map<String, FieldMapper<String>> dynamicMappers = Maps.newHashMap();
 			
 			for (String relatedField : helper.getRestrictionProperties()) {
-				FieldMapper<String> uriMapper = MapperBuilders.stringField(relatedField + DYNAMIC_URI_FIELD_SUFFIX)
+				String sanitised = relatedField.replaceAll("\\W+", "_");
+				FieldMapper<String> uriMapper = MapperBuilders.stringField(sanitised + DYNAMIC_URI_FIELD_SUFFIX)
 						.store(true)
 						.index(true)
 						.tokenized(false)
 						.build(context);
-				FieldMapper<String> labelMapper = MapperBuilders.stringField(relatedField + DYNAMIC_LABEL_FIELD_SUFFIX)
+				FieldMapper<String> labelMapper = MapperBuilders.stringField(sanitised + DYNAMIC_LABEL_FIELD_SUFFIX)
 						.store(true)
 						.index(true)
 						.tokenized(true)
@@ -122,6 +123,7 @@ public class OntologyMapper implements Mapper {
 
 				dynamicMappers.put(uriMapper.name(), uriMapper);
 				dynamicMappers.put(labelMapper.name(), labelMapper);
+				logger.debug("Add dynamic mappers for {}, {}", uriMapper.name(), labelMapper.name());
 			}
 			
 			return dynamicMappers;
@@ -240,9 +242,13 @@ public class OntologyMapper implements Mapper {
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
 
-//		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-//			cursor.value.toXContent(builder, params);
-//		}
+		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
+			cursor.value.toXContent(builder, params);
+		}
+		
+		for (ObjectObjectCursor<String, FieldMapper<String>> cursor : dynamicFieldMappers) {
+			cursor.value.toXContent(builder, params);
+		}
 
 		builder.endObject();  // name
 
@@ -314,8 +320,9 @@ public class OntologyMapper implements Mapper {
 					Map<String, List<String>> relations = helper.getRestrictions(owlClass);
 					
 					for (String relation : relations.keySet()) {
-						String uriMapperName = relation + DYNAMIC_URI_FIELD_SUFFIX;
-						String labelMapperName = relation + DYNAMIC_LABEL_FIELD_SUFFIX;
+						String sanRelation = relation.replaceAll("\\W+", "_");
+						String uriMapperName = sanRelation + DYNAMIC_URI_FIELD_SUFFIX;
+						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 						FieldMapper<String> uriMapper = dynamicFieldMappers.get(uriMapperName);
 						FieldMapper<String> labelMapper = dynamicFieldMappers.get(labelMapperName);
 						
