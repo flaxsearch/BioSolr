@@ -381,6 +381,10 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return definitionField;
 	}
 	
+	public String getFieldPrefix() {
+		return fieldPrefix;
+	}
+	
 	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
 		if (helper == null) {
 			OntologyConfiguration config;
@@ -482,8 +486,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			Map<String, List<String>> relatedClasses = helper.getRestrictions(owlClass);
 			
 			for (String relation : relatedClasses.keySet()) {
-				String uriField = (relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				String labelField = (relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
+				String uriField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
+				String labelField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
 				List<String> iris = relatedClasses.get(relation);
 				doc.addField(uriField, iris);
 				doc.addField(labelField, helper.findLabelsForIRIs(iris));
