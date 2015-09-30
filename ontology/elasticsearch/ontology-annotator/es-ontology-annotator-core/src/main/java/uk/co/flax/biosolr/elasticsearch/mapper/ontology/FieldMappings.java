@@ -17,7 +17,10 @@
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 /**
- * JavaDoc for FieldMappings.
+ * Enumeration of the fixed fields expected to be used when annotating
+ * a document with ontology data. This does not include the relation
+ * fields, which are generated dynamically as part of the ontology
+ * mapper build process.
  *
  * @author mlp
  */

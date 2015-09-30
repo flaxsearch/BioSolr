@@ -21,7 +21,7 @@ import org.elasticsearch.common.inject.AbstractModule;
 import uk.co.flax.biosolr.elasticsearch.mapper.ontology.RegisterOntologyType;
 
 /**
- * JavaDoc for OntologyUpdateModule.
+ * Module binding the ontology annotator registration class.
  *
  * @author mlp
  */

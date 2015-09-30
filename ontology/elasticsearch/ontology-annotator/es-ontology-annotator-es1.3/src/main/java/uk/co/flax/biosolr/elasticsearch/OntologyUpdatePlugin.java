@@ -23,7 +23,7 @@ import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.plugins.AbstractPlugin;
 
 /**
- * JavaDoc for OntologyUpdatePlugin.
+ * Plugin class defining the ontology annotator.
  *
  * @author mlp
  */
