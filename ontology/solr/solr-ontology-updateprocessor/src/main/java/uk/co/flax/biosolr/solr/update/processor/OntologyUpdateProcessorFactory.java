@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.update.processor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -48,6 +48,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.co.flax.biosolr.solr.owl.OntologyConfiguration;
+import uk.co.flax.biosolr.solr.owl.OntologyHelper;
 
 /**
  * This is an update processor for adding ontology data to documents annotated

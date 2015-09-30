@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.update.processor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +32,9 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import uk.co.flax.biosolr.solr.owl.OntologyHelperMethodsTest;
+import uk.co.flax.biosolr.solr.owl.OntologyHelperTest;
 
 /**
  * Unit tests for the OntologyUpdateProcessorFactory, using SolrTestCaseJ4

@@ -33,7 +33,7 @@ processor chain. Define a custom chain by adding the following to solrconfig.xml
 ```
   <!-- Ontology lookup processor chain -->    
   <updateRequestProcessorChain name="ontology">
-    <processor class="uk.co.flax.biosolr.OntologyUpdateProcessorFactory">
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">efo_uri</str>
       
@@ -99,14 +99,14 @@ descendant relationships will also be stored in the index. Default: `true`.
 references. These are indirect relationships *down* the hierarchy. Field
 name follows the same conventions as `childField`, above.
 Default: `descendants`.
-* **ancestorssField** - the field to use for the full set of ancestor
+* **ancestorsField** - the field to use for the full set of ancestor
 references. These are indirect relationships *up* the hierarchy. Field
 name follows the same conventions as `childField`, above.
 Default: `ancestors`.
 * **includeRelations** (boolean) - should other relationships between nodes
 (eg. "has disease location", "is part of") be indexed. The fields will be named
-using the short form of the field name, plus the URI and label field suffixes
-- for example, `has_disease_location_uris_s`, `has_disease_location_labels_t`. Default: `true`.
+using the short form of the field name, plus the URI and label field suffixes:
+for example, `has_disease_location_uris_s`, `has_disease_location_labels_t`. Default: `true`.
 * **synonymsField** - the field which should be used to store synonyms. If
 left empty, synonyms will not be indexed.
 Default: `synonyms_t`.
