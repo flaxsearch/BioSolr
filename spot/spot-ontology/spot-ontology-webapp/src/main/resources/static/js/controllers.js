@@ -114,10 +114,15 @@ ontologyApp
 	
 	$scope.formatRelatedType = function(type) {
 		var ret = '';
-		var words = type.split('_');
+		// Remove field prefix from start of field, split into
+		// remaining words
+		var words = type.substr('efo_uri_'.length).split('_');
+		// Join words into single string, ignoring last three
+		// parts (rel, labels, t)
 		for (var i = 0; i < words.length - 3; i ++) {
 			ret = ret + (i > 0 ? ' ' : '') + words[i];
 		}
+		// Capitalise first word
 		ret = ret.charAt(0).toUpperCase() + ret.slice(1);
 		return ret;
 	}
