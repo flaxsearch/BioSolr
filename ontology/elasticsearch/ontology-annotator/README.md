@@ -1,13 +1,12 @@
-# ElasticSearch ontology update processor plugin
+# ElasticSearch Ontology Annotator plugin
 
 This directory contains a plugin for enriching records with ontology
 annotations by adding further data from the ontology where available.
-It is currently built against ElasticSearch 1.3.9, and should work
-with all 1.3.x versions. Builds for more recent versions will be
-provided in the future.
-
 It adds a new field type for the ontology annotation which is then
 expanded with additional data.
+
+There are two versions of the module - one built against the 1.3.x
+versions of ElasticSearch, and one built against versions 1.4.x - 1.7.x.
 
 
 ## Installation
@@ -16,12 +15,15 @@ To build the plugin, use maven:
 
     mvn clean package
 
-This will create a zip file containing the full plugin. Once this is complete,
+This will create a zip file for each version of the module, containing the 
+full plugin. Once this is complete,
 it needs to be added to your local ElasticSearch instance. The easiest way to
 do this is using ElasticSearch's own plugin manager. In the ElasticSearch
 install directory, use the following command:
 
     bin/plugin -u file:///path/to/plugin.zip -i ontology-update
+
+Use the plugin version most appropriate to your version of ElasticSearch.
     
 
 ## Usage
