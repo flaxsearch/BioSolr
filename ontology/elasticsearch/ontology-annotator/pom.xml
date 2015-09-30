@@ -21,6 +21,7 @@
 	<modules>
 		<module>es-ontology-annotator-core</module>
 		<module>es-ontology-annotator-es1.3</module>
+		<module>es-ontology-annotator-es1.4</module>
 	</modules>
 
 	<build>
