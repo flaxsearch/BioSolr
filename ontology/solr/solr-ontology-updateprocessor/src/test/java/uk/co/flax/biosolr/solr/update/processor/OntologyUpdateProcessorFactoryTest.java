@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.update.processor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +32,9 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import uk.co.flax.biosolr.solr.owl.OntologyHelperMethodsTest;
+import uk.co.flax.biosolr.solr.owl.OntologyHelperTest;
 
 /**
  * Unit tests for the OntologyUpdateProcessorFactory, using SolrTestCaseJ4
@@ -87,8 +90,8 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find child", req, "//result[@numFound=1]",
-				"//arr[@name='child_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_CHILD_IRI + "']",
-				"//arr[@name='child_labels_t']/str[1][.='material entity']");
+				"//arr[@name='annotation_uri_child_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_CHILD_IRI + "']",
+				"//arr[@name='annotation_uri_child_labels_t']/str[1][.='material entity']");
 	}
 
 	@Test
@@ -100,8 +103,8 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find parent", req, "//result[@numFound=1]",
-				"//arr[@name='parent_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_IRI + "']",
-				"//arr[@name='parent_labels_t']/str[1][.='experimental factor']");
+				"//arr[@name='annotation_uri_parent_uris_s']/str[1][.='" + OntologyHelperMethodsTest.TEST_IRI + "']",
+				"//arr[@name='annotation_uri_parent_labels_t']/str[1][.='experimental factor']");
 	}
 
 	@Test
@@ -113,7 +116,7 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find synonyms", req, "//result[@numFound=1]",
-				"//arr[@name='synonyms_t']/str[1][.='ExperimentalFactor']");
+				"//arr[@name='annotation_uri_synonyms_t']/str[1][.='ExperimentalFactor']");
 	}
 
 	@Test
@@ -125,7 +128,7 @@ public class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
 
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find definition", req, "//result[@numFound=1]",
-				"//arr[@name='definition_t']/str[1][.='An experimental factor in Array Express which are essentially the variable aspects of an experiment design which can be used to describe an experiment, or set of experiments, in an increasingly detailed manner. This upper level class is really used to give a root class from which applications can rely on and not be tied to upper ontology classses which do change.']");
+				"//arr[@name='annotation_uri_definition_t']/str[1][.='An experimental factor in Array Express which are essentially the variable aspects of an experiment design which can be used to describe an experiment, or set of experiments, in an increasingly detailed manner. This upper level class is really used to give a root class from which applications can rely on and not be tied to upper ontology classses which do change.']");
 	}
 
 	static void addDoc(String doc, String chain) throws Exception {

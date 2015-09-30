@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.owl;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -30,8 +30,8 @@ import org.junit.Test;
  */
 public class OntologyHelperTest {
 	
-	static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
-	static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
+	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
+	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 	
 	private static URI testOntologyUri;
 	

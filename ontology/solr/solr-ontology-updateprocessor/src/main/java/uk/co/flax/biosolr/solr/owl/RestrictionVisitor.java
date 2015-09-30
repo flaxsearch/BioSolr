@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.owl;
 
 import java.util.HashSet;
 import java.util.Set;

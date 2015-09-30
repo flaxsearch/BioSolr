@@ -33,7 +33,7 @@ processor chain. Define a custom chain by adding the following to solrconfig.xml
 ```
   <!-- Ontology lookup processor chain -->    
   <updateRequestProcessorChain name="ontology">
-    <processor class="uk.co.flax.biosolr.OntologyUpdateProcessorFactory">
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">efo_uri</str>
       
@@ -78,8 +78,10 @@ details in the ontology.
 * **ontologyURI** *[REQUIRED]* - the location of the ontology being
 referenced. Eg. `http://www.ebi.ac.uk/efo/efo.owl` or
 `file:///home/mlp/Downloads/efo.owl`.
+* **fieldPrefix** - a value to be prepended to all fields created by the
+indexer. Defaults to the `annotationField` value, may be set blank.
 * **labelField** - the field in your schema that should be used for the
-annotation's label(s). Default: `label_t`.
+annotation's label(s). Default: `<em>annotationField</em>_label_t`.
 * **uriFieldSuffix** - the suffix to use for referenced URI fields, such
 as parent or child URI references. Default: `_uri_s`.
 * **labelFieldSuffix** - the suffix to use for referenced label fields,
@@ -88,31 +90,32 @@ such as the labels for parent or child references. Default: `_labels_t`.
 are direct (ie. single-step) relationships *down* the hierarchy. This
 will be combined with the URI and label field suffixes, so the field names
 will be `child_uri_s` and `child_labels_t` (for example).
-Default: `child`.
+Default: `annotationField_child`.
 * **parentField** - the field to use for parent document references.
 These are direct relationships *up* the hierarchy. Field name follows the
-same conventions as `childField`, above. Default: `parent`.
+same conventions as `childField`, above. Default: `annotationField_parent`.
 * **includeIndirect** - (boolean) should indirect parent/child relationships also
 be indexed? If this is set to `true`, *all* ancestor and
 descendant relationships will also be stored in the index. Default: `true`.
 * **descendantsField** - the field to use for the full set of descendant
 references. These are indirect relationships *down* the hierarchy. Field
 name follows the same conventions as `childField`, above.
-Default: `descendants`.
-* **ancestorssField** - the field to use for the full set of ancestor
+Default: `annotationField_descendants`.
+* **ancestorsField** - the field to use for the full set of ancestor
 references. These are indirect relationships *up* the hierarchy. Field
 name follows the same conventions as `childField`, above.
-Default: `ancestors`.
+Default: `annotationField_ancestors`.
 * **includeRelations** (boolean) - should other relationships between nodes
 (eg. "has disease location", "is part of") be indexed. The fields will be named
-using the short form of the field name, plus the URI and label field suffixes
-- for example, `has_disease_location_uris_s`, `has_disease_location_labels_t`. Default: `true`.
+using the field prefix followed by the relationship type, plus the URI and 
+label field suffixes - for example, `annotationField_has_disease_location_uris_s`, 
+`annotationField_has_disease_location_labels_t`. Default: `true`.
 * **synonymsField** - the field which should be used to store synonyms. If
 left empty, synonyms will not be indexed.
-Default: `synonyms_t`.
+Default: `annotationField_synonyms_t`.
 * **definitionField** - the field to use to store definitions. If left empty,
 definitions will not be indexed.
-Default: `definition_t`.
+Default: `annotationField_definition_t`.
 * **configurationFile** - the path to a properties-style file containing 
 additional, ontology-specific configuration, such as the property annotation to use
 for synonyms, definitions, etc. See below for the format of this file, and

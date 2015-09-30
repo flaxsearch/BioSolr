@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.owl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,6 +32,9 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
+import uk.co.flax.biosolr.solr.owl.OntologyConfiguration;
+import uk.co.flax.biosolr.solr.owl.OntologyHelper;
 
 /**
  * Unit tests for the OntologyHelper, focussing on methods called

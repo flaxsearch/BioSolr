@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.update.processor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -48,6 +48,9 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.co.flax.biosolr.solr.owl.OntologyConfiguration;
+import uk.co.flax.biosolr.solr.owl.OntologyHelper;
 
 /**
  * This is an update processor for adding ontology data to documents annotated
@@ -180,6 +183,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
 	private static final String DEFINITION_FIELD_PARAM = "definitionField";
 	private static final String CONFIG_FILE_PARAM = "configurationFile";
+	private static final String FIELDNAME_PREFIX_PARAM = "fieldPrefix";
 	
 	
 	/*
@@ -198,6 +202,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	
 	private boolean enabled;
 	private String annotationField;
+	private String fieldPrefix;
 	private String labelField;
 	private String ontologyUri;
 	private String uriFieldSuffix;
@@ -225,26 +230,27 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			SolrParams params = SolrParams.toSolrParams(args);
 			this.enabled = params.getBool(ENABLED_PARAM, true);
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
-			this.labelField = params.get(LABEL_FIELD_PARAM, LABEL_FIELD_DEFAULT);
+			this.fieldPrefix = params.get(FIELDNAME_PREFIX_PARAM, annotationField + "_");
 			this.ontologyUri = params.get(ONTOLOGY_URI_PARAM);
+			this.labelField = params.get(LABEL_FIELD_PARAM, fieldPrefix + LABEL_FIELD_DEFAULT);
 			this.uriFieldSuffix = params.get(URI_FIELD_SUFFIX_PARAM, URI_FIELD_SUFFIX);
 			this.labelFieldSuffix = params.get(LABEL_FIELD_SUFFIX_PARAM, LABEL_FIELD_SUFFIX);
-			String childField = params.get(CHILD_FIELD_PARAM, CHILD_FIELD_DEFAULT);
+			String childField = params.get(CHILD_FIELD_PARAM, fieldPrefix + CHILD_FIELD_DEFAULT);
 			this.childUriField = childField + uriFieldSuffix;
 			this.childLabelField = childField + labelFieldSuffix;
-			String parentField = params.get(PARENT_FIELD_PARAM, PARENT_FIELD_DEFAULT);
+			String parentField = params.get(PARENT_FIELD_PARAM, fieldPrefix + PARENT_FIELD_DEFAULT);
 			this.parentUriField = parentField + uriFieldSuffix;
 			this.parentLabelField = parentField + labelFieldSuffix;
 			this.includeIndirect = params.getBool(INCLUDE_INDIRECT_PARAM, true);
-			String descendentField = params.get(DESCENDANT_FIELD_PARAM, DESCENDANT_FIELD_DEFAULT);
+			String descendentField = params.get(DESCENDANT_FIELD_PARAM, fieldPrefix + DESCENDANT_FIELD_DEFAULT);
 			this.descendantUriField = descendentField + uriFieldSuffix;
 			this.descendantLabelField = descendentField + labelFieldSuffix;
-			String ancestorField = params.get(ANCESTOR_FIELD_PARAM, ANCESTOR_FIELD_DEFAULT);
+			String ancestorField = params.get(ANCESTOR_FIELD_PARAM, fieldPrefix + ANCESTOR_FIELD_DEFAULT);
 			this.ancestorUriField = ancestorField + uriFieldSuffix;
 			this.ancestorLabelField = ancestorField + labelFieldSuffix;
 			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
-			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, SYNONYMS_FIELD_DEFAULT);
-			this.definitionField = params.get(DEFINITION_FIELD_PARAM, DEFINITION_FIELD_DEFAULT);
+			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, fieldPrefix + SYNONYMS_FIELD_DEFAULT);
+			this.definitionField = params.get(DEFINITION_FIELD_PARAM, fieldPrefix + DEFINITION_FIELD_DEFAULT);
 			this.configurationFile = params.get(CONFIG_FILE_PARAM);
 			
 			if (enabled) {
@@ -375,6 +381,10 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return definitionField;
 	}
 	
+	public String getFieldPrefix() {
+		return fieldPrefix;
+	}
+	
 	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
 		if (helper == null) {
 			OntologyConfiguration config;
@@ -476,8 +486,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			Map<String, List<String>> relatedClasses = helper.getRestrictions(owlClass);
 			
 			for (String relation : relatedClasses.keySet()) {
-				String uriField = (relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				String labelField = (relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
+				String uriField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
+				String labelField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
 				List<String> iris = relatedClasses.get(relation);
 				doc.addField(uriField, iris);
 				doc.addField(labelField, helper.findLabelsForIRIs(iris));

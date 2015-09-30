@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr;
+package uk.co.flax.biosolr.solr.owl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
