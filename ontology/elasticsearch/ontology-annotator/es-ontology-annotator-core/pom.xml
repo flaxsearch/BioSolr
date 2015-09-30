@@ -4,7 +4,7 @@
 	
 	<parent>
 		<groupId>uk.co.flax</groupId>
-		<artifactId>es-ontology-annotater</artifactId>
+		<artifactId>es-ontology-annotator</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	
