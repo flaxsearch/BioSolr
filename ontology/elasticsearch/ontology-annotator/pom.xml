@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>uk.co.flax</groupId>
+	<artifactId>es-ontology-annotator</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>ElasticSearch ontology annotater</name>
+	<description>Modules to enrich documents with ontology data.</description>
+	<packaging>pom</packaging>
+
+	<properties>
+		<!-- use UTF-8 for everything -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<owlapi.version>3.5.2</owlapi.version>
+		<randomizedtesting-runner.version>2.1.14</randomizedtesting-runner.version>
+	</properties>
+
+	<modules>
+		<module>es-ontology-annotator-core</module>
+		<module>es-ontology-annotator-es1.3</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<!-- compile for Java 1.8 -->
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>com.carrotsearch.randomizedtesting</groupId>
+			<artifactId>randomizedtesting-runner</artifactId>
+			<version>${randomizedtesting-runner.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
+		</dependency>
+	</dependencies>
+	
+</project>
