@@ -1836,7 +1836,7 @@
  
   <!-- Ontology lookup processor chain -->    
   <updateRequestProcessorChain name="ontology">
-    <processor class="uk.co.flax.biosolr.OntologyUpdateProcessorFactory">
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">efo_uri</str>
       <str name="labelField">efo_labels</str>

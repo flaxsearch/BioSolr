@@ -15,34 +15,15 @@
  */
 package uk.co.flax.biosolr.ontology.config;
 
-
 /**
  * Configuration details for Ontology indexer application.
  * 
  * @author Matt Pearce
  */
 public class IndexerConfiguration {
-	
-	private String ontologySolrUrl;
-	private String documentsSolrUrl;
-	
-	private String ontologyUri;
-	
-	private DatabaseConfiguration database;
-	
-	/**
-	 * @return the ontologySolrUrl
-	 */
-	public String getOntologySolrUrl() {
-		return ontologySolrUrl;
-	}
 
-	/**
-	 * @return the documentSolrUrl
-	 */
-	public String getDocumentsSolrUrl() {
-		return documentsSolrUrl;
-	}
+	private DatabaseConfiguration database;
+	private StorageConfiguration storage;
 
 	/**
 	 * @return the database
@@ -52,32 +33,18 @@ public class IndexerConfiguration {
 	}
 
 	/**
-	 * @param ontologySolrUrl the ontologySolrUrl to set
-	 */
-	public void setOntologySolrUrl(String ontologySolrUrl) {
-		this.ontologySolrUrl = ontologySolrUrl;
-	}
-
-	/**
-	 * @param documentSolrUrl the documentSolrUrl to set
-	 */
-	public void setDocumentsSolrUrl(String documentSolrUrl) {
-		this.documentsSolrUrl = documentSolrUrl;
-	}
-
-	/**
 	 * @param database the database to set
 	 */
 	public void setDatabase(DatabaseConfiguration database) {
 		this.database = database;
 	}
 
-	public String getOntologyUri() {
-		return ontologyUri;
+	public StorageConfiguration getStorage() {
+		return storage;
 	}
 
-	public void setOntologyUri(String ontologyUri) {
-		this.ontologyUri = ontologyUri;
+	public void setStorageEngine(StorageConfiguration storageEngine) {
+		this.storage = storageEngine;
 	}
 
 }
