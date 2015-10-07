@@ -317,15 +317,6 @@
       <str name="string">component with a multi-valued join field</str>
     </lst>
   </searchComponent>
-
-  <searchComponent name="xjoin5" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
-    <str name="joinField">colour</str>
-    <lst name="external">
-      <str name="values">RED,pink</str>
-      <str name="string">component using a function of the join field</str>
-    </lst>
-  </searchComponent>
       
   <!-- requestHandler plugins... incoming queries will be dispatched to the
      correct handler based on the path or the 'qt' param.
@@ -340,12 +331,15 @@
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <bool name="xjoin">true</bool>
+      <bool name="xjoin4">false</bool>
     </lst>
     <arr name="first-components">
       <str>xjoin</str>
+      <str>xjoin4</str>
     </arr>
     <arr name="last-components">
       <str>xjoin</str>
+      <str>xjoin4</str>
     </arr>
   </requestHandler> 
 

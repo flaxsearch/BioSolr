@@ -140,9 +140,18 @@ public class XJoinSearchComponent extends SearchComponent {
     FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));    
     Set<String> joinFields = new HashSet<>();
     joinFields.add(joinField);
+    
+    List<String> joinIds = new ArrayList<>();
     for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
       Document doc = rb.req.getSearcher().doc(it.next(), joinFields);
-      String joinId = doc.get(joinField);
+      for (String joinId : doc.getValues(joinField)) {
+        if (! joinIds.contains(joinId)) {
+          joinIds.add(joinId);
+        }
+      }
+    }
+    
+    for (String joinId : joinIds) {
       Object object = results.getResult(joinId);
       if (object == null) continue;
       NamedList external = new NamedList<>();

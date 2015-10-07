@@ -46,7 +46,6 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
   static final String COMPONENT_NAME_2 = "xjoin2";
   static final String COMPONENT_NAME_3 = "xjoin3";
   static final String COMPONENT_NAME_4 = "xjoin4";
-  static final String COMPONENT_NAME_5 = "xjoin5";
   static final String PARSER_NAME = "xjoin";
   
   static SolrCore core;
@@ -85,7 +84,6 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     initComponent(core, context, COMPONENT_NAME_2);
     initComponent(core, context, COMPONENT_NAME_3);
     initComponent(core, context, COMPONENT_NAME_4);
-    initComponent(core, context, COMPONENT_NAME_5);
     
     // get a search, used by some tests
     searcher = core.getRegisteredSearcher().get();
@@ -147,20 +145,6 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     assertEquals(1, it.nextDoc());
     assertTrue(it.hasNext());
     assertEquals(2, it.nextDoc());
-    assertTrue(it.hasNext());
-    assertEquals(3, it.nextDoc());
-    assertFalse(it.hasNext());    
-  }
-  
-  @Test
-  public void testFunction() throws Exception {
-    Query q = parse("lower(" + COMPONENT_NAME_5 + ")");
-    DocSet docs = searcher.getDocSet(q);
-
-    assertEquals(2, docs.size());
-    DocIterator it = docs.iterator();
-    assertTrue(it.hasNext());
-    assertEquals(0, it.nextDoc());
     assertTrue(it.hasNext());
     assertEquals(3, it.nextDoc());
     assertFalse(it.hasNext());    
