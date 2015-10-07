@@ -1789,7 +1789,7 @@
         <str name="group.field">pdb_id</str>
         
         <str name="fq">{!xjoin}xjoin_fasta</str>
-        <str name="bf">fasta(percentIdentity)</str>
+        <str name="bf">fasta(percent_identity)</str>
         
         <bool name="xjoin_fasta">true</bool>
         <double name="xjoin_fasta.external.explowlim">0.0</double>
