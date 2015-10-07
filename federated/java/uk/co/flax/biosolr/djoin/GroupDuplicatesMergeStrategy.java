@@ -189,8 +189,6 @@ public class GroupDuplicatesMergeStrategy implements MergeStrategy {
     // TODO: use ResponseBuilder (w/ comments) or the request context?
     rb.resultIds = resultIds;
     rb.setResponseDocs(responseDocs);
-    
-    System.out.println("=== responseDocs " + responseDocs.getClass() + ": " + responseDocs);
 
     populateNextCursorMarkFromMergedShards(rb, sortFieldValuesMap);
 

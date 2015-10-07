@@ -131,15 +131,32 @@ public class XJoinValueSourceParser extends ValueSourceParser {
           if (result == null) {
             return defaultValue;
           }
-          try {
-            Method method = result.getClass().getMethod(methodName);
-            return (Double)method.invoke(result);
-          } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+          if (result instanceof Iterable) {
+            Double max = null;
+            for (Object object : (Iterable)result) {
+              if (object != null) {
+                double value = getValue(object);
+                if (max == null || value > max) {
+                  max = value;
+                }
+              }
+            }
+            return max != null ? max : defaultValue;
+          } else {
+            return getValue(result);
           }
         }
         
       };
+    }
+
+    private double getValue(Object result) {
+      try {
+        Method method = result.getClass().getMethod(methodName);
+        return (Double)method.invoke(result);
+      } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        throw new RuntimeException(e);
+      }
     }
     
     @Override

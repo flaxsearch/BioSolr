@@ -29,12 +29,15 @@ public class JoinSpec<T extends Comparable<T>> {
   
   JoinSpec<T> first, second; // both are be null when operator == xjoin
 
+  String functionName; // for e.g. fn(component_name)
+  
   String componentName; // only non-null when operator == xjoin
   
   JoinSpec<T> parent;
   
   private JoinSpec(JoinSpec<T> parent) {
     this.parent = parent;
+    this.functionName = null;
   }
   
   private void add(JoinSpec<T> child) {
@@ -47,15 +50,15 @@ public class JoinSpec<T extends Comparable<T>> {
     }
   }
   
-  public Iterator<T> iterator(Iterable it) {
+  public Iterator<T> iterator(Iterable its) {
     if (operator == Op.xjoin) {
-      return it.iterator(componentName);
+      return its.iterator(componentName);
     }
-    Iterator<T> first = this.first.iterator(it);
+    Iterator<T> first = this.first.iterator(its);
     if (operator == Op.unary) {
       return first;
     }
-    Iterator<T> second = this.second.iterator(it);
+    Iterator<T> second = this.second.iterator(its);
     switch (operator) {
     case or:
       return Combinations.or(first, second);
@@ -71,7 +74,7 @@ public class JoinSpec<T extends Comparable<T>> {
   }
   
   public static <T extends Comparable<T>> JoinSpec<T> parse(String v) {
-    // ((a OR b) AND c) XOR (d AND NOT e)
+    // ((a OR b) AND fn(c)) XOR (d AND NOT e)
     JoinSpec<T> spec = new JoinSpec<>(null);
     for (int i = 0; i < v.length(); ++i) {
       char c = v.charAt(i);
@@ -94,22 +97,38 @@ public class JoinSpec<T extends Comparable<T>> {
       } else if ((z = safeCmp(v, i, "XOR")) > 0) {
           spec.operator = Op.xor;
       } else {
-        // it must be a component name until the next whitespace or )
-        //FIXME probably need a cunning while to avoid end-of-input failures
-        int j;
+        // it must be a component name (or function of) until the next whitespace or unmatched )
+        int j, k = -1, l = -1;
         for (j = i; j < v.length(); ++j) {
           char cc = v.charAt(j);
           if (cc == '(') {
-            //FIXME use a SyntaxError exception class
-            throw new RuntimeException("Syntax error");
+            if (k == -1) {
+              k = j;
+            } else {
+              throw new RuntimeException("Multiple open brackets in fn(name) whilst parsing JoinSpec");
+            }
+          } else if (cc == ')') {
+            if (k != -1) {
+              l = j;
+            } else {
+              break;
+            }
           }
-          if (Character.isWhitespace(cc) || cc == ')') {
+          else if (Character.isWhitespace(cc)) {
             break;
           }
         }
         JoinSpec<T> js = new JoinSpec<>(spec);
         js.operator = Op.xjoin;
-        js.componentName = v.substring(i, j);
+        if (k != -1) {
+          if (l == -1) {
+            throw new RuntimeException("Unmatched brackets in fn(name) whilst parsing JoinSpec");
+          }
+          js.functionName = v.substring(i, k);
+          js.componentName = v.substring(k + 1, l);
+        } else {
+          js.componentName = v.substring(i, j);
+        }
         spec.add(js);
         i = j - 1;
       }
@@ -126,6 +145,10 @@ public class JoinSpec<T extends Comparable<T>> {
   
   public interface Iterable {
     <T extends Comparable<T>> Iterator<T> iterator(String componentName);
+  }
+  
+  public interface Function {
+    Object fn(Object x);
   }
   
 }

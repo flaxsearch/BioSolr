@@ -96,7 +96,7 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
     }
     
     public double getScore() {
-      return Math.random();
+      return TestXJoinValueSourceParser.value;
     }
     
   }

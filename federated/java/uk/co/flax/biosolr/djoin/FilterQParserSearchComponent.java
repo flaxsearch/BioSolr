@@ -13,7 +13,7 @@ import org.apache.solr.search.SyntaxError;
 
 public class FilterQParserSearchComponent extends SearchComponent {
 
-	public static final String COMPONENT_NAME = "djoin";
+	public static final String COMPONENT_NAME = "filter";
 
 	// initialisation parameters
 	public static final String INIT_QPARSER = "qParser";
@@ -30,12 +30,12 @@ public class FilterQParserSearchComponent extends SearchComponent {
 
   @Override
   public void prepare(ResponseBuilder rb) throws IOException {
-    // do nothing
+    // do nothing (not called in aggregator)
   }
 
   @Override
   public void process(ResponseBuilder rb) throws IOException {
-    // do nothing
+    // do nothing (not called in aggregator)
   }
 	
 	@Override

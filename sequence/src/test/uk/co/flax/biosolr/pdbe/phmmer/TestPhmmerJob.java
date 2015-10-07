@@ -33,27 +33,27 @@ public class TestPhmmerJob {
 		PhmmerJob job = new PhmmerJob(client, null, null);
 		PhmmerResults results = job.runJob();
 		
-		assertEquals(116, results.getSize());
+		assertEquals(116, results.getNumChains());
 		
-    String[] pdbIdChains = new String[] {
-        "1cms_A", "3cms_A", "4aa9_A", "5pep_A", "1psn_A", "1flh_A", "1f34_A", "3pep_A", "2psg_A", "1tzs_A",
-        "1am5_A", "1avf_A", "1qdm_A", "1smr_A", "3vcm_A", "1bil_A", "1bbs_A", "3d91_A", "2i4q_A", "1g0v_A",
-        "2x0b_A", "2fs4_A", "1dp5_A", "1fq4_A", "1lya_B", "4obz_B", "1b5f_A", "1uh7_A", "2apr_A", "3qrv_A",
-        "1me6_A", "2r9b_A", "1lf3_A", "1pfz_A", "3f9q_A", "1lee_A", "2bju_A", "3o9l_A", "2anl_A", "1qs8_A",
-        "1miq_A", "1ls5_A", "3liz_A", "1yg9_A", "3fns_A", "3qvc_A", "1mpp_A", "2asi_A", "3fv3_A", "1lya_A",
-        "4obz_A", "2h6s_A", "3o9l_B", "1zap_A", "3emy_A", "1eag_A", "4b1c_A", "1j71_A", "1apt_E", "1ibq_A",
-        "2ewy_A", "3zkm_A", "3zkg_A", "4b70_A", "4b0q_A", "4b1d_A", "4ewo_A", "2fdp_A", "1sgz_A", "4fs4_A",
-        "3u6a_A", "1fkn_A", "4dpf_A", "3kmx_A", "2qk5_A", "2of0_A", "3r1g_B", "1ym2_A", "3udh_A", "2zjn_A",
-        "3ixk_A", "2hm1_A", "3dm6_A", "1ym4_A", "4l7g_A", "3hvg_A", "1w50_A", "2zhr_A", "4fsl_A", "2wjo_A",
-        "3l58_A", "2zdz_A", "3vv6_A", "3bra_A", "3tpr_A", "2zjk_A", "4x7i_A", "2va5_A", "2hiz_A", "3lpi_A",
-        "2q11_A", "2q15_A", "2zji_A", "2vie_A", "1tqf_A", "3qi1_A", "2qzl_A", "3exo_A", "3tpj_A", "2zjh_A",
-        "2qzx_A", "2zjj_A", "1e5o_E", "1izd_A", "1wkr_A", "1b5f_B"
+    String[] pdbIds = new String[] {
+        "1cms", "3cms", "4aa9", "5pep", "1psn", "1flh", "1f34", "3pep", "2psg", "1tzs",
+        "1am5", "1avf", "1qdm", "1smr", "3vcm", "1bil", "1bbs", "3d91", "2i4q", "1g0v",
+        "2x0b", "2fs4", "1dp5", "1fq4", "1lya", "4obz", "1b5f", "1uh7", "2apr", "3qrv",
+        "1me6", "2r9b", "1lf3", "1pfz", "3f9q", "1lee", "2bju", "3o9l", "2anl", "1qs8",
+        "1miq", "1ls5", "3liz", "1yg9", "3fns", "3qvc", "1mpp", "2asi", "3fv3", "1lya",
+        "4obz", "2h6s", "3o9l", "1zap", "3emy", "1eag", "4b1c", "1j71", "1apt", "1ibq",
+        "2ewy", "3zkm", "3zkg", "4b70", "4b0q", "4b1d", "4ewo", "2fdp", "1sgz", "4fs4",
+        "3u6a", "1fkn", "4dpf", "3kmx", "2qk5", "2of0", "3r1g", "1ym2", "3udh", "2zjn",
+        "3ixk", "2hm1", "3dm6", "1ym4", "4l7g", "3hvg", "1w50", "2zhr", "4fsl", "2wjo",
+        "3l58", "2zdz", "3vv6", "3bra", "3tpr", "2zjk", "4x7i", "2va5", "2hiz", "3lpi",
+        "2q11", "2q15", "2zji", "2vie", "1tqf", "3qi1", "2qzl", "3exo", "3tpj", "2zjh",
+        "2qzx", "2zjj", "1e5o", "1izd", "1wkr", "1b5f"
     };
-    Set<String> pdbIdChainSet = new HashSet<>(Arrays.asList(pdbIdChains));
-    assertEquals(pdbIdChainSet, results.getTargets());
+    Set<String> pdbIdSet = new HashSet<>(Arrays.asList(pdbIds));
+    assertEquals(pdbIdSet, results.getPdbIds());
 
     // values checked from http://www.ebi.ac.uk/Tools/hmmer/results/7B8EF2BA-5C4B-11E5-BB6E-2FF0D26C98AD/score
-    Alignment a = results.getAlignment("3zkm_A");
+    Alignment a = results.getAlignments().get("3zkm").get("A");
     assertEquals("BETA-SECRETASE 2", a.getDescription());
     assertEquals("Homo sapiens", a.getSpecies());
     assertEquals(78.2, a.getScore(), 0.1);

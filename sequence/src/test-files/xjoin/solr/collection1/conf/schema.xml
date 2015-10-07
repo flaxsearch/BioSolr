@@ -268,8 +268,7 @@
 
    <field name="id" type="string" indexed="true" stored="true" required="true" />
    <field name="colour" type="string" indexed="true" stored="true" required="true" />
-   <!-- catchall field, containing all other searchable text fields (implemented
-        via copyField further on in this schema  -->
+   <field name="letter" type="string" indexed="true" stored="true" required="true" multiValued="true"/>
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 

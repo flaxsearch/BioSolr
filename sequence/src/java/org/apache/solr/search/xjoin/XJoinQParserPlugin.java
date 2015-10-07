@@ -17,7 +17,9 @@ package org.apache.solr.search.xjoin;
  * limitations under the License.
  */
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections.Transformer;
@@ -55,7 +57,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
   public static final String NAME = "xjoin";
 
   /** For choosing the internal algorithm */
-  private static final String METHOD = "method";
+  public static final String METHOD = "method";
   
   @Override @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
@@ -177,6 +179,26 @@ public class XJoinQParserPlugin extends QParserPlugin {
         throw new Exception("No xjoin results in request context");
       }
       return results.getJoinIds().iterator();
+    }
+    
+    private static Map<String, JoinSpec.Function> functions = new HashMap<>();
+    static {
+      functions.put("lower", new JoinSpec.Function() {
+
+        @Override
+        public Object fn(Object x) {
+          return x.toString().toLowerCase();
+        }
+        
+      });
+      functions.put("upper", new JoinSpec.Function() {
+
+        @Override
+        public Object fn(Object x) {
+          return x.toString().toUpperCase();
+        }
+        
+      });
     }
     
   }

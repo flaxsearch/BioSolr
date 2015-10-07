@@ -13,8 +13,8 @@ public class Main {
     PhmmerJob job = new PhmmerJob(client, "pdb", args[0]);
     try {
       PhmmerResults results = job.runJob();
-      for (String pdbIdChain : results.getTargets()) {
-        System.out.println(pdbIdChain);
+      for (String pdbId : results.getPdbIds()) {
+        System.out.println(pdbId);
       }
     } catch (IOException e) {
       System.err.println("Error fetching PHMMER results");
