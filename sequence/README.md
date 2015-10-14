@@ -50,7 +50,7 @@ implementation. It has methods:
 
   * Object getResult(String joinId) - this should return a particular result given the value of the join attribute
 
-  * Iterable<String> getJoinIds() - this should return the join attribute values for results of the external search
+  * Iterable<String> getJoinIds() - this should return an ordered (ascending) list of the join attribute values for results of the external search
 
 ### XJoinSearchComponent
 
@@ -114,6 +114,8 @@ For example:
 </requestHandler>
 ```
 
+Note that, to include the list of join ids returned by the external source in the SOLR results (likely for debug purposes), the value 'join_ids' may be specified in the "results" parameter.
+
 ### XJoinQParserPlugin
 
 This query parser plugin constructs a query from the results of the external searches, and is based on the TermsQParserPlugin. It takes the following local parameters:
@@ -151,6 +153,8 @@ For example:
 </valueSourceParser>
 ```
 
+with corresponding query string parameter (for example) bq=test_fn(value)
+
 Alternatively:
 ```
 <valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
@@ -158,6 +162,8 @@ Alternatively:
   <double name="defaultValue">1.0</double>
 </valueSourceParser>
 ```
+
+with corresponding query string parameter (for example) bq=test_fn(join_test)
 
 Mapping between attributes and Java methods
 -------------------------------------------
@@ -204,13 +210,17 @@ This might result in the following SOLR response:
   </result>
   <lst name="xjoin_test">
     <int name="test_count">145</int>
-    <lst name="doc">
-      <str name="id">document1</str>
-      <double name="value">7.4</double>
+    <lst name="external">
+      <str name="joinId">document1</str>
+      <lst name="doc">
+        <double name="value">7.4</double>
+      </lst>
     </lst>
-    <lst name="doc">
-      <str name="id">document2</str>
-      <double name="value">2.3</double>
+    <lst name="external">
+      <str name="joinId">document2</str>
+      <lst name="doc">
+        <double name="value">2.3</double>
+      </lst>
     </lst>
   </lst>
 </response>
@@ -225,6 +235,19 @@ Notes:
     
   * The function test_fn is used in the bf score-boost function. Since the argument is value2, that attribute of the
     external results is used as the score boost.
+
+Many-to-many joins
+------------------
+
+XJoin supports many-to-many joins in the following two ways.
+
+### Joining against a multi-valued field
+
+The SOLR field used as the join field may be multi-valued. External join values will match every SOLR document with at least one matching value in the join field. As usual, for every SOLR document in the results set, matching external results are appended. In this case, this includes matching external results with join id values for every value from the multi-valued field. Therefore, there may be many more external results included than the number of SOLR results. 
+
+### Many external results with the same join id
+
+The case of many external results having the same join id is supported by returning a Java Iterable from the implementation of XJoinResults.getResult(joinIdStr). In this case, one <lst name="doc"> is added to the corresponding <lst name="external"> per element in the iterable. For the XJoinValueSourceParser, the maximum value is taken from the set of possible values.
 
 Joining results from multiple external sources
 ----------------------------------------------
