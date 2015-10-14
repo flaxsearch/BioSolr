@@ -91,10 +91,9 @@ public class FieldAppender {
   public NamedList addNamedList(NamedList target, String name, Object object) {
     NamedList<Object> list = new NamedList<>();
     target.add(name, list);
+    
     for (Method method : object.getClass().getMethods()) {
-      if (method.getParameterCount() > 0) {
-        continue;
-      }
+      if (method.getParameterTypes().length > 0) continue;
       String fieldName = NameConverter.getFieldName(method.getName());
       if (fieldName == null) continue;
       if (fieldNames == null) {
@@ -107,9 +106,10 @@ public class FieldAppender {
       try {
         list.add(fieldName, method.invoke(object));
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-        throw new RuntimeException(fieldName + ": " + e.getMessage(), e.getCause());
+        throw new RuntimeException(e.getClass().getName() + " (" + fieldName + ": " + e.getMessage() + ")", e.getCause());
       }
     }
+    
     return list;
   }
 

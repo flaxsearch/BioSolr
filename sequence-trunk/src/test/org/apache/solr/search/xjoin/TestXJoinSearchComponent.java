@@ -48,7 +48,7 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     ModifiableSolrParams params = new ModifiableSolrParams();
     NamedList results = test(params);
     ResultContext response = (ResultContext)results.get("response");
-    DocList docs = response.docs;
+    DocList docs = response.getDocList();
     assertEquals(2, docs.size());
     DocIterator it = docs.iterator();
     assertTrue(it.hasNext());
