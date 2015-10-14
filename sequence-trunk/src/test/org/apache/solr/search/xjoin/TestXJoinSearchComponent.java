@@ -39,14 +39,14 @@ import org.junit.Test;
 
 public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
 
-  static String componentName = "xjoin";
   static String requestHandler = "standard";
 
   @Test
   @SuppressWarnings("rawtypes")
   public void testUngrouped() {
     ModifiableSolrParams params = new ModifiableSolrParams();
-    NamedList results = test(params);
+    NamedList results = test(params, "xjoin");
+    testXJoinResults(results, "xjoin");
     ResultContext response = (ResultContext)results.get("response");
     DocList docs = response.getDocList();
     assertEquals(2, docs.size());
@@ -64,7 +64,8 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     ModifiableSolrParams params = new ModifiableSolrParams();    
     params.add("group", "true");
     params.add("group.field", "colour");
-    NamedList results = test(params);
+    NamedList results = test(params, "xjoin");
+    testXJoinResults(results, "xjoin");
     NamedList grouped = (NamedList)results.get("grouped");
     NamedList colours = (NamedList)grouped.get("colour");
     assertEquals(2, colours.get("matches"));
@@ -97,7 +98,8 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     params.add("group", "true");
     params.add("group.field", "colour");
     params.add("group.format", "simple");
-    NamedList results = test(params);
+    NamedList results = test(params, "xjoin");
+    testXJoinResults(results, "xjoin");
     NamedList grouped = (NamedList)results.get("grouped");
     NamedList colours = (NamedList)grouped.get("colour");
     assertEquals(2, colours.get("matches"));
@@ -111,8 +113,24 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     assertFalse(it.hasNext());
   }
   
+  @Test
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private NamedList test(ModifiableSolrParams params) {
+  public void testMultiValued() {
+    ModifiableSolrParams params = new ModifiableSolrParams();
+    params.add("xjoin4", "true");
+    NamedList results = test(params, "xjoin4");
+    NamedList xjoin = (NamedList)results.get("xjoin4");
+    List<NamedList> list = xjoin.getAll("external");
+    assertEquals(5, list.size());
+    assertEquals(list.get(0).get("joinId"), "alpha");
+    assertEquals(list.get(1).get("joinId"), "beta");
+    assertEquals(list.get(2).get("joinId"), "gamma");
+    assertEquals(list.get(3).get("joinId"), "delta");
+    assertEquals(list.get(4).get("joinId"), "theta");
+  }
+  
+  @SuppressWarnings("rawtypes")
+  private NamedList test(ModifiableSolrParams params, String componentName) {
     SolrCore core = h.getCore();
 
     SearchComponent sc = core.getSearchComponent(componentName);
@@ -122,7 +140,7 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     assertTrue("XJoinQParserPlugin not found in solrconfig", qp != null);
     
     params.add("q", "*:*");
-    params.add("fq", "{!xjoin}xjoin");
+    params.add("fq", "{!xjoin}" + componentName);
 
     SolrQueryResponse rsp = new SolrQueryResponse();
     rsp.add("responseHeader", new SimpleOrderedMap<>());
@@ -133,7 +151,11 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     req.close();
     assertNull(rsp.getException());
       
-    NamedList results = rsp.getValues();
+    return rsp.getValues();
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void testXJoinResults(NamedList results, String componentName) {
     NamedList xjoin = (NamedList)results.get(componentName);
     assertTrue(componentName + " should not be null", xjoin != null);
     assertEquals("a test string", xjoin.get("string"));
@@ -142,8 +164,6 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     Set<String> expected = new HashSet<>(Arrays.asList(values));
     Set<String> actual = new HashSet<String>((List<String>)xjoin.get("join_ids"));
     assertEquals(expected, actual);
-    
-    return results;
   }
   
 }
