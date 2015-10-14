@@ -53,50 +53,49 @@ public class MergeSearchComponent extends SearchComponent {
   }
   
   @Override
-  public int distributedProcess(ResponseBuilder rb) throws IOException {
-    System.out.println("===== DISTRIBUTED PROCESS =====");
-
+  public void finishStage(ResponseBuilder rb) {
     SolrParams params = rb.req.getParams();
     if (! params.getBool(getName(), false)) {
-      return super.distributedProcess(rb);
+      return;
+    }
+
+    System.out.println("===== FINISH STAGE =====");
+    if (rb.stage != ResponseBuilder.STAGE_GET_FIELDS) {
+      return;
     }
 
     SolrCore core = rb.req.getCore();
     IndexSchema schema = core.getLatestSchema();
     
-    System.out.println("*** " + rb.retrievedDocuments.size());
-    for (SolrDocument doc : rb.retrievedDocuments.values()) {
-      System.out.println("doc " + doc);
-    }
-    
-    /*SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
-		for (SolrDocument parent : docs) {
-		  if (! parent.hasChildDocuments() || ! parent.containsKey(DuplicateDocumentList.MERGE_PARENT_FIELD)) {
-		    System.out.println("  (doc was not a parent)");
-		    continue;
-		  }
-		  System.out.println(" parent");
-		  for (SolrDocument doc : parent.getChildDocuments()) {
-  			for (String fieldName : doc.getFieldNames()) {
-  				SchemaField field = schema.getField(fieldName);
-  				if (field == null || ! field.stored()) {
-  					continue;
-  				}
-  				System.out.println(" merge field " + field.getName());
+    SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
+    for (SolrDocument parent : docs) {
+      if (! parent.hasChildDocuments() || ! parent.containsKey(DuplicateDocumentList.MERGE_PARENT_FIELD)) {
+        continue;
+      }
+      parent.remove(DuplicateDocumentList.MERGE_PARENT_FIELD);
+      
+      for (SolrDocument doc : parent.getChildDocuments()) {
+        for (String fieldName : doc.getFieldNames()) {
+          SchemaField field = schema.getField(fieldName);
+          if (field == null || ! field.stored()) {
+            continue;
+          }
   
-  				Object value = doc.getFieldValue(fieldName);
-  				for (CopyField cp : schema.getCopyFieldsList(fieldName)) {
-  					addConvertedFieldValue(parent, value, cp.getDestination());
-  				}
-  				
-  				addConvertedFieldValue(parent, value, field);
-  			}
-  			//parent.remove(doc)
-		  }
-		}*/
-		
-    return super.distributedProcess(rb);
-	}
+          Object value = doc.getFieldValue(fieldName);
+          for (CopyField cp : schema.getCopyFieldsList(fieldName)) {
+            addConvertedFieldValue(parent, value, cp.getDestination());
+          }
+          
+          addConvertedFieldValue(parent, value, field);
+        }
+      }
+
+      // remove child documents
+      /*while (parent.getChildDocumentCount() > 0) {
+        parent.getChildDocuments().remove(0);
+      }*/
+    }
+  }
 	
 	private void addConvertedFieldValue(SolrDocument superDoc, Object value, SchemaField field) {
 		try {
