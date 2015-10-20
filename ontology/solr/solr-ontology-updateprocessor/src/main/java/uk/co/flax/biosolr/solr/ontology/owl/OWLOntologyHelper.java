@@ -127,6 +127,11 @@ public class OWLOntologyHelper implements OntologyHelper {
 	}
 
 	@Override
+	public boolean isIriInOntology(String iri) {
+		return owlClassMap.containsKey(IRI.create(iri));
+	}
+
+	@Override
 	public Collection<String> findLabels(String iri) {
 		return findLabels(IRI.create(iri));
 	}

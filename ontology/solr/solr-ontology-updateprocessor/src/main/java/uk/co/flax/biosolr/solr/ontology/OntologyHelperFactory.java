@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.solr.ontology;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
@@ -25,6 +26,8 @@ import uk.co.flax.biosolr.solr.ontology.owl.OntologyConfiguration;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 /**
  * Created by mlp on 20/10/15.
@@ -41,7 +44,20 @@ public class OntologyHelperFactory {
 
     public OntologyHelperFactory(SolrParams params) {
         this.params = params;
+		validateParameters();
     }
+
+	private void validateParameters() {
+		if (StringUtils.isNotBlank(params.get(CONFIG_FILE_PARAM))) {
+			String configurationFile = params.get(CONFIG_FILE_PARAM);
+			Path path = FileSystems.getDefault().getPath(configurationFile);
+			if (!path.toFile().exists()) {
+				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
+			}
+		} else if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) && StringUtils.isBlank(params.get(OLS_PREFIX))) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS prefix set - need one or the other!");
+		}
+	}
 
     public OntologyHelper buildOntologyHelper() throws OntologyHelperException {
         OntologyHelper helper = null;

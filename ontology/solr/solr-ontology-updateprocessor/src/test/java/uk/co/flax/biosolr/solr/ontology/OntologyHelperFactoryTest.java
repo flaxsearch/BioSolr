@@ -44,7 +44,7 @@ public class OntologyHelperFactoryTest {
         return new File(fileUrl.toURI()).getAbsolutePath();
     }
 
-    @Test(expected=uk.co.flax.biosolr.solr.ontology.OntologyHelperException.class)
+    @Test(expected=org.apache.solr.common.SolrException.class)
     public void buildOntologyHelper_noParameters() throws Exception {
         SolrParams params = new MapSolrParams(Collections.emptyMap());
         OntologyHelperFactory factory = new OntologyHelperFactory(params);

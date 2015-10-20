@@ -43,6 +43,15 @@ public interface OntologyHelper {
      */
     void dispose();
 
+	/**
+	 * Check whether the IRI exists in the ontology (or ontologies) represented
+	 * by this helper.
+	 * @param iri
+	 * @return <code>true</code> if the class corresponding to this IRI can be found,
+	 * <code>false</code> if not.
+	 */
+	boolean isIriInOntology(String iri);
+
     /**
      * Find the labels for a single OWL class.
      *
