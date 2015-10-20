@@ -32,15 +32,15 @@ import org.junit.Test;
  * @author mlp
  */
 public class OWLOntologyConfigurationTest {
-	
+
 	private static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
 	private static final String INCOMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_2.properties";
-	
+
 	private static String getFilePath(String file) throws URISyntaxException {
 		URL fileUrl = OWLOntologyConfigurationTest.class.getClassLoader().getResource(file);
-		return new File(fileUrl.toURI()).getAbsolutePath(); 
+		return new File(fileUrl.toURI()).getAbsolutePath();
 	}
-	
+
 	@Test
 	public void defaultConfiguration() {
 		OWLOntologyConfiguration test = OWLOntologyConfiguration.defaultConfiguration();
@@ -49,20 +49,22 @@ public class OWLOntologyConfigurationTest {
 		assertEquals(Arrays.asList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI), test.getDefinitionPropertyUris());
 		assertTrue(test.getIgnorePropertyUris().isEmpty());
 	}
-	
-	@Test(expected=java.io.IOException.class)
+
+	@Test(expected = java.io.IOException.class)
 	public void fromPropertiesFile_noSuchFile() throws Exception {
 		OWLOntologyConfiguration.fromPropertiesFile("blah");
 	}
-	
+
 	@Test
 	public void fromPropertiesFile() throws Exception {
-		OWLOntologyConfiguration test = OWLOntologyConfiguration.fromPropertiesFile(getFilePath(COMPLETE_PROPFILE_PATH));
+		OWLOntologyConfiguration test = OWLOntologyConfiguration
+				.fromPropertiesFile(getFilePath(COMPLETE_PROPFILE_PATH));
 		assertEquals(1, test.getLabelPropertyUris().size());
 		assertEquals("http://www.w3.org/2000/01/rdf-schema#label", test.getLabelPropertyUris().get(0));
 		assertEquals(2, test.getSynonymPropertyUris().size());
 		assertEquals("http://www.ebi.ac.uk/efo/alternative_term", test.getSynonymPropertyUris().get(0));
-		assertEquals("http://www.geneontology.org/formats/oboInOwl#hasExactSynonym", test.getSynonymPropertyUris().get(1));
+		assertEquals("http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+				test.getSynonymPropertyUris().get(1));
 		assertEquals(2, test.getDefinitionPropertyUris().size());
 		assertEquals("http://www.ebi.ac.uk/efo/definition", test.getDefinitionPropertyUris().get(0));
 		assertEquals("http://purl.obolibrary.org/obo/IAO_0000115", test.getDefinitionPropertyUris().get(1));
@@ -72,7 +74,8 @@ public class OWLOntologyConfigurationTest {
 
 	@Test
 	public void fromPropertiesFile_withDefaults() throws Exception {
-		OWLOntologyConfiguration test = OWLOntologyConfiguration.fromPropertiesFile(getFilePath(INCOMPLETE_PROPFILE_PATH));
+		OWLOntologyConfiguration test = OWLOntologyConfiguration
+				.fromPropertiesFile(getFilePath(INCOMPLETE_PROPFILE_PATH));
 		assertEquals(1, test.getLabelPropertyUris().size());
 		assertEquals("http://www.w3.org/2000/01/rdf-schema#label", test.getLabelPropertyUris().get(0));
 		assertEquals(1, test.getSynonymPropertyUris().size());

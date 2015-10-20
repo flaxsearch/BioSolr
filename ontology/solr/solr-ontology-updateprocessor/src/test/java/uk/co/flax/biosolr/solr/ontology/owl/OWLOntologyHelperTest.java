@@ -28,38 +28,38 @@ import static org.junit.Assert.assertNotNull;
  */
 public class OWLOntologyHelperTest {
 
-    public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
-    public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
+	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
+	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 
-    private static URI testOntologyUri;
+	private static URI testOntologyUri;
 
-    @BeforeClass
-    public static void setup() throws Exception {
-        testOntologyUri = OWLOntologyHelperTest.class.getClassLoader().getResource(TEST_ONTOLOGY).toURI();
-    }
+	@BeforeClass
+	public static void setup() throws Exception {
+		testOntologyUri = OWLOntologyHelperTest.class.getClassLoader().getResource(TEST_ONTOLOGY).toURI();
+	}
 
-    @Test(expected=java.net.URISyntaxException.class)
-    public void constructString_withBadURI() throws Exception {
-        final String dummyUri = "http://blah<.com:8080/dummy.owl";
-        new OWLOntologyHelper(dummyUri, null);
-    }
+	@Test(expected = java.net.URISyntaxException.class)
+	public void constructString_withBadURI() throws Exception {
+		final String dummyUri = "http://blah<.com:8080/dummy.owl";
+		new OWLOntologyHelper(dummyUri, null);
+	}
 
-    @Test
-    public void constructString() throws Exception {
-        OntologyHelper helper = new OWLOntologyHelper(TEST_ONTOLOGY, OWLOntologyConfiguration.defaultConfiguration());
-        assertNotNull(helper.findLabels(TEST_IRI));
-    }
+	@Test
+	public void constructString() throws Exception {
+		OntologyHelper helper = new OWLOntologyHelper(TEST_ONTOLOGY, OWLOntologyConfiguration.defaultConfiguration());
+		assertNotNull(helper.findLabels(TEST_IRI));
+	}
 
-    @Test(expected=java.lang.NullPointerException.class)
-    public void construct_withNullUri() throws Exception {
-        final URI ontologyUri = null;
-        new OWLOntologyHelper(ontologyUri, null);
-    }
+	@Test(expected = java.lang.NullPointerException.class)
+	public void construct_withNullUri() throws Exception {
+		final URI ontologyUri = null;
+		new OWLOntologyHelper(ontologyUri, null);
+	}
 
-    @Test
-    public void construct() throws Exception {
-        OntologyHelper helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
-        assertNotNull(helper.findLabels(TEST_IRI));
-    }
+	@Test
+	public void construct() throws Exception {
+		OntologyHelper helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+		assertNotNull(helper.findLabels(TEST_IRI));
+	}
 
 }

@@ -15,21 +15,43 @@
  */
 package uk.co.flax.biosolr.solr.ontology.owl;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.stream.Collectors;
+import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 
 /**
  * Created by mlp on 20/10/15.
@@ -43,8 +65,6 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 	private final OWLOntology ontology;
 	private final OWLReasoner reasoner;
-	// private final ShortFormProvider shortFormProvider;
-	private final IRI owlNothingIRI;
 
 	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
 
@@ -97,8 +117,6 @@ public class OWLOntologyHelper implements OntologyHelper {
 		this.ontology = manager.loadOntologyFromOntologyDocument(iri);
 		// Use a buffering reasoner - not interested in ongoing changes
 		this.reasoner = new StructuralReasonerFactory().createReasoner(ontology);
-		// this.shortFormProvider = new SimpleShortFormProvider();
-		this.owlNothingIRI = manager.getOWLDataFactory().getOWLNothing().getIRI();
 
 		// Initialise the class map
 		initialiseClassMap();

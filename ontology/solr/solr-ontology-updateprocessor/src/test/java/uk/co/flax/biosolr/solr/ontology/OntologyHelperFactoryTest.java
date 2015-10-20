@@ -15,19 +15,20 @@
  */
 package uk.co.flax.biosolr.solr.ontology;
 
-import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.collect.Maps;
-import org.apache.solr.common.params.MapSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Test;
-import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
+import org.apache.solr.common.params.MapSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.junit.Test;
+
+import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
 
 /**
  * Unit tests for the OntologyHelperFactory.
@@ -36,38 +37,38 @@ import static org.junit.Assert.assertTrue;
  */
 public class OntologyHelperFactoryTest {
 
-    public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
-    public static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
+	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
+	public static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
 
-    private static String getFilePath(String file) throws URISyntaxException {
-        URL fileUrl = OntologyHelperFactoryTest.class.getClassLoader().getResource(file);
-        return new File(fileUrl.toURI()).getAbsolutePath();
-    }
+	private static String getFilePath(String file) throws URISyntaxException {
+		URL fileUrl = OntologyHelperFactoryTest.class.getClassLoader().getResource(file);
+		return new File(fileUrl.toURI()).getAbsolutePath();
+	}
 
-    @Test(expected=org.apache.solr.common.SolrException.class)
-    public void buildOntologyHelper_noParameters() throws Exception {
-        SolrParams params = new MapSolrParams(Collections.emptyMap());
-        OntologyHelperFactory factory = new OntologyHelperFactory(params);
-        factory.buildOntologyHelper();
-    }
+	@Test(expected = org.apache.solr.common.SolrException.class)
+	public void buildOntologyHelper_noParameters() throws Exception {
+		SolrParams params = new MapSolrParams(Collections.emptyMap());
+		OntologyHelperFactory factory = new OntologyHelperFactory(params);
+		factory.buildOntologyHelper();
+	}
 
-    @Test
-    public void buildOntologyHelper_defaultOwlConfig() throws Exception {
-        Map<String, String> paramMap = Maps.newHashMap();
-        paramMap.put(OntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
-        OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
-        OntologyHelper helper = factory.buildOntologyHelper();
-        assertTrue(helper instanceof OWLOntologyHelper);
-    }
+	@Test
+	public void buildOntologyHelper_defaultOwlConfig() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
+		OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
+		OntologyHelper helper = factory.buildOntologyHelper();
+		assertTrue(helper instanceof OWLOntologyHelper);
+	}
 
-    @Test
-    public void buildOntologyHelper_fileOwlConfig() throws Exception {
-        Map<String, String> paramMap = Maps.newHashMap();
-        paramMap.put(OntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
-        paramMap.put(OntologyHelperFactory.CONFIG_FILE_PARAM, getFilePath(COMPLETE_PROPFILE_PATH));
-        OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
-        OntologyHelper helper = factory.buildOntologyHelper();
-        assertTrue(helper instanceof OWLOntologyHelper);
-    }
+	@Test
+	public void buildOntologyHelper_fileOwlConfig() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
+		paramMap.put(OntologyHelperFactory.CONFIG_FILE_PARAM, getFilePath(COMPLETE_PROPFILE_PATH));
+		OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
+		OntologyHelper helper = factory.buildOntologyHelper();
+		assertTrue(helper instanceof OWLOntologyHelper);
+	}
 
 }

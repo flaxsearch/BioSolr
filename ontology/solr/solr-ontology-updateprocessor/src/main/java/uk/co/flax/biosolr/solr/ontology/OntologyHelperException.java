@@ -20,6 +20,8 @@ package uk.co.flax.biosolr.solr.ontology;
  */
 public class OntologyHelperException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
 	public OntologyHelperException() {
 		super();
 	}
