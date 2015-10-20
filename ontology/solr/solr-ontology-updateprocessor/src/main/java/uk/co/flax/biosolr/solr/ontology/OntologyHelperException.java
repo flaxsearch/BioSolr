@@ -20,20 +20,20 @@ package uk.co.flax.biosolr.solr.ontology;
  */
 public class OntologyHelperException extends Exception {
 
-    public OntologyHelperException() {
-        super();
-    }
+	public OntologyHelperException() {
+		super();
+	}
 
-    public OntologyHelperException(String msg) {
-        super(msg);
-    }
+	public OntologyHelperException(String msg) {
+		super(msg);
+	}
 
-    public OntologyHelperException(Throwable t) {
-        super(t);
-    }
+	public OntologyHelperException(Throwable t) {
+		super(t);
+	}
 
-    public OntologyHelperException(String msg, Throwable t) {
-        super(msg, t);
-    }
+	public OntologyHelperException(String msg, Throwable t) {
+		super(msg, t);
+	}
 
 }

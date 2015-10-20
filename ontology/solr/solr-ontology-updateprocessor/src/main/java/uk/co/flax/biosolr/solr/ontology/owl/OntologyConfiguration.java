@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.solr.owl;
+package uk.co.flax.biosolr.solr.ontology.owl;
 
 import java.io.IOException;
 import java.io.Reader;

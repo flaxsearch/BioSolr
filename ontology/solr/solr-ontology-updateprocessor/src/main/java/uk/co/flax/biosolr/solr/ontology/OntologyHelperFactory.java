@@ -21,8 +21,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
-import uk.co.flax.biosolr.solr.owl.OntologyConfiguration;
-import uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory;
+import uk.co.flax.biosolr.solr.ontology.owl.OntologyConfiguration;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

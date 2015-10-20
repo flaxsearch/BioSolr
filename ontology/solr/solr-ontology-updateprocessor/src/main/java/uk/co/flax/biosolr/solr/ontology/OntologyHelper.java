@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.solr.ontology;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Map;
 
@@ -80,7 +81,7 @@ public interface OntologyHelper {
      * @param iri
      * @return the child IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getChildIris(String iri);
+    Collection<String> getChildIris(@NotNull String iri);
 
     /**
      * Get all descendant IRIs for a class, including direct children.
