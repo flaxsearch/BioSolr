@@ -38,7 +38,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyHelper.class);
 
-	private final OntologyConfiguration config;
+	private final OWLOntologyConfiguration config;
 	private final URI ontologyUri;
 
 	private final OWLOntology ontology;
@@ -65,7 +65,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 	 *                                      some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException           if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(String ontologyUriString, OntologyConfiguration config) throws OWLOntologyCreationException,
+	public OWLOntologyHelper(String ontologyUriString, OWLOntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
 		this(new URI(ontologyUriString), config);
 	}
@@ -80,7 +80,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 	 *                                      some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException           if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(URI ontologyUri, OntologyConfiguration config) throws OWLOntologyCreationException,
+	public OWLOntologyHelper(URI ontologyUri, OWLOntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
 		this.config = config;
 

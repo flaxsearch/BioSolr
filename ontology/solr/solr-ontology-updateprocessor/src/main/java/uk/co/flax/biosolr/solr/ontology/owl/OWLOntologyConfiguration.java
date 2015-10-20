@@ -37,7 +37,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  *
  * @author mlp
  */
-public class OntologyConfiguration {
+public class OWLOntologyConfiguration {
 	
 	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
@@ -53,7 +53,7 @@ public class OntologyConfiguration {
 	private final List<String> definitionPropertyUris;
 	private final List<String> ignorePropertyUris;
 	
-	public OntologyConfiguration(List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
+	public OWLOntologyConfiguration(List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
 		this.labelPropertyUris = labelUris;
 		this.synonymPropertyUris = synonymUris;
 		this.definitionPropertyUris = definitionUris;
@@ -64,8 +64,8 @@ public class OntologyConfiguration {
 	 * Build an ontology configuration using sensible defaults.
 	 * @return the default ontology configuration.
 	 */
-	public static OntologyConfiguration defaultConfiguration() {
-		return new OntologyConfiguration(Arrays.asList(LABEL_PROPERTY_URI), Arrays.asList(SYNONYM_PROPERTY_URI),
+	public static OWLOntologyConfiguration defaultConfiguration() {
+		return new OWLOntologyConfiguration(Arrays.asList(LABEL_PROPERTY_URI), Arrays.asList(SYNONYM_PROPERTY_URI),
 				Arrays.asList(DEFINITION_PROPERTY_URI), Collections.emptyList());
 	}
 	
@@ -76,7 +76,7 @@ public class OntologyConfiguration {
 	 * @return the ontology configuration for the properties file.
 	 * @throws IOException 
 	 */
-	public static OntologyConfiguration fromPropertiesFile(String propFile) throws IOException {
+	public static OWLOntologyConfiguration fromPropertiesFile(String propFile) throws IOException {
 		Path path = FileSystems.getDefault().getPath(propFile);
 		Reader reader = Files.newBufferedReader(path);
 		ResourceBundle rb = new PropertyResourceBundle(reader);
@@ -91,7 +91,7 @@ public class OntologyConfiguration {
 		List<String> synonymUris = Arrays.asList(synonyms.split(",\\s*"));
 		List<String> ignoreUris = StringUtils.isNotBlank(ignores) ? Arrays.asList(ignores.split(",\\s*")) : Collections.emptyList();
 		
-		return new OntologyConfiguration(labelUris, synonymUris, definitionUris, ignoreUris);
+		return new OWLOntologyConfiguration(labelUris, synonymUris, definitionUris, ignoreUris);
 	}
 	
 	private static String getResourceString(ResourceBundle rb, String key, String defaultValue) {

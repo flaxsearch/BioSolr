@@ -41,7 +41,7 @@ public class OWLOntologyHelperMethodsTest {
     @BeforeClass
     public static void setup() throws URISyntaxException, OWLOntologyCreationException {
         URI testOntologyUri = OWLOntologyHelperMethodsTest.class.getClassLoader().getResource(OWLOntologyHelperTest.TEST_ONTOLOGY).toURI();
-        helper = new OWLOntologyHelper(testOntologyUri, OntologyConfiguration.defaultConfiguration());
+        helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
     }
 
     @AfterClass

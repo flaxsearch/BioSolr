@@ -46,7 +46,7 @@ public class OWLOntologyHelperTest {
 
     @Test
     public void constructString() throws Exception {
-        OntologyHelper helper = new OWLOntologyHelper(TEST_ONTOLOGY, OntologyConfiguration.defaultConfiguration());
+        OntologyHelper helper = new OWLOntologyHelper(TEST_ONTOLOGY, OWLOntologyConfiguration.defaultConfiguration());
         assertNotNull(helper.findLabels(TEST_IRI));
     }
 
@@ -58,7 +58,7 @@ public class OWLOntologyHelperTest {
 
     @Test
     public void construct() throws Exception {
-        OntologyHelper helper = new OWLOntologyHelper(testOntologyUri, OntologyConfiguration.defaultConfiguration());
+        OntologyHelper helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
         assertNotNull(helper.findLabels(TEST_IRI));
     }
 
