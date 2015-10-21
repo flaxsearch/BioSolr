@@ -362,6 +362,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return fieldPrefix;
 	}
 
+	public boolean includeSynonyms() {
+		return StringUtils.isNotBlank(synonymsField);
+	}
+
+	public boolean includeDefinitions() {
+		return StringUtils.isNotBlank(definitionField);
+	}
+
 	public synchronized OntologyHelper initialiseHelper() throws OntologyHelperException {
 		if (helper == null) {
 			helper = helperFactory.buildOntologyHelper();
@@ -399,42 +407,18 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					OntologyHelper helper = initialiseHelper();
 					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
 
-					OntologyData data = new OntologyDataBuilder(helper, iri)
-							.includeSynonyms(StringUtils.isNotBlank(getSynonymsField()))
-							.includeDefinitions(StringUtils.isNotBlank(getDefinitionField()))
-							.includeIndirect(isIncludeIndirect())
-							.includeRelations(isIncludeRelations())
-							.build();
+					if (StringUtils.isNotBlank(iri)) {
+						OntologyData data = new OntologyDataBuilder(helper, iri)
+								.includeSynonyms(includeSynonyms())
+								.includeDefinitions(includeDefinitions())
+								.includeIndirect(isIncludeIndirect())
+								.includeRelations(isIncludeRelations())
+								.build();
 
-					if (data == null) {
-						LOGGER.debug("Cannot find OWL class for IRI {}", iri);
-					} else {
-						cmd.getSolrInputDocument().addField(getLabelField(), data.getLabels());
-
-						// Add child and parent URIs and labels
-						cmd.getSolrInputDocument().addField(getChildUriField(), data.getChildIris());
-						cmd.getSolrInputDocument().addField(getChildLabelField(), data.getChildLabels());
-						cmd.getSolrInputDocument().addField(getParentUriField(), data.getParentIris());
-						cmd.getSolrInputDocument().addField(getParentLabelField(), data.getParentLabels());
-
-						if (isIncludeIndirect()) {
-							// Add descendant and ancestor URIs and labels
-							cmd.getSolrInputDocument().addField(getDescendantUriField(), data.getDescendantIris());
-							cmd.getSolrInputDocument().addField(getDescendantLabelField(), data.getDescendantLabels());
-							cmd.getSolrInputDocument().addField(getAncestorUriField(), data.getAncestorIris());
-							cmd.getSolrInputDocument().addField(getAncestorLabelField(), data.getAncestorLabels());
-						}
-
-						if (isIncludeRelations()) {
-							addRelationships(cmd.getSolrInputDocument(), data);
-						}
-
-						if (StringUtils.isNotBlank(getSynonymsField())) {
-							cmd.getSolrInputDocument().addField(getSynonymsField(), data.getSynonyms());
-						}
-
-						if (StringUtils.isNotBlank(getDefinitionField())) {
-							cmd.getSolrInputDocument().addField(getDefinitionField(), data.getDefinitions());
+						if (data == null) {
+							LOGGER.debug("Cannot find OWL class for IRI {}", iri);
+						} else {
+							addDataToSolrDoc(cmd.getSolrInputDocument(), data);
 						}
 					}
 				} catch (OntologyHelperException e) {
@@ -449,13 +433,47 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			}
 		}
 
-		private void addRelationships(SolrInputDocument doc, OntologyData data) {
-			for (String relation : data.getRelationIris().keySet()) {
-				String uriField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				String labelField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				doc.addField(uriField, data.getRelationIris().get(relation));
-				doc.addField(labelField, data.getRelationLabels().get(relation));
+		private void addDataToSolrDoc(SolrInputDocument doc, OntologyData data) {
+			doc.addField(getLabelField(), data.getLabels());
+			if (includeSynonyms() && data.hasSynonyms()) {
+				doc.addField(getSynonymsField(), data.getSynonyms());
 			}
+			if (includeDefinitions() && data.hasDefinitions()) {
+				doc.addField(getDefinitionField(), data.getDefinitions());
+			}
+
+			// Add child and parent URIs and labels
+			doc.addField(getChildUriField(), data.getChildIris());
+			doc.addField(getChildLabelField(), data.getChildLabels());
+			doc.addField(getParentUriField(), data.getParentIris());
+			doc.addField(getParentLabelField(), data.getParentLabels());
+
+			if (isIncludeIndirect()) {
+				// Add descendant and ancestor URIs and labels
+				doc.addField(getDescendantUriField(), data.getDescendantIris());
+				doc.addField(getDescendantLabelField(), data.getDescendantLabels());
+				doc.addField(getAncestorUriField(), data.getAncestorIris());
+				doc.addField(getAncestorLabelField(), data.getAncestorLabels());
+			}
+
+			if (isIncludeRelations()) {
+				for (String relation : data.getRelationIris().keySet()) {
+					doc.addField(buildRelationUriFieldName(relation), data.getRelationIris().get(relation));
+					doc.addField(buildRelationLabelFieldName(relation), data.getRelationLabels().get(relation));
+				}
+			}
+		}
+
+		private String buildRelationUriFieldName(String relation) {
+			return normalizeFieldName(getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix());
+		}
+
+		private String buildRelationLabelFieldName(String relation) {
+			return normalizeFieldName(getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix());
+		}
+
+		private String normalizeFieldName(String fieldName) {
+			return fieldName.replaceAll("[^A-Za-z0-9]+", "_");
 		}
 
 	}

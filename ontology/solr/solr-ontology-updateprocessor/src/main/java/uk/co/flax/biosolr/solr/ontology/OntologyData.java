@@ -117,4 +117,13 @@ public class OntologyData {
 	public Map<String, Collection<String>> getRelationLabels() {
 		return relationLabels;
 	}
+
+	public boolean hasSynonyms() {
+		return synonyms != null && !synonyms.isEmpty();
+	}
+
+	public boolean hasDefinitions() {
+		return definitions != null && !definitions.isEmpty();
+	}
+
 }
