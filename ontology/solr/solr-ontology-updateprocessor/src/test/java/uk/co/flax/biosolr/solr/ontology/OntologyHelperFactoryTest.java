@@ -34,13 +34,14 @@ import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
  * Unit tests for the OntologyHelperFactory.
  *
  * Created by mlp on 20/10/15.
+ * @author mlp
  */
 public class OntologyHelperFactoryTest {
 
 	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
 	public static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
 
-	private static String getFilePath(String file) throws URISyntaxException {
+	public static String getFilePath(String file) throws URISyntaxException {
 		URL fileUrl = OntologyHelperFactoryTest.class.getClassLoader().getResource(file);
 		return new File(fileUrl.toURI()).getAbsolutePath();
 	}

@@ -34,9 +34,7 @@ import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
-import uk.co.flax.biosolr.solr.ontology.OntologyHelperException;
-import uk.co.flax.biosolr.solr.ontology.OntologyHelperFactory;
+import uk.co.flax.biosolr.solr.ontology.*;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -401,44 +399,43 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					OntologyHelper helper = initialiseHelper();
 					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
 
-					if (!helper.isIriInOntology(iri)) {
+					OntologyData data = new OntologyDataBuilder(helper, iri)
+							.includeSynonyms(StringUtils.isNotBlank(getSynonymsField()))
+							.includeDefinitions(StringUtils.isNotBlank(getDefinitionField()))
+							.includeIndirect(isIncludeIndirect())
+							.includeRelations(isIncludeRelations())
+							.build();
+
+					if (data == null) {
 						LOGGER.debug("Cannot find OWL class for IRI {}", iri);
 					} else {
-						Collection<String> labels = helper.findLabels(iri);
-						cmd.getSolrInputDocument().addField(getLabelField(), labels);
+						cmd.getSolrInputDocument().addField(getLabelField(), data.getLabels());
 
 						// Add child and parent URIs and labels
-						Collection<String> childUris = helper.getChildIris(iri);
-						Collection<String> parentUris = helper.getParentIris(iri);
-						cmd.getSolrInputDocument().addField(getChildUriField(), childUris);
-						cmd.getSolrInputDocument().addField(getChildLabelField(), helper.findLabelsForIRIs(childUris));
-						cmd.getSolrInputDocument().addField(getParentUriField(), parentUris);
-						cmd.getSolrInputDocument().addField(getParentLabelField(), helper.findLabelsForIRIs(parentUris));
+						cmd.getSolrInputDocument().addField(getChildUriField(), data.getChildIris());
+						cmd.getSolrInputDocument().addField(getChildLabelField(), data.getChildLabels());
+						cmd.getSolrInputDocument().addField(getParentUriField(), data.getParentIris());
+						cmd.getSolrInputDocument().addField(getParentLabelField(), data.getParentLabels());
 
 						if (isIncludeIndirect()) {
 							// Add descendant and ancestor URIs and labels
-							Collection<String> descendantUris = helper.getDescendantIris(iri);
-							Collection<String> ancestorUris = helper.getAncestorIris(iri);
-							cmd.getSolrInputDocument().addField(getDescendantUriField(), descendantUris);
-							cmd.getSolrInputDocument().addField(getDescendantLabelField(), helper.findLabelsForIRIs(descendantUris));
-							cmd.getSolrInputDocument().addField(getAncestorUriField(), ancestorUris);
-							cmd.getSolrInputDocument().addField(getAncestorLabelField(), helper.findLabelsForIRIs(ancestorUris));
+							cmd.getSolrInputDocument().addField(getDescendantUriField(), data.getDescendantIris());
+							cmd.getSolrInputDocument().addField(getDescendantLabelField(), data.getDescendantLabels());
+							cmd.getSolrInputDocument().addField(getAncestorUriField(), data.getAncestorIris());
+							cmd.getSolrInputDocument().addField(getAncestorLabelField(), data.getAncestorLabels());
 						}
 
 						if (isIncludeRelations()) {
-							addRelationships(cmd.getSolrInputDocument(), iri, helper);
+							addRelationships(cmd.getSolrInputDocument(), data);
 						}
 
 						if (StringUtils.isNotBlank(getSynonymsField())) {
-							cmd.getSolrInputDocument().addField(getSynonymsField(), helper.findSynonyms(iri));
+							cmd.getSolrInputDocument().addField(getSynonymsField(), data.getSynonyms());
 						}
 
 						if (StringUtils.isNotBlank(getDefinitionField())) {
-							cmd.getSolrInputDocument().addField(getDefinitionField(), helper.findDefinitions(iri));
+							cmd.getSolrInputDocument().addField(getDefinitionField(), data.getDefinitions());
 						}
-
-						// Update the helper's last call time
-						helper.updateLastCallTime();
 					}
 				} catch (OntologyHelperException e) {
 					throw new SolrException(ErrorCode.SERVER_ERROR,
@@ -452,15 +449,12 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			}
 		}
 
-		private void addRelationships(SolrInputDocument doc, String iri, OntologyHelper helper) {
-			Map<String, Collection<String>> relatedClasses = helper.getRelations(iri);
-
-			for (String relation : relatedClasses.keySet()) {
+		private void addRelationships(SolrInputDocument doc, OntologyData data) {
+			for (String relation : data.getRelationIris().keySet()) {
 				String uriField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
 				String labelField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				Collection<String> iris = relatedClasses.get(relation);
-				doc.addField(uriField, iris);
-				doc.addField(labelField, helper.findLabelsForIRIs(iris));
+				doc.addField(uriField, data.getRelationIris().get(relation));
+				doc.addField(labelField, data.getRelationLabels().get(relation));
 			}
 		}
 
