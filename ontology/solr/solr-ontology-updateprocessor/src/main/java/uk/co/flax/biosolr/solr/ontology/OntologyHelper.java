@@ -15,7 +15,6 @@
  */
 package uk.co.flax.biosolr.solr.ontology;
 
-import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Map;
 
@@ -44,9 +43,9 @@ public interface OntologyHelper {
     void dispose();
 
 	/**
-	 * Check whether the IRI exists in the ontology (or ontologies) represented
+	 * Check whether an IRI exists in the ontology (or ontologies) represented
 	 * by this helper.
-	 * @param iri
+	 * @param iri the IRI to look for.
 	 * @return <code>true</code> if the class corresponding to this IRI can be found,
 	 * <code>false</code> if not.
 	 */
@@ -87,15 +86,15 @@ public interface OntologyHelper {
     /**
      * Get the direct child IRIs for a class.
      *
-     * @param iri
+     * @param iri the IRI of the class whose child IRIs are required.
      * @return the child IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getChildIris(@NotNull String iri);
+    Collection<String> getChildIris(String iri);
 
     /**
      * Get all descendant IRIs for a class, including direct children.
      *
-     * @param iri
+     * @param iri the IRI of the class whose descendant IRIs are required.
      * @return the descendant IRIs, as strings. Never <code>null</code>.
      */
     Collection<String> getDescendantIris(String iri);
@@ -103,7 +102,7 @@ public interface OntologyHelper {
     /**
      * Get the direct parent IRIs for a class.
      *
-     * @param iri
+     * @param iri the IRI of the class whose parent IRIs are required.
      * @return the parent IRIs, as strings. Never <code>null</code>.
      */
     Collection<String> getParentIris(String iri);
@@ -111,7 +110,7 @@ public interface OntologyHelper {
     /**
      * Get all ancestor IRIs for a class, including direct children.
      *
-     * @param iri
+     * @param iri the IRI of the class whose ancestor IRIs are required.
      * @return the ancestor IRIs, as strings. Never <code>null</code>.
      */
     Collection<String> getAncestorIris(String iri);
@@ -119,7 +118,7 @@ public interface OntologyHelper {
     /**
      * Retrieve a map of related classes for a particular class.
      *
-     * @param iri
+     * @param iri the IRI of the class whose relations are required.
      * @return a map of relation type to a list of IRIs for nodes with that
      * relationship.
      */

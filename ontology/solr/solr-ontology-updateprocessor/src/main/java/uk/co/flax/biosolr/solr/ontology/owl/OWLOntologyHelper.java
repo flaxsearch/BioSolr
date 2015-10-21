@@ -15,45 +15,26 @@
  */
 package uk.co.flax.biosolr.solr.ontology.owl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
+ * OWL-specific implementation of OntologyHelper.
+ *
  * Created by mlp on 20/10/15.
  */
 public class OWLOntologyHelper implements OntologyHelper {
@@ -107,7 +88,12 @@ public class OWLOntologyHelper implements OntologyHelper {
 		if (!ontologyUri.isAbsolute()) {
 			// Try to read as a file from the resource path
 			LOGGER.debug("Ontology URI {} is not absolute - loading from classpath", ontologyUri);
-			ontologyUri = this.getClass().getClassLoader().getResource(ontologyUri.toString()).toURI();
+			URL fileUrl = this.getClass().getClassLoader().getResource(ontologyUri.toString());
+			if (fileUrl != null) {
+				ontologyUri = fileUrl.toURI();
+			} else {
+				throw new URISyntaxException(ontologyUri.toString(), "Could not build URL for file");
+			}
 		}
 		this.ontologyUri = ontologyUri;
 		LOGGER.info("Loading ontology from " + ontologyUri + "...");
@@ -208,10 +194,10 @@ public class OWLOntologyHelper implements OntologyHelper {
 	}
 
 	private Collection<String> findAnnotationNames(IRI iri, OWLAnnotationProperty annotationType) {
-		Collection<String> classNames = new HashSet<String>();
+		Collection<String> classNames = new HashSet<>();
 
 		// get all literal annotations
-		for (OWLAnnotationAssertionAxiom axiom : ontology.getAnnotationAssertionAxioms(iri)) {
+		ontology.getAnnotationAssertionAxioms(iri).forEach(axiom -> {
 			if (axiom.getAnnotation().getProperty().equals(annotationType)) {
 				OWLAnnotationValue value = axiom.getAnnotation().getValue();
 				Optional<String> name = getOWLAnnotationValueAsString(value);
@@ -219,7 +205,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 					classNames.add(name.get());
 				}
 			}
-		}
+		});
 
 		return classNames;
 	}
@@ -312,7 +298,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 	private Collection<String> extractIris(Node<OWLClass> node) {
 		return node.getEntities().stream()
-				.filter(expr -> isClassSatisfiable(expr))
+				.filter(this::isClassSatisfiable)
 				.map(OWLClass::getIRI)
 				.map(IRI::toString)
 				.collect(Collectors.toSet());
@@ -326,7 +312,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 	public Map<String, Collection<String>> getRelations(String iri) {
 		Map<String, Collection<String>> restrictions = new HashMap<>();
 
-		OWLClass owlClass = owlClassMap.get(iri);
+		OWLClass owlClass = owlClassMap.get(IRI.create(iri));
 		if (owlClass != null) {
 			RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
 			for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
