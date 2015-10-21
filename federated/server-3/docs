@@ -5,7 +5,8 @@
     "value": true,
     "baz": "cat",
     "letter": "A",
-    "z": "30"
+    "z": "30",
+    "n": 5
   },
   {
     "id": 302,
@@ -13,14 +14,17 @@
     "value": false,
     "baz": "dog",
     "letter": "B",
-    "z": "31"
+    "z": "31",
+    "n": 6,
+    "unknown": 1
   },
   {
     "id": 303,
     "name": "Gurnard",
     "value": false,
     "baz": "dog",
-    "letter": "C"
+    "letter": "C",
+    "n": 6
   },
   {
     "id": 304,

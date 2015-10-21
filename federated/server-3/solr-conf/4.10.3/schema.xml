@@ -123,7 +123,9 @@
 <field name="baz" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="letter" type="string" indexed="true" stored="true" multiValued="false" />
 <field name="z" type="string" indexed="true" stored="true" multiValued="false" />
-
+<field name="n" type="int" indexed="true" stored="true" multiValued="false" />
+<field name="planet" type="string" stored="true" multiValued="true" />
+<field name="unknown" type="int" stored="true" />
 
 <dynamicField name="*_i"  type="tint"    indexed="true"  stored="true"/>
 <dynamicField name="*_s"  type="string"  indexed="true"  stored="true"/>
@@ -136,7 +138,6 @@
 
 <!-- Catch-all field -->
 <field name="text" type="text" indexed="true" stored="false" multiValued="true" />
-<dynamicField name="*"  type="ignored" />
 
 <!-- Merge all fields into text -->
 <copyField source="*" dest="text"/>

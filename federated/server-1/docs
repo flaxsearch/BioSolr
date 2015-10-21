@@ -5,7 +5,9 @@
     "value": "green",
     "foo": "cabbage",
     "letter": "A",
-    "z": "13"
+    "z": "13",
+    "n": 1,
+    "planet": [ "mercury", "venus" ]
   },
   {
     "id": 102,
@@ -13,6 +15,8 @@
     "value": "orange",
     "foo": "cucumber",
     "letter": "B",
-    "z": "14"
+    "z": "14",
+    "n": 2,
+    "planet": [ "earth", "mars" ]
   }
 ]
