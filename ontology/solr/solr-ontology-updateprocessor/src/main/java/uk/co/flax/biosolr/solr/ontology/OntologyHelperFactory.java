@@ -21,6 +21,7 @@ import org.apache.solr.common.params.SolrParams;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.flax.biosolr.solr.ontology.ols.OLSOntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyConfiguration;
 
@@ -30,13 +31,16 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 /**
+ * Factory class to build OntologyHelper instances.
+ *
  * Created by mlp on 20/10/15.
  */
 public class OntologyHelperFactory {
 
     public static final String ONTOLOGY_URI_PARAM = "ontologyURI";
     public static final String CONFIG_FILE_PARAM = "configurationFile";
-    public static final String OLS_PREFIX = "OLSprefix";
+    public static final String OLS_BASE_URL = "olsBaseURL";
+    public static final String OLS_ONTOLOGY_NAME = "olsOntology";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyHelperFactory.class);
 
@@ -54,8 +58,9 @@ public class OntologyHelperFactory {
 			if (!path.toFile().exists()) {
 				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
 			}
-		} else if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) && StringUtils.isBlank(params.get(OLS_PREFIX))) {
-			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS prefix set - need one or the other!");
+		} else if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) &&
+                (StringUtils.isBlank(params.get(OLS_BASE_URL)) || StringUtils.isBlank(params.get(OLS_ONTOLOGY_NAME)))) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS details set - need one or the other!");
 		}
 	}
 
@@ -66,9 +71,10 @@ public class OntologyHelperFactory {
         if (StringUtils.isNotBlank(ontologyUri)) {
             helper = buildOWLOntologyHelper(ontologyUri, params.get(CONFIG_FILE_PARAM));
         } else {
-            String olsPrefix = params.get(OLS_PREFIX);
+            String olsPrefix = params.get(OLS_BASE_URL);
             if (StringUtils.isNotBlank(olsPrefix)) {
                 // Build OLS ontology helper
+				helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME));
             }
         }
 

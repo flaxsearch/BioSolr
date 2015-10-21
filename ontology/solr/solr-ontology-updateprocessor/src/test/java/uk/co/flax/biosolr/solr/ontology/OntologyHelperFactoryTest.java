@@ -28,6 +28,7 @@ import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
+import uk.co.flax.biosolr.solr.ontology.ols.OLSOntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelper;
 
 /**
@@ -43,14 +44,37 @@ public class OntologyHelperFactoryTest {
 
 	public static String getFilePath(String file) throws URISyntaxException {
 		URL fileUrl = OntologyHelperFactoryTest.class.getClassLoader().getResource(file);
+		if (fileUrl == null) {
+			throw new URISyntaxException(file, "Cannot build file URL");
+		}
 		return new File(fileUrl.toURI()).getAbsolutePath();
 	}
 
 	@Test(expected = org.apache.solr.common.SolrException.class)
-	public void buildOntologyHelper_noParameters() throws Exception {
+	public void construct_noParameters() throws Exception {
 		SolrParams params = new MapSolrParams(Collections.emptyMap());
-		OntologyHelperFactory factory = new OntologyHelperFactory(params);
-		factory.buildOntologyHelper();
+		new OntologyHelperFactory(params);
+	}
+
+	@Test(expected = org.apache.solr.common.SolrException.class)
+	public void construct_missingConfigFile() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.CONFIG_FILE_PARAM, "blah");
+		new OntologyHelperFactory(new MapSolrParams(paramMap));
+	}
+
+	@Test(expected = org.apache.solr.common.SolrException.class)
+	public void construct_missingOLSOntology() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.OLS_BASE_URL, "http://www.ebi.ac.uk/ols/beta/api");
+		new OntologyHelperFactory(new MapSolrParams(paramMap));
+	}
+
+	@Test(expected = org.apache.solr.common.SolrException.class)
+	public void construct_missingOLSBaseUrl() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.OLS_ONTOLOGY_NAME, "efo");
+		new OntologyHelperFactory(new MapSolrParams(paramMap));
 	}
 
 	@Test
@@ -70,6 +94,16 @@ public class OntologyHelperFactoryTest {
 		OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
 		OntologyHelper helper = factory.buildOntologyHelper();
 		assertTrue(helper instanceof OWLOntologyHelper);
+	}
+
+	@Test
+	public void buildOntologyHelper_ols() throws Exception {
+		Map<String, String> paramMap = new HashMap<>();
+		paramMap.put(OntologyHelperFactory.OLS_BASE_URL, "http://www.ebi.ac.uk/ols/beta/api");
+		paramMap.put(OntologyHelperFactory.OLS_ONTOLOGY_NAME, "efo");
+		OntologyHelperFactory factory = new OntologyHelperFactory(new MapSolrParams(paramMap));
+		OntologyHelper helper = factory.buildOntologyHelper();
+		assertTrue(helper instanceof OLSOntologyHelper);
 	}
 
 }
