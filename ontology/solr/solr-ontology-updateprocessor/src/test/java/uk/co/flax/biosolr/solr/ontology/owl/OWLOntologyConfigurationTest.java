@@ -23,6 +23,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Test;
 
@@ -44,9 +45,9 @@ public class OWLOntologyConfigurationTest {
 	@Test
 	public void defaultConfiguration() {
 		OWLOntologyConfiguration test = OWLOntologyConfiguration.defaultConfiguration();
-		assertEquals(Arrays.asList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI), test.getSynonymPropertyUris());
-		assertEquals(Arrays.asList(OWLOntologyConfiguration.LABEL_PROPERTY_URI), test.getLabelPropertyUris());
-		assertEquals(Arrays.asList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI), test.getDefinitionPropertyUris());
+		assertEquals(Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI), test.getSynonymPropertyUris());
+		assertEquals(Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI), test.getLabelPropertyUris());
+		assertEquals(Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI), test.getDefinitionPropertyUris());
 		assertTrue(test.getIgnorePropertyUris().isEmpty());
 	}
 

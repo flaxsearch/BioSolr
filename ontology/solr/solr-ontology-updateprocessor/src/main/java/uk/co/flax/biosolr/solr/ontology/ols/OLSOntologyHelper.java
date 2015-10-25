@@ -150,7 +150,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @param <T> placeholder for the clazz parameter.
 	 * @return a list of Callable requests.
 	 */
-	private <T extends Object> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
+	private <T> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
 		List<Callable<T>> calls = new ArrayList<>(urls.size());
 		for (String url : urls) {
 			calls.add(() -> {
@@ -163,7 +163,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public boolean isIriInOntology(String iri) throws OntologyHelperException {
-		checkTerms(Arrays.asList(iri));
+		checkTerms(Collections.singletonList(iri));
 		return terms.containsKey(iri) && terms.get(iri) != null;
 	}
 

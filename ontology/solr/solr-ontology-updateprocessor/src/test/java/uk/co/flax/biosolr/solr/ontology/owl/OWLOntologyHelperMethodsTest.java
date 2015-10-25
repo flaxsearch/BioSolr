@@ -25,10 +25,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.junit.Assert.*;
 
 /**
+ * Unit tests for the OWL Ontology Helper methods.
+ *
  * Created by mlp on 20/10/15.
  */
 public class OWLOntologyHelperMethodsTest {
@@ -137,7 +140,7 @@ public class OWLOntologyHelperMethodsTest {
 	@Test
 	public void findLabelsForIRIs_notIRIs() throws Exception {
 		final String iri = "blah";
-		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(iri));
+		Collection<String> labels = helper.findLabelsForIRIs(Collections.singletonList(iri));
 		assertNotNull(labels);
 		assertEquals(0, labels.size());
 	}

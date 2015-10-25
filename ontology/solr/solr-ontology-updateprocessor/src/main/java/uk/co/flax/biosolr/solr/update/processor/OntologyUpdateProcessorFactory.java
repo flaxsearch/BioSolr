@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.solr.ontology.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;

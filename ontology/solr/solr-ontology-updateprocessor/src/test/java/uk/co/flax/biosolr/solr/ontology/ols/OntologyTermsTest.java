@@ -18,11 +18,11 @@ package uk.co.flax.biosolr.solr.ontology.ols;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperFactoryTest;
 
 import java.io.File;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit tests for the OntologyTerms object.

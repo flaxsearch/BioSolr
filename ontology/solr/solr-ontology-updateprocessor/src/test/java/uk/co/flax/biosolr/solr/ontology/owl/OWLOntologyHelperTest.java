@@ -24,6 +24,8 @@ import java.net.URI;
 import static org.junit.Assert.assertNotNull;
 
 /**
+ * Unit tests for the OWLOntologyHelper, testing construction of the class.
+ *
  * Created by mlp on 20/10/15.
  */
 public class OWLOntologyHelperTest {

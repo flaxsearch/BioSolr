@@ -65,8 +65,10 @@ public class OWLOntologyConfiguration {
 	 * @return the default ontology configuration.
 	 */
 	public static OWLOntologyConfiguration defaultConfiguration() {
-		return new OWLOntologyConfiguration(Arrays.asList(LABEL_PROPERTY_URI), Arrays.asList(SYNONYM_PROPERTY_URI),
-				Arrays.asList(DEFINITION_PROPERTY_URI), Collections.emptyList());
+		return new OWLOntologyConfiguration(Collections.singletonList(LABEL_PROPERTY_URI),
+				Collections.singletonList(SYNONYM_PROPERTY_URI),
+				Collections.singletonList(DEFINITION_PROPERTY_URI),
+				Collections.emptyList());
 	}
 	
 	/**

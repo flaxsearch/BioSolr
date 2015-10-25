@@ -16,6 +16,8 @@
 package uk.co.flax.biosolr.solr.ontology;
 
 /**
+ * Exception indicating issues with the OntologyHelper.
+ *
  * Created by mlp on 20/10/15.
  */
 public class OntologyHelperException extends Exception {

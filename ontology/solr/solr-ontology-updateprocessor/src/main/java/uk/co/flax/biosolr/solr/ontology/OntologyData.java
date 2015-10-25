@@ -16,7 +16,6 @@
 package uk.co.flax.biosolr.solr.ontology;
 
 import java.util.Collection;
-import java.util.Collection;
 import java.util.Map;
 
 /**
