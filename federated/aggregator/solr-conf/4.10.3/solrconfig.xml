@@ -369,9 +369,9 @@
          is recommended (see below).
          "dir" - the target directory for transaction logs, defaults to the
                 solr data directory.  --> 
-    <updateLog>
+    <!-- updateLog>
       <str name="dir">${solr.ulog.dir:}</str>
-    </updateLog>
+    </updateLog -->
  
     <!-- AutoCommit
 
@@ -923,9 +923,7 @@
     <str name="qParser">djoin</str>
   </searchComponent>
   
-  <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent">
-    <bool name="ignoreConversionErrors">true</bool>
-  </searchComponent>
+  <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent" />
   
   <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.GroupDuplicatesQParserPlugin" />
   

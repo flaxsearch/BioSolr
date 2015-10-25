@@ -17,11 +17,8 @@ public class DuplicateDocumentList extends SolrDocumentList {
   public SolrDocument set(int index, SolrDocument doc) {
     SolrDocument old = get(index);
     if (old == null) {
-      super.set(index, doc);
-    } else if (! old.hasChildDocuments()) {
       SolrDocument parent = new SolrDocument();
       parent.setField(MERGE_PARENT_FIELD, true);
-      parent.addChildDocument(old);
       parent.addChildDocument(doc);
       super.set(index, parent);
     } else {
