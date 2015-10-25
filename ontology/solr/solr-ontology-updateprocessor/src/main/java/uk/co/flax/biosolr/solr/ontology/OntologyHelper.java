@@ -49,7 +49,7 @@ public interface OntologyHelper {
 	 * @return <code>true</code> if the class corresponding to this IRI can be found,
 	 * <code>false</code> if not.
 	 */
-	boolean isIriInOntology(String iri);
+	boolean isIriInOntology(String iri) throws OntologyHelperException;
 
     /**
      * Find the labels for a single OWL class.
@@ -57,7 +57,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose labels are required.
      * @return a collection of labels for the class. Never <code>null</code>.
      */
-    Collection<String> findLabels(String iri);
+    Collection<String> findLabels(String iri) throws OntologyHelperException;
 
     /**
      * Find all of the labels for a collection of OWL class IRIs.
@@ -65,7 +65,7 @@ public interface OntologyHelper {
      * @param iris the IRIs whose labels should be looked up.
      * @return a collection of labels. Never <code>null</code>.
      */
-    Collection<String> findLabelsForIRIs(Collection<String> iris);
+    Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException;
 
     /**
      * Find the synonyms for a class.
@@ -73,7 +73,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose synonyms are required.
      * @return the collection of synonyms. Never <code>null</code>.
      */
-    Collection<String> findSynonyms(String iri);
+    Collection<String> findSynonyms(String iri) throws OntologyHelperException;
 
     /**
      * Find all of the definitions for a class.
@@ -81,7 +81,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose definitions are required.
      * @return the definitions. Never <code>null</code>.
      */
-    Collection<String> findDefinitions(String iri);
+    Collection<String> findDefinitions(String iri) throws OntologyHelperException;
 
     /**
      * Get the direct child IRIs for a class.
@@ -89,7 +89,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose child IRIs are required.
      * @return the child IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getChildIris(String iri);
+    Collection<String> getChildIris(String iri) throws OntologyHelperException;
 
     /**
      * Get all descendant IRIs for a class, including direct children.
@@ -97,7 +97,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose descendant IRIs are required.
      * @return the descendant IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getDescendantIris(String iri);
+    Collection<String> getDescendantIris(String iri) throws OntologyHelperException;
 
     /**
      * Get the direct parent IRIs for a class.
@@ -105,7 +105,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose parent IRIs are required.
      * @return the parent IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getParentIris(String iri);
+    Collection<String> getParentIris(String iri) throws OntologyHelperException;
 
     /**
      * Get all ancestor IRIs for a class, including direct children.
@@ -113,7 +113,7 @@ public interface OntologyHelper {
      * @param iri the IRI of the class whose ancestor IRIs are required.
      * @return the ancestor IRIs, as strings. Never <code>null</code>.
      */
-    Collection<String> getAncestorIris(String iri);
+    Collection<String> getAncestorIris(String iri) throws OntologyHelperException;
 
     /**
      * Retrieve a map of related classes for a particular class.
@@ -122,6 +122,6 @@ public interface OntologyHelper {
      * @return a map of relation type to a list of IRIs for nodes with that
      * relationship.
      */
-    Map<String, Collection<String>> getRelations(String iri);
+    Map<String, Collection<String>> getRelations(String iri) throws OntologyHelperException;
 
 }

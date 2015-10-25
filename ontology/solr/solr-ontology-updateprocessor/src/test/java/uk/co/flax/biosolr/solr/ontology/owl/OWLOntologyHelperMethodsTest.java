@@ -63,19 +63,19 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void getChildUris_nullClass() {
+	public void getChildUris_nullClass() throws Exception {
 		helper.getChildIris(null);
 	}
 
 	@Test
-	public void getChildUris_noChildren() {
+	public void getChildUris_noChildren() throws Exception {
 		Collection<String> childUris = helper.getChildIris(TEST_CHILD_IRI);
 		assertNotNull(childUris);
 		assertEquals(0, childUris.size());
 	}
 
 	@Test
-	public void getChildUris() {
+	public void getChildUris() throws Exception {
 		Collection<String> childUris = helper.getChildIris(TEST_IRI);
 		assertNotNull(childUris);
 		assertEquals(1, childUris.size());
@@ -83,19 +83,19 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void getDescendantUris_nullClass() {
+	public void getDescendantUris_nullClass() throws Exception {
 		helper.getDescendantIris(null);
 	}
 
 	@Test
-	public void getDescendantUris_noDescendants() {
+	public void getDescendantUris_noDescendants() throws Exception {
 		Collection<String> descendantUris = helper.getDescendantIris(TEST_CHILD_IRI);
 		assertNotNull(descendantUris);
 		assertEquals(0, descendantUris.size());
 	}
 
 	@Test
-	public void getDescendantUris() {
+	public void getDescendantUris() throws Exception {
 		Collection<String> descendantUris = helper.getDescendantIris(TEST_IRI);
 		assertNotNull(descendantUris);
 		assertEquals(1, descendantUris.size());
@@ -103,12 +103,12 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void getParentUris_nullClass() {
+	public void getParentUris_nullClass() throws Exception {
 		helper.getParentIris(null);
 	}
 
 	@Test
-	public void getParentUris() {
+	public void getParentUris() throws Exception {
 		Collection<String> parentUris = helper.getParentIris(TEST_CHILD_IRI);
 		assertNotNull(parentUris);
 		assertEquals(1, parentUris.size());
@@ -116,12 +116,12 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void getAncestorUris_nullClass() {
+	public void getAncestorUris_nullClass() throws Exception {
 		helper.getAncestorIris(null);
 	}
 
 	@Test
-	public void getAncestorUris() {
+	public void getAncestorUris() throws Exception {
 		Collection<String> ancestorUris = helper.getAncestorIris(TEST_CHILD_IRI);
 		assertNotNull(ancestorUris);
 		assertEquals(2, ancestorUris.size());
@@ -130,12 +130,12 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void findLabelsForIRIs_nullCollection() {
+	public void findLabelsForIRIs_nullCollection() throws Exception {
 		helper.findLabelsForIRIs(null);
 	}
 
 	@Test
-	public void findLabelsForIRIs_notIRIs() {
+	public void findLabelsForIRIs_notIRIs() throws Exception {
 		final String iri = "blah";
 		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(iri));
 		assertNotNull(labels);
@@ -143,45 +143,45 @@ public class OWLOntologyHelperMethodsTest {
 	}
 
 	@Test
-	public void findLabelsForIRIs() {
+	public void findLabelsForIRIs() throws Exception {
 		Collection<String> labels = helper.findLabelsForIRIs(Arrays.asList(TEST_IRI, TEST_CHILD_IRI));
 		assertNotNull(labels);
 		assertEquals(2, labels.size());
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void findSynonyms_nullClass() {
+	public void findSynonyms_nullClass() throws Exception {
 		helper.findSynonyms(null);
 	}
 
 	@Test
-	public void findSynonyms_noSynonymsInClass() {
+	public void findSynonyms_noSynonymsInClass() throws Exception {
 		Collection<String> synonyms = helper.findSynonyms(TEST_CHILD_IRI);
 		assertNotNull(synonyms);
 		assertEquals(0, synonyms.size());
 	}
 
 	@Test
-	public void findSynonyms() {
+	public void findSynonyms() throws Exception {
 		Collection<String> synonyms = helper.findSynonyms(TEST_IRI);
 		assertNotNull(synonyms);
 		assertEquals(1, synonyms.size());
 	}
 
 	@Test(expected = java.lang.NullPointerException.class)
-	public void findDefinitions_nullClass() {
+	public void findDefinitions_nullClass() throws Exception {
 		helper.findDefinitions(null);
 	}
 
 	@Test
-	public void findDefinitions_noDefinitionsInClass() {
+	public void findDefinitions_noDefinitionsInClass() throws Exception {
 		Collection<String> synonyms = helper.findDefinitions(TEST_CHILD_IRI);
 		assertNotNull(synonyms);
 		assertEquals(0, synonyms.size());
 	}
 
 	@Test
-	public void findDefinitions() {
+	public void findDefinitions() throws Exception {
 		Collection<String> synonyms = helper.findDefinitions(TEST_IRI);
 		assertNotNull(synonyms);
 		assertEquals(1, synonyms.size());

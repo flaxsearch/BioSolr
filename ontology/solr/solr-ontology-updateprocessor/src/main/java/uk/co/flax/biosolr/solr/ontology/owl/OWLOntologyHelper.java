@@ -143,7 +143,9 @@ public class OWLOntologyHelper implements OntologyHelper {
 	@Override
 	public Collection<String> findLabelsForIRIs(Collection<String> iris) {
 		Set<String> labels = new HashSet<>();
-		iris.stream().map(iri -> findLabels(IRI.create(iri))).forEach(labels::addAll);
+		iris.stream()
+				.map(iri -> findLabels(IRI.create(iri)))
+				.forEach(labels::addAll);
 		return labels;
 	}
 
@@ -187,8 +189,10 @@ public class OWLOntologyHelper implements OntologyHelper {
 		OWLDataFactory odf = ontology.getOWLOntologyManager().getOWLDataFactory();
 
 		// For every property URI, find the annotations for this entry
-		propertyUris.parallelStream().map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
-				.map(prop -> findAnnotationNames(iri, prop)).forEach(classNames::addAll);
+		propertyUris.parallelStream()
+				.map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
+				.map(prop -> findAnnotationNames(iri, prop))
+				.forEach(classNames::addAll);
 
 		return classNames;
 	}

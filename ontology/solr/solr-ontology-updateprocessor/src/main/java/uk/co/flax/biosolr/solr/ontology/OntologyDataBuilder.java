@@ -97,7 +97,7 @@ public class OntologyDataBuilder {
 	 * @return the OntologyData item required, or <code>null</code> if the
 	 * item does not exist in the ontology.
 	 */
-	public OntologyData build() {
+	public OntologyData build() throws OntologyHelperException {
 		OntologyData ret = null;
 
 		if (helper.isIriInOntology(iri)) {
@@ -123,7 +123,13 @@ public class OntologyDataBuilder {
 			Map<String, Collection<String>> relationLabels;
 			if (includeRelations) {
 				relationLabels = new HashMap<>();
-				relationIris.forEach((k, v) -> relationLabels.put(k, helper.findLabelsForIRIs(v)));
+				relationIris.forEach((k, v) -> {
+					try {
+						relationLabels.put(k, helper.findLabelsForIRIs(v));
+					} catch (OntologyHelperException e) {
+						LOGGER.error(e.getMessage());
+					}
+				});
 			} else {
 				relationLabels = null;
 			}

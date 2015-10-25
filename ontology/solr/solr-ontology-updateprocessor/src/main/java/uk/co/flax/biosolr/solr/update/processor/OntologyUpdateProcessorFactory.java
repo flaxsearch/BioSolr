@@ -408,12 +408,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
 
 					if (StringUtils.isNotBlank(iri)) {
-						OntologyData data = new OntologyDataBuilder(helper, iri)
-								.includeSynonyms(includeSynonyms())
-								.includeDefinitions(includeDefinitions())
-								.includeIndirect(isIncludeIndirect())
-								.includeRelations(isIncludeRelations())
-								.build();
+						OntologyData data = findOntologyData(helper, iri);
 
 						if (data == null) {
 							LOGGER.debug("Cannot find OWL class for IRI {}", iri);
@@ -431,6 +426,21 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			if (next != null) {
 				next.processAdd(cmd);
 			}
+		}
+
+		private OntologyData findOntologyData(OntologyHelper helper, String iri) {
+			OntologyData data = null;
+			try {
+				data = new OntologyDataBuilder(helper, iri)
+						.includeSynonyms(includeSynonyms())
+						.includeDefinitions(includeDefinitions())
+						.includeIndirect(isIncludeIndirect())
+						.includeRelations(isIncludeRelations())
+						.build();
+			} catch (OntologyHelperException e) {
+				LOGGER.error("Problem building ontology data for {}: {}", iri, e.getMessage());
+			}
+			return data;
 		}
 
 		private void addDataToSolrDoc(SolrInputDocument doc, OntologyData data) {

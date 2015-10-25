@@ -46,14 +46,14 @@ public class OntologyDataBuilderTest {
 	}
 
 	@Test
-	public void build_withMissingIri() {
+	public void build_withMissingIri() throws Exception {
 		final String iri = "http://blah/blah";
 		OntologyData data = new OntologyDataBuilder(helper, iri).build();
 		assertNull(data);
 	}
 
 	@Test
-	public void build_simple() {
+	public void build_simple() throws Exception {
 		final String iri = OWLOntologyHelperMethodsTest.TEST_IRI;
 		OntologyData data = new OntologyDataBuilder(helper, iri).build();
 		assertNotNull(data);
@@ -75,7 +75,7 @@ public class OntologyDataBuilderTest {
 	}
 
 	@Test
-	public void build_withSynonymsAndDefinitions() {
+	public void build_withSynonymsAndDefinitions() throws Exception {
 		final String iri = OWLOntologyHelperMethodsTest.TEST_IRI;
 		OntologyData data = new OntologyDataBuilder(helper, iri).includeSynonyms(true).includeDefinitions(true).build();
 		assertNotNull(data);
