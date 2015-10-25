@@ -40,9 +40,8 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
-	public static final String ENCODING = "UTF-8";
-	public static final String OLS_MEDIA_TYPE = "application/hal+json";
-	public static final String TERMS_URL_SUFFIX = "/terms";
+	private static final String ENCODING = "UTF-8";
+	private static final String TERMS_URL_SUFFIX = "/terms";
 
 	private final String baseUrl;
 	private final String ontology;
@@ -50,9 +49,9 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private final Client client;
 	private final ExecutorService executor;
 
-	private long lastCallTime;
+	private final Map<String, OntologyTerms> terms = new HashMap<>();
 
-	private Map<String, OntologyTerms> terms = new HashMap<>();
+	private long lastCallTime;
 
 	public OLSOntologyHelper(String baseUrl, String ontology) {
 		this.baseUrl = baseUrl;
@@ -92,9 +91,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 			foundTerms.forEach(t -> terms.put(t.getIri(), t));
 
 			// For all not found terms, add null entries to terms map
-			lookups.stream()
-					.filter(iri -> !terms.containsKey(iri))
-					.forEach(iri -> terms.put(iri, null));
+			lookups.forEach(iri -> terms.putIfAbsent(iri, null));
 		}
 	}
 
@@ -109,7 +106,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				try {
 					retTerms.add(h.get());
 				} catch (ExecutionException e) {
-					LOGGER.error(e.getMessage());
+					LOGGER.error(e.getMessage(), e);
 				} catch (InterruptedException e) {
 					LOGGER.error(e.getMessage());
 				}
@@ -152,12 +149,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 */
 	private <T> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
 		List<Callable<T>> calls = new ArrayList<>(urls.size());
-		for (String url : urls) {
-			calls.add(() -> {
-				LOGGER.debug("Creating call for {}", url);
-				return client.target(url).request(MediaType.APPLICATION_JSON_TYPE).get(clazz);
-			});
-		}
+
+		urls.forEach(url -> calls.add(() ->
+			client.target(url).request(MediaType.APPLICATION_JSON_TYPE).get(clazz)
+		));
+
 		return calls;
 	}
 
