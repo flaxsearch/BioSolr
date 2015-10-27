@@ -29,11 +29,6 @@ import java.util.Map;
  */
 public class OntologyTerm {
 
-	public static final String CHILD_LINK_TYPE = "children";
-	public static final String DESCENDANT_LINK_TYPE = "descendants";
-	public static final String PARENT_LINK_TYPE = "parents";
-	public static final String ANCESTORS_LINK_TYPE = "ancestors";
-
 	private final String iri;
 	private final String label;
 	private final List<String> description;
@@ -46,7 +41,7 @@ public class OntologyTerm {
 	private final boolean hasChildren;
 	private final boolean root;
 	private final String shortForm;
-	private final Map<String, Link> links;
+	private final Map<TermLinkType, Link> links;
 
 	public OntologyTerm(@JsonProperty("iri") String iri,
 						@JsonProperty("label") String label,
@@ -60,7 +55,7 @@ public class OntologyTerm {
 						@JsonProperty("has_children") boolean hasChildren,
 						@JsonProperty("is_root") boolean root,
 						@JsonProperty("short_form") String shortForm,
-						@JsonProperty("_links") Map<String, Link> links) {
+						@JsonProperty("_links") Map<TermLinkType, Link> links) {
 		this.iri = iri;
 		this.label = label;
 		this.description = description;
@@ -124,7 +119,7 @@ public class OntologyTerm {
 		return shortForm;
 	}
 
-	public Map<String, Link> getLinks() {
+	public Map<TermLinkType, Link> getLinks() {
 		return links;
 	}
 }

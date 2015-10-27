@@ -60,7 +60,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private final Map<String, OntologyTerm> terms = new HashMap<>();
 
 	// Related IRI cache, keyed by IRI then relation type
-	private final Map<String, Map<String, Collection<String>>> relatedIris = new HashMap<>();
+	private final Map<String, Map<TermLinkType, Collection<String>>> relatedIris = new HashMap<>();
 
 	private long lastCallTime;
 
@@ -245,25 +245,25 @@ public class OLSOntologyHelper implements OntologyHelper {
 	@Override
 	public Collection<String> getChildIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.CHILD_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.CHILDREN);
 	}
 
 	@Override
 	public Collection<String> getDescendantIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.DESCENDANT_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.DESCENDANTS);
 	}
 
 	@Override
 	public Collection<String> getParentIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.PARENT_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.PARENTS);
 	}
 
 	@Override
 	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.ANCESTORS_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.ANCESTORS);
 	}
 
 	@Override
@@ -271,7 +271,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return null;
 	}
 
-	private Collection<String> findRelatedTermsForTerm(OntologyTerm term, String linkType) throws OntologyHelperException {
+	private Collection<String> findRelatedTermsForTerm(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
 		Collection<String> iris = Collections.emptyList();
 
 		if (term != null) {
@@ -288,7 +288,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return iris;
 	}
 
-	private Collection<String> retrieveRelatedIrisFromCache(String iri, String relation) {
+	private Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
 		Collection<String> ret = null;
 
 		if (relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation)) {
@@ -298,7 +298,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return ret;
 	}
 
-	private void cacheRelatedIris(String iri, String relation, Collection<String> iris) {
+	private void cacheRelatedIris(String iri, TermLinkType relation, Collection<String> iris) {
 		if (!relatedIris.containsKey(iri)) {
 			relatedIris.put(iri, new HashMap<>());
 		}
