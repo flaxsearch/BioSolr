@@ -13,29 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.solr.ontology.ols;
+package uk.co.flax.biosolr.solr.ontology.ols.terms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 /**
- * POJO wrapping terms returned in a {@link RelatedTermsResult} lookup
- * result.
+ * Page metadata from a {@link RelatedTermsResult} lookup result.
  *
  * Created by mlp on 27/10/15.
  * @author mlp
  */
-public class EmbeddedOntologyTerms {
+public class Page {
 
-	private final List<OntologyTerm> terms;
+	private final int size;
+	private final int totalSize;
+	private final int totalPages;
+	private final int number;
 
-	public EmbeddedOntologyTerms(@JsonProperty("terms") List<OntologyTerm> terms) {
-		this.terms = terms;
+	public Page(@JsonProperty("size") int size,
+				@JsonProperty("totalElements") int totalSize,
+				@JsonProperty("totalPages") int totalPages,
+				@JsonProperty("number") int number) {
+		this.size = size;
+		this.totalSize = totalSize;
+		this.totalPages = totalPages;
+		this.number = number;
 	}
 
-	public List<OntologyTerm> getTerms() {
-		return terms;
+	public int getSize() {
+		return size;
+	}
+
+	public int getTotalSize() {
+		return totalSize;
+	}
+
+	public int getTotalPages() {
+		return totalPages;
+	}
+
+	public int getNumber() {
+		return number;
 	}
 
 }

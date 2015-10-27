@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperException;
+import uk.co.flax.biosolr.solr.ontology.ols.terms.*;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;

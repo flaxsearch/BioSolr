@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.solr.ontology.ols;
+package uk.co.flax.biosolr.solr.ontology.ols.terms;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

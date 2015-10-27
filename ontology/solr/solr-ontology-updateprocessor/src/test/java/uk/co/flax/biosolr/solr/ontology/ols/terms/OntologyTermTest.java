@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.solr.ontology.ols;
+package uk.co.flax.biosolr.solr.ontology.ols.terms;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperFactoryTest;
+import uk.co.flax.biosolr.solr.ontology.ols.terms.OntologyTerm;
+import uk.co.flax.biosolr.solr.ontology.ols.terms.ResultsLinkType;
 
 import java.io.File;
 
@@ -44,7 +46,7 @@ public class OntologyTermTest {
 		assertNotNull(terms);
 		assertNotNull(terms.getIri());
 		assertNotNull(terms.getLinks());
-		assertNotNull(terms.getLinks().get(ResultsLinkType.SELF.toString()));
+		assertNotNull(terms.getLinks().get(TermLinkType.SELF));
 	}
 
 }

@@ -13,47 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.solr.ontology.ols;
+package uk.co.flax.biosolr.solr.ontology.ols.graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Page metadata from a {@link RelatedTermsResult} lookup result.
+ * POJO representing an edge value, as returned from an OLS graph call.
  *
  * Created by mlp on 27/10/15.
  * @author mlp
  */
-public class Page {
+public class Edge {
 
-	private final int size;
-	private final int totalSize;
-	private final int totalPages;
-	private final int number;
+	private final String source;
+	private final String target;
+	private final String label;
+	private final String uri;
 
-	public Page(@JsonProperty("size") int size,
-				@JsonProperty("totalElements") int totalSize,
-				@JsonProperty("totalPages") int totalPages,
-				@JsonProperty("number") int number) {
-		this.size = size;
-		this.totalSize = totalSize;
-		this.totalPages = totalPages;
-		this.number = number;
+	public Edge(@JsonProperty("source") String source,
+				@JsonProperty("target") String target,
+				@JsonProperty("label") String label,
+				@JsonProperty("uri") String uri) {
+		this.source = source;
+		this.target = target;
+		this.label = label;
+		this.uri = uri;
 	}
 
-	public int getSize() {
-		return size;
+	public String getSource() {
+		return source;
 	}
 
-	public int getTotalSize() {
-		return totalSize;
+	public String getTarget() {
+		return target;
 	}
 
-	public int getTotalPages() {
-		return totalPages;
+	public String getLabel() {
+		return label;
 	}
 
-	public int getNumber() {
-		return number;
+	public String getUri() {
+		return uri;
 	}
-
 }

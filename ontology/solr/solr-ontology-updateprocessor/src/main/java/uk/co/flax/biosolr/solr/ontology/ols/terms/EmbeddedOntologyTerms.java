@@ -13,31 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.solr.ontology.ols;
+package uk.co.flax.biosolr.solr.ontology.ols.terms;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 /**
- * POJO representing the returned structure from a graph OLS call.
+ * POJO wrapping terms returned in a {@link RelatedTermsResult} lookup
+ * result.
  *
  * Created by mlp on 27/10/15.
  * @author mlp
  */
-public class Graph {
+public class EmbeddedOntologyTerms {
 
-	private final List<Node> nodes;
-	private final List<Edge> edges;
+	private final List<OntologyTerm> terms;
 
-	public Graph(List<Node> nodes, List<Edge> edges) {
-		this.nodes = nodes;
-		this.edges = edges;
+	public EmbeddedOntologyTerms(@JsonProperty("terms") List<OntologyTerm> terms) {
+		this.terms = terms;
 	}
 
-	public List<Node> getNodes() {
-		return nodes;
+	public List<OntologyTerm> getTerms() {
+		return terms;
 	}
 
-	public List<Edge> getEdges() {
-		return edges;
-	}
 }
