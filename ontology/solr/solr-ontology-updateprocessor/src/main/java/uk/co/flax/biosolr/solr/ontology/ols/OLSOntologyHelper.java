@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperException;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
@@ -49,7 +50,14 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private final Client client;
 	private final ExecutorService executor;
 
+	// Map caching the ontology terms after lookup
 	private final Map<String, OntologyTerms> terms = new HashMap<>();
+
+	// Maps caching the child/parent/descendant/ancestor IRIs for terms
+	private final Map<String, List<String>> childIris = new HashMap<>();
+	private final Map<String, List<String>> parentIris = new HashMap<>();
+	private final Map<String, List<String>> descendantIris = new HashMap<>();
+	private final Map<String, List<String>> ancestorIris = new HashMap<>();
 
 	private long lastCallTime;
 
@@ -80,6 +88,13 @@ public class OLSOntologyHelper implements OntologyHelper {
 		client.close();
 	}
 
+	/**
+	 * Check whether a collection of terms are in the terms cache, and if not,
+	 * attempt to add them. Terms which cannot be found in OLS are added as a
+	 * <code>null</code> entry, to avoid looking them up again.
+	 * @param iris the collection of IRIs to be queried.
+	 * @throws OntologyHelperException if the lookup is interrupted.
+	 */
 	private void checkTerms(final Collection<String> iris) throws OntologyHelperException {
 		final List<String> lookups = iris.stream()
 				.filter(iri -> !terms.containsKey(iri))
@@ -95,6 +110,12 @@ public class OLSOntologyHelper implements OntologyHelper {
 		}
 	}
 
+	/**
+	 * Look up a collection of terms in OLS.
+	 * @param iris the terms to be queried.
+	 * @return a list of those terms which were found.
+	 * @throws OntologyHelperException if the lookup is interrupted.
+	 */
 	private List<OntologyTerms> lookupTerms(final List<String> iris) throws OntologyHelperException {
 		List<OntologyTerms> retTerms = new ArrayList<>(iris.size());
 
@@ -106,7 +127,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 				try {
 					retTerms.add(h.get());
 				} catch (ExecutionException e) {
-					LOGGER.error(e.getMessage(), e);
+					if (e.getCause() instanceof NotFoundException) {
+						LOGGER.warn("Caught NotFoundException: {}", e.getCause().getMessage());
+					} else {
+						LOGGER.error(e.getMessage(), e);
+					}
 				} catch (InterruptedException e) {
 					LOGGER.error(e.getMessage());
 				}
@@ -129,8 +154,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
 			try {
-				final String encodedIri = URLEncoder.encode(iri, ENCODING);
-				final String dblEncodedIri = URLEncoder.encode(encodedIri, ENCODING);
+				final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
 				urls.add(baseUrl + "/" + ontology + TERMS_URL_SUFFIX + "/" + dblEncodedIri);
 			} catch (UnsupportedEncodingException e) {
 				// Not expecting to get here
@@ -164,23 +188,47 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	@Override
-	public Collection<String> findLabels(String iri) {
-		return null;
+	public Collection<String> findLabels(String iri) throws OntologyHelperException {
+		Collection<String> labels;
+		if (isIriInOntology(iri)) {
+			labels = Collections.singletonList(terms.get(iri).getLabel());
+		} else {
+			labels = Collections.emptyList();
+		}
+		return labels;
 	}
 
 	@Override
-	public Collection<String> findLabelsForIRIs(Collection<String> iris) {
-		return null;
+	public Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException {
+		checkTerms(iris);
+		return iris.stream()
+				.filter(iri -> terms.get(iri) != null)
+				.map(iri -> terms.get(iri).getLabel())
+				.collect(Collectors.toList());
 	}
 
 	@Override
-	public Collection<String> findSynonyms(String iri) {
-		return null;
+	public Collection<String> findSynonyms(String iri) throws OntologyHelperException {
+		checkTerms(Collections.singletonList(iri));
+		Collection<String> synonyms;
+		if (terms.get(iri) != null) {
+			synonyms = terms.get(iri).getSynonyms();
+		} else {
+			synonyms = Collections.emptyList();
+		}
+		return synonyms;
 	}
 
 	@Override
-	public Collection<String> findDefinitions(String iri) {
-		return null;
+	public Collection<String> findDefinitions(String iri) throws OntologyHelperException {
+		checkTerms(Collections.singletonList(iri));
+		Collection<String> definitions;
+		if (terms.get(iri) != null) {
+			definitions = terms.get(iri).getDescription();
+		} else {
+			definitions = Collections.emptyList();
+		}
+		return definitions;
 	}
 
 	@Override
