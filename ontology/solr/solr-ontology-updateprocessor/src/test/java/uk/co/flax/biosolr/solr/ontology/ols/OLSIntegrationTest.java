@@ -38,6 +38,7 @@ public class OLSIntegrationTest {
 	public static final String ONTOLOGY = "efo";
 
 	public static final String BAD_IRI = "http://blah.com/blah";
+	public static final String DESCENDANT_IRI = "http://www.ebi.ac.uk/efo/EFO_0003966";
 
 	private static OntologyHelper helper;
 
@@ -101,6 +102,50 @@ public class OLSIntegrationTest {
 		definitions = helper.findDefinitions(BAD_IRI);
 		assertNotNull(definitions);
 		assertTrue(definitions.isEmpty());
+	}
+
+	@Test
+	public void getChildIris() throws Exception {
+		Collection<String> childIris = helper.getChildIris(OWLOntologyHelperMethodsTest.TEST_IRI);
+		assertNotNull(childIris);
+		assertTrue(childIris.size() >= 1);
+
+		childIris = helper.getChildIris(BAD_IRI);
+		assertNotNull(childIris);
+		assertTrue(childIris.isEmpty());
+	}
+
+	@Test
+	public void getDescendantIris() throws Exception {
+		Collection<String> descendantIris = helper.getDescendantIris(DESCENDANT_IRI);
+		assertNotNull(descendantIris);
+		assertTrue(descendantIris.size() >= 1);
+
+		descendantIris = helper.getDescendantIris(BAD_IRI);
+		assertNotNull(descendantIris);
+		assertTrue(descendantIris.isEmpty());
+	}
+
+	@Test
+	public void getParentIris() throws Exception {
+		Collection<String> parentIris = helper.getParentIris(OWLOntologyHelperMethodsTest.TEST_CHILD_IRI);
+		assertNotNull(parentIris);
+		assertTrue(parentIris.size() >= 1);
+
+		parentIris = helper.getParentIris(BAD_IRI);
+		assertNotNull(parentIris);
+		assertTrue(parentIris.isEmpty());
+	}
+
+	@Test
+	public void getAncestorIris() throws Exception {
+		Collection<String> ancestorIris = helper.getAncestorIris(DESCENDANT_IRI);
+		assertNotNull(ancestorIris);
+		assertTrue(ancestorIris.size() >= 1);
+
+		ancestorIris = helper.getAncestorIris(BAD_IRI);
+		assertNotNull(ancestorIris);
+		assertTrue(ancestorIris.isEmpty());
 	}
 
 }

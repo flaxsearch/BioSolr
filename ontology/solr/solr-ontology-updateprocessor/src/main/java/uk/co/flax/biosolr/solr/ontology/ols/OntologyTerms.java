@@ -29,6 +29,11 @@ import java.util.Map;
  */
 public class OntologyTerms {
 
+	public static final String CHILD_LINK_TYPE = "children";
+	public static final String DESCENDANT_LINK_TYPE = "descendants";
+	public static final String PARENT_LINK_TYPE = "parents";
+	public static final String ANCESTORS_LINK_TYPE = "ancestors";
+
 	private final String iri;
 	private final String label;
 	private final List<String> description;
