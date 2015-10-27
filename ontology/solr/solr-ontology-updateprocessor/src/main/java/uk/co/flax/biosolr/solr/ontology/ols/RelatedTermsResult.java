@@ -50,7 +50,7 @@ public class RelatedTermsResult {
 		return embedded;
 	}
 
-	public List<OntologyTerms> getTerms() {
+	public List<OntologyTerm> getTerms() {
 		return (embedded == null ? Collections.emptyList() : embedded.getTerms());
 	}
 

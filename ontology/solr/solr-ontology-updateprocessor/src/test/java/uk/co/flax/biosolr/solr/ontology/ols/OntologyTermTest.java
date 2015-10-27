@@ -25,12 +25,12 @@ import java.io.File;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Unit tests for the OntologyTerms object.
+ * Unit tests for the OntologyTerm object.
  *
  * Created by mlp on 21/10/15.
  * @author mlp
  */
-public class OntologyTermsTest {
+public class OntologyTermTest {
 
 	static final String TERMS_FILE = "ols/ols_terms.json";
 
@@ -38,9 +38,9 @@ public class OntologyTermsTest {
 	public void deserialize_fromFile() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		OntologyTerms terms = mapper.readValue(
+		OntologyTerm terms = mapper.readValue(
 				new File(OntologyHelperFactoryTest.getFilePath(TERMS_FILE)),
-				OntologyTerms.class);
+				OntologyTerm.class);
 		assertNotNull(terms);
 		assertNotNull(terms.getIri());
 		assertNotNull(terms.getLinks());

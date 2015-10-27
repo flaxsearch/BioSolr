@@ -28,13 +28,13 @@ import java.util.List;
  */
 public class EmbeddedOntologyTerms {
 
-	private final List<OntologyTerms> terms;
+	private final List<OntologyTerm> terms;
 
-	public EmbeddedOntologyTerms(@JsonProperty("terms") List<OntologyTerms> terms) {
+	public EmbeddedOntologyTerms(@JsonProperty("terms") List<OntologyTerm> terms) {
 		this.terms = terms;
 	}
 
-	public List<OntologyTerms> getTerms() {
+	public List<OntologyTerm> getTerms() {
 		return terms;
 	}
 

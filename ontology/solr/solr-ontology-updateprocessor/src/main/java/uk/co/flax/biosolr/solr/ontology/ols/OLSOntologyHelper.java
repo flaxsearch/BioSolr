@@ -16,7 +16,6 @@
 package uk.co.flax.biosolr.solr.ontology.ols;
 
 import org.apache.commons.lang.StringUtils;
-import org.glassfish.jersey.client.ClientResponse;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private final ExecutorService executor;
 
 	// Map caching the ontology terms after lookup
-	private final Map<String, OntologyTerms> terms = new HashMap<>();
+	private final Map<String, OntologyTerm> terms = new HashMap<>();
 
 	// Related IRI cache, keyed by IRI then relation type
 	private final Map<String, Map<String, Collection<String>>> relatedIris = new HashMap<>();
@@ -108,7 +107,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				.filter(iri -> !terms.containsKey(iri))
 				.collect(Collectors.toList());
 		if (!lookups.isEmpty()) {
-			List<OntologyTerms> foundTerms = lookupTerms(lookups);
+			List<OntologyTerm> foundTerms = lookupTerms(lookups);
 
 			// Add the found terms to the terms map
 			foundTerms.forEach(t -> terms.put(t.getIri(), t));
@@ -124,8 +123,8 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @return a list of those terms which were found.
 	 * @throws OntologyHelperException if the lookup is interrupted.
 	 */
-	private List<OntologyTerms> lookupTerms(final List<String> iris) throws OntologyHelperException {
-		List<Callable<OntologyTerms>> termsCalls = createTermsCalls(iris);
+	private List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
+		List<Callable<OntologyTerm>> termsCalls = createTermsCalls(iris);
 		return executeCalls(termsCalls);
 	}
 
@@ -161,7 +160,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @param iris the IRIs to look up.
 	 * @return a list of Callable requests.
 	 */
-	private List<Callable<OntologyTerms>> createTermsCalls(List<String> iris) {
+	private List<Callable<OntologyTerm>> createTermsCalls(List<String> iris) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
@@ -173,7 +172,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				LOGGER.error(e.getMessage());
 			}
 		}
-		return createCalls(urls, OntologyTerms.class);
+		return createCalls(urls, OntologyTerm.class);
 	}
 
 	/**
@@ -246,25 +245,25 @@ public class OLSOntologyHelper implements OntologyHelper {
 	@Override
 	public Collection<String> getChildIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerms.CHILD_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.CHILD_LINK_TYPE);
 	}
 
 	@Override
 	public Collection<String> getDescendantIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerms.DESCENDANT_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.DESCENDANT_LINK_TYPE);
 	}
 
 	@Override
 	public Collection<String> getParentIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerms.PARENT_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.PARENT_LINK_TYPE);
 	}
 
 	@Override
 	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), OntologyTerms.ANCESTORS_LINK_TYPE);
+		return findRelatedTermsForTerm(terms.get(iri), OntologyTerm.ANCESTORS_LINK_TYPE);
 	}
 
 	@Override
@@ -272,7 +271,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return null;
 	}
 
-	private Collection<String> findRelatedTermsForTerm(OntologyTerms term, String linkType) throws OntologyHelperException {
+	private Collection<String> findRelatedTermsForTerm(OntologyTerm term, String linkType) throws OntologyHelperException {
 		Collection<String> iris = Collections.emptyList();
 
 		if (term != null) {

@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author mlp
  */
-public class OntologyTerms {
+public class OntologyTerm {
 
 	public static final String CHILD_LINK_TYPE = "children";
 	public static final String DESCENDANT_LINK_TYPE = "descendants";
@@ -48,19 +48,19 @@ public class OntologyTerms {
 	private final String shortForm;
 	private final Map<String, Link> links;
 
-	public OntologyTerms(@JsonProperty("iri") String iri,
-						 @JsonProperty("label") String label,
-						 @JsonProperty("description") List<String> description,
-						 @JsonProperty("synonyms") List<String> synonyms,
-						 @JsonProperty("ontology_name") String ontologyName,
-						 @JsonProperty("ontology_prefix") String ontologyPrefix,
-						 @JsonProperty("ontology_iri") String ontologyIri,
-						 @JsonProperty("is_obsolete") boolean obsolete,
-						 @JsonProperty("is_defining_ontology") boolean definingOntology,
-						 @JsonProperty("has_children") boolean hasChildren,
-						 @JsonProperty("is_root") boolean root,
-						 @JsonProperty("short_form") String shortForm,
-						 @JsonProperty("_links") Map<String, Link> links) {
+	public OntologyTerm(@JsonProperty("iri") String iri,
+						@JsonProperty("label") String label,
+						@JsonProperty("description") List<String> description,
+						@JsonProperty("synonyms") List<String> synonyms,
+						@JsonProperty("ontology_name") String ontologyName,
+						@JsonProperty("ontology_prefix") String ontologyPrefix,
+						@JsonProperty("ontology_iri") String ontologyIri,
+						@JsonProperty("is_obsolete") boolean obsolete,
+						@JsonProperty("is_defining_ontology") boolean definingOntology,
+						@JsonProperty("has_children") boolean hasChildren,
+						@JsonProperty("is_root") boolean root,
+						@JsonProperty("short_form") String shortForm,
+						@JsonProperty("_links") Map<String, Link> links) {
 		this.iri = iri;
 		this.label = label;
 		this.description = description;
