@@ -22,29 +22,33 @@ import uk.co.flax.biosolr.solr.ontology.OntologyHelperFactoryTest;
 
 import java.io.File;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Unit tests for the OntologyTerms object.
+ * Unit tests for the RelatedTermsResult class.
  *
- * Created by mlp on 21/10/15.
+ * Created by mlp on 27/10/15.
  * @author mlp
  */
-public class OntologyTermsTest {
+public class RelatedTermsResultTest {
 
-	static final String TERMS_FILE = "ols/ols_terms.json";
+	static final String RESULT_FILE = "ols/related_terms_result.json";
 
 	@Test
 	public void deserialize_fromFile() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		OntologyTerms terms = mapper.readValue(
-				new File(OntologyHelperFactoryTest.getFilePath(TERMS_FILE)),
-				OntologyTerms.class);
-		assertNotNull(terms);
-		assertNotNull(terms.getIri());
-		assertNotNull(terms.getLinks());
-		assertNotNull(terms.getLinks().get(ResultsLinkType.SELF.toString()));
+		RelatedTermsResult result = mapper.readValue(
+				new File(OntologyHelperFactoryTest.getFilePath(RESULT_FILE)),
+				RelatedTermsResult.class);
+		assertNotNull(result);
+		assertNotNull(result.getLinks());
+		assertNotNull(result.getEmbedded());
+		assertFalse(result.getTerms().isEmpty());
+		assertNotNull(result.getPage());
+		assertEquals(0, result.getPage().getNumber());
 	}
 
 }

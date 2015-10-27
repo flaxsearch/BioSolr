@@ -41,7 +41,7 @@ public class OntologyTerms {
 	private final boolean hasChildren;
 	private final boolean root;
 	private final String shortForm;
-	private final Map<LinkType, Link> links;
+	private final Map<String, Link> links;
 
 	public OntologyTerms(@JsonProperty("iri") String iri,
 						 @JsonProperty("label") String label,
@@ -55,7 +55,7 @@ public class OntologyTerms {
 						 @JsonProperty("has_children") boolean hasChildren,
 						 @JsonProperty("is_root") boolean root,
 						 @JsonProperty("short_form") String shortForm,
-						 @JsonProperty("_links") Map<LinkType, Link> links) {
+						 @JsonProperty("_links") Map<String, Link> links) {
 		this.iri = iri;
 		this.label = label;
 		this.description = description;
@@ -119,7 +119,7 @@ public class OntologyTerms {
 		return shortForm;
 	}
 
-	public Map<LinkType, Link> getLinks() {
+	public Map<String, Link> getLinks() {
 		return links;
 	}
 }
