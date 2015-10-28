@@ -1,7 +1,7 @@
 package uk.co.flax.biosolr.merge;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +12,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
@@ -93,16 +92,30 @@ public class MergeSearchComponent extends SearchComponent {
     }
   }
   
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void mergeAndConvert(ResponseBuilder rb) {
     IndexSchema schema = rb.req.getCore().getLatestSchema();
-    List<String> fl = Arrays.asList(rb.req.getParams().getParams(CommonParams.FL));
+    ReturnFields rf = rb.rsp.getReturnFields();
 
     SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
     for (SolrDocument parent : docs) {
       parent.remove(DuplicateDocumentList.MERGE_PARENT_FIELD);
 
+      List shardList = rf.wantsField("[shard]") ? new ArrayList() : null;
       Float score = null;
       for (SolrDocument doc : parent.getChildDocuments()) {
+        String shard = (String)doc.getFieldValue("[shard]");
+        NamedList nl = null;
+        if (shardList != null) {
+          if (rf.wantsScore()) {
+            nl = new NamedList();
+            nl.add("address", shard);
+            shardList.add(nl);
+          } else {
+            shardList.add(shard);
+          }
+        }
+        
         for (String fieldName : doc.getFieldNames()) {
           Object value = doc.getFieldValue(fieldName);
           
@@ -111,16 +124,22 @@ public class MergeSearchComponent extends SearchComponent {
             if (! field.stored()) {
               continue;
             }
-            addConvertedFieldValue(parent, value, field);
+            addConvertedFieldValue(shard, parent, value, field);
           }
           
           SchemaField field = schema.getField(fieldName);
           if (field.getName().equals("score")) {
             score = Math.max(score != null ? score : 0.0f, (Float)value);
+            if (nl != null) {
+              nl.add("score", score);
+            }
           } else if (field.stored()) {
-            addConvertedFieldValue(parent, value, field);          
+            addConvertedFieldValue(shard, parent, value, field);          
           }
         }
+      }
+      if (shardList != null) {
+        parent.setField("[shard]", shardList);
       }
       if (score != null) {
         parent.setField("score", score);
@@ -134,7 +153,7 @@ public class MergeSearchComponent extends SearchComponent {
             parent.setField(field.getName(), value);
           }
         }
-        if (value == null && field.isRequired() && (fl.contains(field.getName()) || fl.contains("*"))) {
+        if (value == null && field.isRequired() && rf.wantsField(field.getName())) {
           throw new RuntimeException("Required field has no value: " + field.getName());
         }
       }
@@ -152,8 +171,19 @@ public class MergeSearchComponent extends SearchComponent {
   }
   
   @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-	private void addConvertedFieldValue(SolrDocument superDoc, Object oldValue, SchemaField field) {
-    if (oldValue == null) {
+	private void addConvertedFieldValue(String shard, SolrDocument superDoc, Object shardValue, SchemaField field) {
+    Object mergeValue = superDoc.getFieldValue(field.getName());
+
+    if (field.getType() instanceof MergeAbstractFieldType) {
+      Object newValue = ((MergeAbstractFieldType)field.getType()).merge(shard, mergeValue, shardValue);
+      if (newValue != MergeAbstractFieldType.DEFAULT_MERGE_BEHAVIOUR) {
+        superDoc.setField(field.getName(), mergeValue);
+        return;
+      }
+    }
+    
+    // continue with the default merge behaviour...
+    if (shardValue == null) {
       return;
     }
     
@@ -165,26 +195,26 @@ public class MergeSearchComponent extends SearchComponent {
 	    }
 		};
 		
-		if (oldValue instanceof List) {
-		  for (Object value : (List)oldValue) {
+		if (shardValue instanceof List) {
+		  for (Object value : (List)shardValue) {
 	      convert(field, value, newValues);
 		  }
 		} else {
-      convert(field, oldValue, newValues);
+      convert(field, shardValue, newValues);
 		}
 		if (newValues.size() == 0) {
 		  return;
 		}
-		
+
 		if (field.multiValued()) {
-			Set set = (Set)superDoc.getFieldValue(field.getName());
+			Set set = (Set)mergeValue;
 			if (set == null) {
 				set = new HashSet();
 				superDoc.setField(field.getName(), set);
 			}
 			set.addAll(newValues);
 		} else {
-		  newValues.add(superDoc.get(field.getName()));
+		  newValues.add(mergeValue);
 		  if (newValues.size() > 1) {
         throw new RuntimeException("Field not multi-valued: " + field.getName());
 		  } else if (newValues.size() == 1) {

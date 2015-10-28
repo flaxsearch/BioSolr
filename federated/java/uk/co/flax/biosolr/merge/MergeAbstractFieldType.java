@@ -13,6 +13,8 @@ import org.apache.solr.schema.FieldType;
 
 public abstract class MergeAbstractFieldType extends FieldType {
 
+  public static final Object DEFAULT_MERGE_BEHAVIOUR = new Object();
+  
 	@Override
 	public void write(TextResponseWriter writer, String name, IndexableField f) throws IOException {
 		// do nothing
@@ -33,6 +35,14 @@ public abstract class MergeAbstractFieldType extends FieldType {
 	
 	public abstract Object convert(String val);
 
+	/**
+	 * Override with your own merge behaviour if desired. It is called once for each
+	 * shard that returns the document, and shardValue may be a List of values.
+	 */
+	public Object merge(String shardAddress, Object mergeValue, Object shardValue) {
+    return DEFAULT_MERGE_BEHAVIOUR;
+	}
+	
 	private class ObjectField implements IndexableField {
 
 		private String name;
