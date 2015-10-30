@@ -246,33 +246,28 @@ public class OLSOntologyHelper implements OntologyHelper {
 	@Override
 	public Collection<String> getChildIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.CHILDREN);
+		return findRelatedTerms(terms.get(iri), TermLinkType.CHILDREN);
 	}
 
 	@Override
 	public Collection<String> getDescendantIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.DESCENDANTS);
+		return findRelatedTerms(terms.get(iri), TermLinkType.DESCENDANTS);
 	}
 
 	@Override
 	public Collection<String> getParentIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.PARENTS);
+		return findRelatedTerms(terms.get(iri), TermLinkType.PARENTS);
 	}
 
 	@Override
 	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
 		checkTerm(iri);
-		return findRelatedTermsForTerm(terms.get(iri), TermLinkType.ANCESTORS);
+		return findRelatedTerms(terms.get(iri), TermLinkType.ANCESTORS);
 	}
 
-	@Override
-	public Map<String, Collection<String>> getRelations(String iri) {
-		return null;
-	}
-
-	private Collection<String> findRelatedTermsForTerm(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
+	private Collection<String> findRelatedTerms(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
 		Collection<String> iris = Collections.emptyList();
 
 		if (term != null) {
@@ -356,6 +351,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		}
 
 		return pageUrls;
+	}
+
+	@Override
+	public Map<String, Collection<String>> getRelations(String iri) {
+		return null;
 	}
 
 }
