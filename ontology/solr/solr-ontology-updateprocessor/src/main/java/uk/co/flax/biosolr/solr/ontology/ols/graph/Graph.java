@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.solr.ontology.ols.graph;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ public class Graph {
 	private final List<Node> nodes;
 	private final List<Edge> edges;
 
-	public Graph(List<Node> nodes, List<Edge> edges) {
+	public Graph(@JsonProperty("nodes") List<Node> nodes, @JsonProperty("edges") List<Edge> edges) {
 		this.nodes = nodes;
 		this.edges = edges;
 	}
