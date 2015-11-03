@@ -17,7 +17,10 @@ package uk.co.flax.biosolr.solr.ontology.ols.graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * POJO representing the returned structure from a graph OLS call.
@@ -42,4 +45,28 @@ public class Graph {
 	public List<Edge> getEdges() {
 		return edges;
 	}
+
+	/**
+	 * Look up all edges, optionally including child relationships.
+	 * @param iri the IRI of the source of the relationship.
+	 * @param includeParentRelations <code>true</code> if parent nodes
+	 *                              should be included in the results.
+	 * @return a collection of {@link Edge} entries for the graph. Never
+	 * <code>null</code>.
+	 */
+	public Collection<Edge> getEdgesBySource(String iri, boolean includeParentRelations) {
+		Collection<Edge> ret;
+
+		if (edges != null) {
+			ret = edges.stream()
+					.filter(e -> iri.equals(e.getSource()))
+					.filter(e -> includeParentRelations || !e.isChildRelation())
+					.collect(Collectors.toList());
+		} else {
+			ret = Collections.emptyList();
+		}
+
+		return ret;
+	}
+
 }

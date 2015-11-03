@@ -23,6 +23,8 @@ import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelperMethodsTest;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -39,6 +41,8 @@ public class OLSIntegrationTest {
 
 	public static final String BAD_IRI = "http://blah.com/blah";
 	public static final String DESCENDANT_IRI = "http://www.ebi.ac.uk/efo/EFO_0003966";
+
+	public static final String GRAPH_IRI = "http://www.ebi.ac.uk/efo/EFO_0005580";
 
 	private static OntologyHelper helper;
 
@@ -146,6 +150,18 @@ public class OLSIntegrationTest {
 		ancestorIris = helper.getAncestorIris(BAD_IRI);
 		assertNotNull(ancestorIris);
 		assertTrue(ancestorIris.isEmpty());
+	}
+
+	@Test
+	public void getRelations() throws Exception {
+		Map<String, Collection<String>> relations = helper.getRelations(GRAPH_IRI);
+		assertNotNull(relations);
+		assertTrue(relations.size() >= 1);
+		assertTrue(relations.containsKey("has_disease_location"));
+
+		relations = helper.getRelations(BAD_IRI);
+		assertNotNull(relations);
+		assertTrue(relations.isEmpty());
 	}
 
 }

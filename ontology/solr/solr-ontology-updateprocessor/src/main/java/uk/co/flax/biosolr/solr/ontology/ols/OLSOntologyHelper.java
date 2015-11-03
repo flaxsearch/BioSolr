@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelper;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperException;
+import uk.co.flax.biosolr.solr.ontology.ols.graph.Edge;
+import uk.co.flax.biosolr.solr.ontology.ols.graph.Graph;
+import uk.co.flax.biosolr.solr.ontology.ols.graph.Node;
 import uk.co.flax.biosolr.solr.ontology.ols.terms.*;
 
 import javax.ws.rs.NotFoundException;
@@ -44,6 +47,8 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
+	private static final int THREADPOOL_SIZE = 8;
+
 	private static final String ENCODING = "UTF-8";
 	private static final String TERMS_URL_SUFFIX = "/terms";
 
@@ -63,6 +68,10 @@ public class OLSOntologyHelper implements OntologyHelper {
 	// Related IRI cache, keyed by IRI then relation type
 	private final Map<String, Map<TermLinkType, Collection<String>>> relatedIris = new HashMap<>();
 
+	// Graph cache, keyed by IRI
+	private final Map<String, Graph> graphs = new HashMap<>();
+	private final Map<String, String> graphLabels = new HashMap<>();
+
 	private long lastCallTime;
 
 	public OLSOntologyHelper(String baseUrl, String ontology) {
@@ -73,7 +82,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				.register(ObjectMapperResolver.class)
 				.register(JacksonFeature.class)
 				.build();
-		this.executor = Executors.newFixedThreadPool(4);
+		this.executor = Executors.newFixedThreadPool(THREADPOOL_SIZE);
 	}
 
 	@Override
@@ -201,22 +210,39 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public Collection<String> findLabels(String iri) throws OntologyHelperException {
-		Collection<String> labels;
-		if (isIriInOntology(iri)) {
-			labels = Collections.singletonList(terms.get(iri).getLabel());
+		Collection<String> ret;
+		if (graphLabels.containsKey(iri)) {
+			ret = Collections.singletonList(graphLabels.get(iri));
+		} else if (isIriInOntology(iri)) {
+			ret = Collections.singletonList(terms.get(iri).getLabel());
 		} else {
-			labels = Collections.emptyList();
+			ret = Collections.emptyList();
 		}
-		return labels;
+		return ret;
 	}
 
 	@Override
 	public Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException {
-		checkTerms(iris);
-		return iris.stream()
-				.filter(iri -> terms.get(iri) != null)
-				.map(iri -> terms.get(iri).getLabel())
+		// Check if we have labels in the graph cache
+		Collection<String> labels = iris.stream()
+				.filter(graphLabels::containsKey)
+				.map(graphLabels::get)
 				.collect(Collectors.toList());
+
+		if (labels.size() != iris.size()) {
+			// Not everything in graph cache - do further lookups
+			Collection<String> lookups = iris.stream()
+					.filter(i -> !graphLabels.containsKey(i))
+					.collect(Collectors.toList());
+			checkTerms(lookups);
+
+			labels.addAll(lookups.stream()
+					.filter(i -> Objects.nonNull(terms.get(i)))
+					.map(i -> terms.get(i).getLabel())
+					.collect(Collectors.toList()));
+		}
+
+		return labels;
 	}
 
 	@Override
@@ -273,15 +299,35 @@ public class OLSOntologyHelper implements OntologyHelper {
 		if (term != null) {
 			iris = retrieveRelatedIrisFromCache(term.getIri(), linkType);
 			if (iris == null) {
-				Link link = term.getLinks().get(linkType);
-				if (link != null && StringUtils.isNotBlank(link.getHref())) {
-					iris = queryWebService(link.getHref());
+				String linkUrl = getLinkUrl(term, linkType);
+				if (linkUrl != null) {
+					iris = queryWebServiceForTerms(linkUrl);
 					cacheRelatedIris(term.getIri(), linkType, iris);
 				}
 			}
 		}
 
 		return iris;
+	}
+
+	/**
+	 * Extract the URL for a particular type of link from an OntologyTerm.
+	 * @param term the term.
+	 * @param linkType the type of link required.
+	 * @return the URL, or <code>null</code> if the term is null, or doesn't
+	 * have a link of the required type.
+	 */
+	private String getLinkUrl(OntologyTerm term, TermLinkType linkType) {
+		String ret = null;
+
+		if (term != null) {
+			Link link = term.getLinks().get(linkType);
+			if (link != null && StringUtils.isNotBlank(link.getHref())) {
+				ret = link.getHref();
+			}
+		}
+
+		return ret;
 	}
 
 	private Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
@@ -304,11 +350,12 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Find the IRIs of all terms referenced by a related URL.
-	 * @param baseUrl the base URL to look up.
+	 * @param baseUrl the base URL to look up, from a Link or similar
+	 *                query-type URL.
 	 * @return a list of IRIs referencing the terms found for the
 	 * given URL.
 	 */
-	private List<String> queryWebService(String baseUrl) throws OntologyHelperException {
+	private List<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
 		List<String> retList;
 
 		// Build call for first page
@@ -354,8 +401,48 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	@Override
-	public Map<String, Collection<String>> getRelations(String iri) {
-		return null;
+	public Map<String, Collection<String>> getRelations(String iri) throws OntologyHelperException {
+		Map<String, Collection<String>> relations = new HashMap<>();
+
+		checkTerm(iri);
+		Graph graph = lookupGraph(iri);
+		if (graph != null) {
+			for (Edge e : graph.getEdgesBySource(iri, false)) {
+				if (!relations.containsKey(e.getLabel())) {
+					relations.put(e.getLabel(), new ArrayList<>());
+				}
+				relations.get(e.getLabel()).add(e.getTarget());
+			}
+		}
+
+		return relations;
+	}
+
+	private Graph lookupGraph(String iri) throws OntologyHelperException {
+		if (!graphs.containsKey(iri)) {
+			String graphUrl = getLinkUrl(terms.get(iri), TermLinkType.GRAPH);
+			if (graphUrl != null) {
+				List<Callable<Graph>> calls = createCalls(Collections.singletonList(graphUrl), Graph.class);
+				List<Graph> graphResults = executeCalls(calls);
+				if (graphResults.size() > 0){
+					graphs.put(iri, graphResults.get(0));
+					cacheGraphLabels(graphResults.get(0));
+				} else {
+					graphs.put(iri, null);
+				}
+			}
+		}
+
+		return graphs.get(iri);
+	}
+
+	private void cacheGraphLabels(Graph graph) {
+		if (graph.getNodes() != null) {
+			Map<String, String> nodeLabels = graph.getNodes().stream()
+					.filter(n -> !graphLabels.containsKey(n.getIri()))
+					.collect(Collectors.toMap(Node::getIri, Node::getLabel));
+			graphLabels.putAll(nodeLabels);
+		}
 	}
 
 }

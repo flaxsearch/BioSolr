@@ -19,13 +19,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import uk.co.flax.biosolr.solr.ontology.OntologyHelperFactoryTest;
-import uk.co.flax.biosolr.solr.ontology.ols.terms.OntologyTerm;
-import uk.co.flax.biosolr.solr.ontology.ols.terms.TermLinkType;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for the graph class.
@@ -39,16 +42,53 @@ public class GraphTest {
 
 	@Test
 	public void deserialize_fromFile() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		Graph graph = mapper.readValue(
-				new File(OntologyHelperFactoryTest.getFilePath(GRAPH_FILE)),
-				Graph.class);
+		Graph graph = readGraphFromFile(GRAPH_FILE);
 		assertNotNull(graph);
 		assertNotNull(graph.getNodes());
 		assertFalse(graph.getNodes().isEmpty());
 		assertNotNull(graph.getEdges());
 		assertFalse(graph.getEdges().isEmpty());
+	}
+
+	@Test
+	public void getEdgesBySource_nullEdges() throws Exception {
+		Graph graph = new Graph(null, null);
+		Collection<Edge> edges = graph.getEdgesBySource("http://www.ebi.ac.uk/efo/EFO_0005580", true);
+		assertNotNull(edges);
+		assertEquals(0, edges.size());
+	}
+
+	@Test
+	public void getEdgesBySource_badSource() throws Exception {
+		Graph graph = new Graph(null, Collections.emptyList());
+		Collection<Edge> edges = graph.getEdgesBySource("http://www.ebi.ac.uk/efo/EFO_0005580", true);
+		assertNotNull(edges);
+		assertEquals(0, edges.size());
+	}
+
+	@Test
+	public void getEdgesBySource_includeChildren() throws Exception {
+		Graph graph = readGraphFromFile(GRAPH_FILE);
+		Collection<Edge> edges = graph.getEdgesBySource("http://www.ebi.ac.uk/efo/EFO_0005580", true);
+		assertNotNull(edges);
+		assertEquals(4, edges.size());
+	}
+
+	@Test
+	public void getEdgesBySource_ignoreChildren() throws Exception {
+		Graph graph = readGraphFromFile(GRAPH_FILE);
+		List<Edge> edges = new ArrayList<>(graph.getEdgesBySource("http://www.ebi.ac.uk/efo/EFO_0005580", false));
+		assertNotNull(edges);
+		assertEquals(1, edges.size());
+		assertEquals("has_disease_location", edges.get(0).getLabel());
+	}
+
+	private Graph readGraphFromFile(String filePath) throws URISyntaxException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		return mapper.readValue(
+				new File(OntologyHelperFactoryTest.getFilePath(filePath)),
+				Graph.class);
 	}
 
 }

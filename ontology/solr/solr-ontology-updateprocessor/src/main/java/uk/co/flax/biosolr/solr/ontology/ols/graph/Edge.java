@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.solr.ontology.ols.graph;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.semanticweb.owlapi.rdf.util.RDFConstants;
 
 /**
  * POJO representing an edge value, as returned from an OLS graph call.
@@ -55,4 +56,13 @@ public class Edge {
 	public String getUri() {
 		return uri;
 	}
+
+	/**
+	 * @return <code>true</code> if the relationship represented
+	 * by this edge is "subClassOf".
+	 */
+	public boolean isChildRelation() {
+		return RDFConstants.RDFS_SUBCLASSOF.equals(uri);
+	}
+
 }
