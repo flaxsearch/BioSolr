@@ -1,0 +1,13 @@
+Solr Ontology Update Processor
+==============================
+
+Version 0.1
+-----------
+
+- Support for adding ontology data to annotated documents, read from an OWL file (either local or remote).
+
+
+Version 0.2
+-----------
+
+- Add support for adding ontology data from the EBI's Ontology Lookup Service beta site.
