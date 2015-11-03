@@ -4,7 +4,7 @@
 
 	<groupId>uk.co.flax</groupId>
 	<artifactId>solr-ontology-update-processor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1</version>
 
 	<name>Solr Ontology Update Processor</name>
 	<description>Solr update processor for adding ontology data to documents with ontology annotations.</description>
