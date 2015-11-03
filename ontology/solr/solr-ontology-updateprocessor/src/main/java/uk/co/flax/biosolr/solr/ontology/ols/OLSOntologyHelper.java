@@ -76,14 +76,23 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private long lastCallTime;
 
 	public OLSOntologyHelper(String baseUrl, String ontology) {
+		this(baseUrl, ontology, null);
+	}
+
+	public OLSOntologyHelper(String baseUrl, String ontology, ThreadFactory threadFactory) {
 		this.baseUrl = baseUrl;
 		this.ontology = ontology;
 
+		// Initialise the HTTP client
 		this.client = ClientBuilder.newBuilder()
 				.register(ObjectMapperResolver.class)
 				.register(JacksonFeature.class)
 				.build();
-		this.executor = Executors.newFixedThreadPool(THREADPOOL_SIZE, new DefaultSolrThreadFactory("olsOntologyHelper"));
+
+		// Initialise the concurrent executor
+		this.executor = Objects.isNull(threadFactory) ?
+				Executors.newFixedThreadPool(THREADPOOL_SIZE) :
+				Executors.newFixedThreadPool(THREADPOOL_SIZE, new DefaultSolrThreadFactory("olsOntologyHelper"));
 	}
 
 	@Override

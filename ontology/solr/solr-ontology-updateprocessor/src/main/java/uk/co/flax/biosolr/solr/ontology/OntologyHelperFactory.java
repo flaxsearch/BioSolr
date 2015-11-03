@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.solr.ontology;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,8 @@ public class OntologyHelperFactory {
             String olsPrefix = params.get(OLS_BASE_URL);
             if (StringUtils.isNotBlank(olsPrefix)) {
                 // Build OLS ontology helper
-				helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME));
+				helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME),
+                        new DefaultSolrThreadFactory("olsOntologyHelper"));
             }
         }
 
