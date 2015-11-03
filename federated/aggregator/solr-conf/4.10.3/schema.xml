@@ -109,29 +109,32 @@
    <!-- If you remove this field, you must _also_ disable the update log in solrconfig.xml
       or Solr won't start. _version_ and update log are required for SolrCloud
    --> 
-   <field name="_version_" type="long" indexed="true" stored="true"/>
    
    <!-- points to the root document of a block of nested documents. Required for nested
       document support, may be removed otherwise
    -->
    <field name="_root_" type="string" indexed="true" stored="false"/>
 
-<field name="id" type="string" indexed="true" stored="true" multiValued="false" required="true" />
+<field name="id" type="string" indexed="true" stored="true" multiValued="true" required="true" />
 <field name="name" type="string" indexed="true" stored="true" multiValued="false" required="true" />
-<field name="foo" type="string" stored="true" />
-<field name="bar" type="string" stored="true" />
+<field name="bar" type="string" stored="false" />
 <field name="baz" type="string" stored="true" />
+<field name="letter" type="string" indexed="true" stored="true" multiValued="false" />
 
 <field name="value" type="djoin_int" multiValued="true" stored="true" />
 
-<field name="z" type="tint" stored="true" />
+<field name="n" type="int" indexed="true" stored="true" multiValued="false" />
 
-<field name="foobar" type="string" multiValued="false" stored="true" />
-<copyField source="foo" dest="foobar" />
+<field name="foobar" type="string" multiValued="true" stored="true" />
+<copyField source="*oo" dest="foobar" />
 <copyField source="bar" dest="foobar" />
 
+<field name="planet" type="string" stored="true" multiValued="true" />
+
+<dynamicField name="un*" type="int" stored="true" />
+
 <!-- catch-all field -->
-<dynamicField name="*" type="string" stored="true" multiValued="true" />
+<dynamicField name="*" type="string" stored="false" multiValued="true" />
 
  <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field

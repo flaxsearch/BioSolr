@@ -4,7 +4,9 @@
     "name": "Congleton",
     "value": 123,
     "bar": "tea",
-    "letter": "A"
+    "letter": "A",
+    "n": 3,
+    "planet": "neptune"
   },
   {
     "id": 202,
@@ -12,7 +14,9 @@
     "value": 456,
     "bar": "coffee",
     "letter": "B",
-    "z": 20
+    "z": 20,
+    "n": 4,
+    "planet": "jupiter"
   },
   {
     "id": 203,
@@ -20,6 +24,7 @@
     "value": 2000,
     "bar": "oil",
     "letter": "A",
-    "z": "not a number"
+    "z": "not a number",
+    "planet": "saturn"
   }
 ]
