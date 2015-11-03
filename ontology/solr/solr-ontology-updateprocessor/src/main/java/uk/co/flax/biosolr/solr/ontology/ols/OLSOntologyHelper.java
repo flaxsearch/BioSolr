@@ -16,6 +16,7 @@
 package uk.co.flax.biosolr.solr.ontology.ols;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +83,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				.register(ObjectMapperResolver.class)
 				.register(JacksonFeature.class)
 				.build();
-		this.executor = Executors.newFixedThreadPool(THREADPOOL_SIZE);
+		this.executor = Executors.newFixedThreadPool(THREADPOOL_SIZE, new DefaultSolrThreadFactory("olsOntologyHelper"));
 	}
 
 	@Override
@@ -97,6 +98,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public void dispose() {
+		LOGGER.info("Disposing of OLS ontology helper for {}", ontology);
 		executor.shutdown();
 		client.close();
 	}
@@ -223,23 +225,29 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException {
-		// Check if we have labels in the graph cache
-		Collection<String> labels = iris.stream()
-				.filter(graphLabels::containsKey)
-				.map(graphLabels::get)
-				.collect(Collectors.toList());
+		Collection<String> labels;
 
-		if (labels.size() != iris.size()) {
-			// Not everything in graph cache - do further lookups
-			Collection<String> lookups = iris.stream()
-					.filter(i -> !graphLabels.containsKey(i))
+		if (iris == null) {
+			labels = Collections.emptyList();
+		} else {
+			// Check if we have labels in the graph cache
+			labels = iris.stream()
+					.filter(graphLabels::containsKey)
+					.map(graphLabels::get)
 					.collect(Collectors.toList());
-			checkTerms(lookups);
 
-			labels.addAll(lookups.stream()
-					.filter(i -> Objects.nonNull(terms.get(i)))
-					.map(i -> terms.get(i).getLabel())
-					.collect(Collectors.toList()));
+			if (labels.size() != iris.size()) {
+				// Not everything in graph cache - do further lookups
+				Collection<String> lookups = iris.stream()
+						.filter(i -> !graphLabels.containsKey(i))
+						.collect(Collectors.toList());
+				checkTerms(lookups);
+
+				labels.addAll(lookups.stream()
+						.filter(i -> Objects.nonNull(terms.get(i)))
+						.map(i -> terms.get(i).getLabel())
+						.collect(Collectors.toList()));
+			}
 		}
 
 		return labels;
@@ -294,17 +302,20 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	private Collection<String> findRelatedTerms(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
-		Collection<String> iris = Collections.emptyList();
+		Collection<String> iris;
 
-		if (term != null) {
+		if (term == null) {
+			iris = Collections.emptyList();
+		} else if (isRelationInCache(term.getIri(), linkType)) {
 			iris = retrieveRelatedIrisFromCache(term.getIri(), linkType);
-			if (iris == null) {
-				String linkUrl = getLinkUrl(term, linkType);
-				if (linkUrl != null) {
-					iris = queryWebServiceForTerms(linkUrl);
-					cacheRelatedIris(term.getIri(), linkType, iris);
-				}
+		} else {
+			String linkUrl = getLinkUrl(term, linkType);
+			if (linkUrl == null) {
+				iris = Collections.emptyList();
+			} else {
+				iris = queryWebServiceForTerms(linkUrl);
 			}
+			cacheRelatedIris(term.getIri(), linkType, iris);
 		}
 
 		return iris;
@@ -328,6 +339,10 @@ public class OLSOntologyHelper implements OntologyHelper {
 		}
 
 		return ret;
+	}
+
+	private boolean isRelationInCache(String iri, TermLinkType relation) {
+		return relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation);
 	}
 
 	private Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {

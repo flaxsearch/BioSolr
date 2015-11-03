@@ -126,7 +126,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 	@Override
 	public void dispose() {
-		LOGGER.info("Disposing of ontology reasoner for {}", ontologyUri);
+		LOGGER.info("Disposing of OWL ontology reasoner for {}", ontologyUri);
 		reasoner.dispose();
 	}
 

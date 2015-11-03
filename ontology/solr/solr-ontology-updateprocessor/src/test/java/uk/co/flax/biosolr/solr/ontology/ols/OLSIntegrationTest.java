@@ -114,6 +114,11 @@ public class OLSIntegrationTest {
 		assertNotNull(childIris);
 		assertTrue(childIris.size() >= 1);
 
+		// EFO_0003924 has no children - should not return null!
+		childIris = helper.getChildIris("http://www.ebi.ac.uk/efo/EFO_0003924");
+		assertNotNull(childIris);
+		assertTrue(childIris.isEmpty());
+
 		childIris = helper.getChildIris(BAD_IRI);
 		assertNotNull(childIris);
 		assertTrue(childIris.isEmpty());
