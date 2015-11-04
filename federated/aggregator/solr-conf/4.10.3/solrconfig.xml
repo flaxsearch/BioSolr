@@ -925,7 +925,7 @@
   
   <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent" />
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.GroupDuplicatesQParserPlugin" />
+  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.DJoinQParserPlugin" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
