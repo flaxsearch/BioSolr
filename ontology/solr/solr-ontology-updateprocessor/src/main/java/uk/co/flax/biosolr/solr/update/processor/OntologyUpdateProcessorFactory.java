@@ -16,18 +16,6 @@
 
 package uk.co.flax.biosolr.solr.update.processor;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
@@ -44,20 +32,21 @@ import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorFactory;
 import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.flax.biosolr.solr.ontology.*;
 
-import uk.co.flax.biosolr.solr.owl.OntologyConfiguration;
-import uk.co.flax.biosolr.solr.owl.OntologyHelper;
+import java.io.IOException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is an update processor for adding ontology data to documents annotated
  * with ontology references. It expects the location of the ontology and the
  * field containing the ontology reference to be passed in as configuration
  * parameters, as well as a number of optional parameters.
- * 
+ *
  * <p>
  * The full set of configuration options are:
  * </p>
@@ -137,14 +126,14 @@ import uk.co.flax.biosolr.solr.owl.OntologyHelper;
  * the standard Java properties file format, with the following options
  * (including default values):
  * </p>
- * 
+ *
  * <pre>
  * label_properties = http://www.w3.org/2000/01/rdf-schema#label
  * definition_properties = http://purl.obolibrary.org/obo/IAO_0000115
  * synonym_properties = http://www.geneontology.org/formats/oboInOwl#hasExactSynonym
  * ignore_properties =
  * </pre>
- * 
+ *
  * <p>
  * All of the properties above can be used to specify multiple values. These should
  * be comma-separated - eg.:
@@ -159,19 +148,18 @@ import uk.co.flax.biosolr.solr.owl.OntologyHelper;
  * @author mlp
  */
 public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactory implements SolrCoreAware {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologyUpdateProcessorFactory.class);
-	
+
 	public static final long DELETE_CHECK_DELAY_MS = 2 * 60 * 1000; // 2 minutes 
-	
+
 	private static final String ENABLED_PARAM = "enabled";
-	
+
 	/*
 	 * Field configuration parameters
 	 */
 	private static final String ANNOTATION_FIELD_PARAM = "annotationField";
 	private static final String LABEL_FIELD_PARAM = "labelField";
-	private static final String ONTOLOGY_URI_PARAM = "ontologyURI";
 	private static final String URI_FIELD_SUFFIX_PARAM = "uriFieldSuffix";
 	private static final String LABEL_FIELD_SUFFIX_PARAM = "labelFieldSuffix";
 	private static final String CHILD_FIELD_PARAM = "childField";
@@ -182,10 +170,9 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
 	private static final String DEFINITION_FIELD_PARAM = "definitionField";
-	private static final String CONFIG_FILE_PARAM = "configurationFile";
 	private static final String FIELDNAME_PREFIX_PARAM = "fieldPrefix";
-	
-	
+
+
 	/*
 	 * Default field values
 	 */
@@ -199,12 +186,11 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
 	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
 	private static final String RELATION_FIELD_INDICATOR = "_rel";
-	
+
 	private boolean enabled;
 	private String annotationField;
 	private String fieldPrefix;
 	private String labelField;
-	private String ontologyUri;
 	private String uriFieldSuffix;
 	private String labelFieldSuffix;
 	private String childUriField;
@@ -219,8 +205,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private boolean includeRelations;
 	private String synonymsField;
 	private String definitionField;
-	private String configurationFile;
-	
+
+	private OntologyHelperFactory helperFactory;
 	private OntologyHelper helper;
 	private ScheduledThreadPoolExecutor executor;
 
@@ -229,9 +215,13 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		if (args != null) {
 			SolrParams params = SolrParams.toSolrParams(args);
 			this.enabled = params.getBool(ENABLED_PARAM, true);
+			if (enabled) {
+				// Helper factory validates ontology parameters
+				this.helperFactory = new OntologyHelperFactory(params);
+			}
+
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
 			this.fieldPrefix = params.get(FIELDNAME_PREFIX_PARAM, annotationField + "_");
-			this.ontologyUri = params.get(ONTOLOGY_URI_PARAM);
 			this.labelField = params.get(LABEL_FIELD_PARAM, fieldPrefix + LABEL_FIELD_DEFAULT);
 			this.uriFieldSuffix = params.get(URI_FIELD_SUFFIX_PARAM, URI_FIELD_SUFFIX);
 			this.labelFieldSuffix = params.get(LABEL_FIELD_SUFFIX_PARAM, LABEL_FIELD_SUFFIX);
@@ -251,18 +241,6 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
 			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, fieldPrefix + SYNONYMS_FIELD_DEFAULT);
 			this.definitionField = params.get(DEFINITION_FIELD_PARAM, fieldPrefix + DEFINITION_FIELD_DEFAULT);
-			this.configurationFile = params.get(CONFIG_FILE_PARAM);
-			
-			if (enabled) {
-				if (StringUtils.isNotBlank(configurationFile)) {
-					Path path = FileSystems.getDefault().getPath(configurationFile);
-					if (!path.toFile().exists()) {
-						throw new SolrException(ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
-					}
-				} else if (StringUtils.isBlank(ontologyUri)) {
-					throw new SolrException(ErrorCode.SERVER_ERROR, "No ontology URI - cannot read annotations.");
-				}
-			}
 		}
 	}
 
@@ -270,25 +248,22 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public void inform(SolrCore core) {
 		final SchemaField annoField = core.getLatestSchema().getFieldOrNull(getAnnotationField());
 		if (annoField == null) {
-			throw new SolrException(ErrorCode.SERVER_ERROR, 
+			throw new SolrException(ErrorCode.SERVER_ERROR,
 					"Cannot use annotation field which does not exist in schema: " + getAnnotationField());
 		}
-		
+
 		initialiseOntologyCheckScheduler(core);
 	}
 
 	private void initialiseOntologyCheckScheduler(SolrCore core) {
 		executor = new ScheduledThreadPoolExecutor(1, new DefaultSolrThreadFactory("ontologyUpdate"),
-				new RejectedExecutionHandler() {
-					@Override
-					public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-						LOGGER.warn("Skipping execution of '{}' using '{}'", r, e);
-					}
-				});
-		
+				(Runnable r, ThreadPoolExecutor e) ->
+						LOGGER.warn("Skipping execution of '{}' using '{}'", r, e)
+		);
+
 	    executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
 	    executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-		
+
 		// Add CloseHook to tidy up if core closes
 		core.addCloseHook(new CloseHook() {
 			@Override
@@ -299,7 +274,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 				}
 				executor.shutdown();
 			}
-			
+
 			@Override
 			public void postClose(SolrCore core) {
 				if (executor.isTerminating()) {
@@ -308,7 +283,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 				}
 			}
 		});
-		
+
 		executor.scheduleAtFixedRate(new OntologyCheckRunnable(this), DELETE_CHECK_DELAY_MS, DELETE_CHECK_DELAY_MS,
 				TimeUnit.MILLISECONDS);
 	}
@@ -324,7 +299,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public String getLabelField() {
 		return labelField;
 	}
-	
+
 	public String getChildUriField() {
 		return childUriField;
 	}
@@ -340,39 +315,39 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public String getParentLabelField() {
 		return parentLabelField;
 	}
-	
+
 	public boolean isIncludeIndirect() {
 		return includeIndirect;
 	}
-	
+
 	public String getDescendantUriField() {
 		return descendantUriField;
 	}
-	
+
 	public String getDescendantLabelField() {
-		return descendantLabelField; 
+		return descendantLabelField;
 	}
-	
+
 	public String getAncestorUriField() {
 		return ancestorUriField;
 	}
-	
+
 	public String getAncestorLabelField() {
 		return ancestorLabelField;
 	}
-	
+
 	public boolean isIncludeRelations() {
 		return includeRelations;
 	}
-	
+
 	public String getUriFieldSuffix() {
 		return uriFieldSuffix;
 	}
-	
+
 	public String getLabelFieldSuffix() {
 		return labelFieldSuffix;
 	}
-	
+
 	public String getSynonymsField() {
 		return synonymsField;
 	}
@@ -380,127 +355,142 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	public String getDefinitionField() {
 		return definitionField;
 	}
-	
+
 	public String getFieldPrefix() {
 		return fieldPrefix;
 	}
-	
-	public synchronized OntologyHelper initialiseHelper() throws OWLOntologyCreationException, URISyntaxException, IOException {
+
+	public boolean includeSynonyms() {
+		return StringUtils.isNotBlank(synonymsField);
+	}
+
+	public boolean includeDefinitions() {
+		return StringUtils.isNotBlank(definitionField);
+	}
+
+	public synchronized OntologyHelper initialiseHelper() throws OntologyHelperException {
 		if (helper == null) {
-			OntologyConfiguration config;
-			if (StringUtils.isNotBlank(configurationFile)) {
-				config = OntologyConfiguration.fromPropertiesFile(configurationFile);
-			} else {
-				config = OntologyConfiguration.defaultConfiguration();
-			}
-			
-			helper = new OntologyHelper(ontologyUri, config);
+			helper = helperFactory.buildOntologyHelper();
 		}
-		
+
 		return helper;
 	}
-	
+
 	public synchronized OntologyHelper getHelper() {
 		return helper;
 	}
-	
+
 	public synchronized void disposeHelper() {
 		helper.dispose();
 		helper = null;
 	}
-	
+
 	@Override
 	public UpdateRequestProcessor getInstance(SolrQueryRequest req, SolrQueryResponse rsp, UpdateRequestProcessor next) {
 		return new OntologyUpdateProcessor(next);
 	}
-	
-	
+
+
 	class OntologyUpdateProcessor extends UpdateRequestProcessor {
-		
+
 		public OntologyUpdateProcessor(UpdateRequestProcessor next) {
 			super(next);
 		}
-		
+
 		@Override
 		public void processAdd(AddUpdateCommand cmd) throws IOException {
 			if (isEnabled()) {
 				try {
 					// Look up ontology data for document
 					OntologyHelper helper = initialiseHelper();
-					
 					String iri = (String)cmd.getSolrInputDocument().getFieldValue(getAnnotationField());
-					OWLClass owlClass = helper.getOwlClass(iri);
-					
-					if (owlClass == null) {
-						LOGGER.debug("Cannot find OWL class for IRI {}", iri);
-					} else {
-						Collection<String> labels = helper.findLabels(owlClass);
-						cmd.getSolrInputDocument().addField(getLabelField(), labels);
 
-						// Add child and parent URIs and labels
-						Collection<String> childUris = helper.getChildUris(owlClass);
-						Collection<String> parentUris = helper.getParentUris(owlClass);
-						cmd.getSolrInputDocument().addField(getChildUriField(), childUris);
-						cmd.getSolrInputDocument().addField(getChildLabelField(), helper.findLabelsForIRIs(childUris));
-						cmd.getSolrInputDocument().addField(getParentUriField(), parentUris);
-						cmd.getSolrInputDocument().addField(getParentLabelField(), helper.findLabelsForIRIs(parentUris));
-						
-						if (isIncludeIndirect()) {
-							// Add descendent and ancestor URIs and labels
-							Collection<String> descendentUris = helper.getDescendantUris(owlClass);
-							Collection<String> ancestorUris = helper.getAncestorUris(owlClass);
-							cmd.getSolrInputDocument().addField(getDescendantUriField(), descendentUris);
-							cmd.getSolrInputDocument().addField(getDescendantLabelField(), helper.findLabelsForIRIs(descendentUris));
-							cmd.getSolrInputDocument().addField(getAncestorUriField(), ancestorUris);
-							cmd.getSolrInputDocument().addField(getAncestorLabelField(), helper.findLabelsForIRIs(ancestorUris));
+					if (StringUtils.isNotBlank(iri)) {
+						OntologyData data = findOntologyData(helper, iri);
+
+						if (data == null) {
+							LOGGER.debug("Cannot find OWL class for IRI {}", iri);
+						} else {
+							addDataToSolrDoc(cmd.getSolrInputDocument(), data);
 						}
-						
-						if (isIncludeRelations()) {
-							addRelationships(cmd.getSolrInputDocument(), owlClass, helper);
-						}
-						
-						if (StringUtils.isNotBlank(getSynonymsField())) {
-							cmd.getSolrInputDocument().addField(getSynonymsField(), helper.findSynonyms(owlClass));
-						}
-						
-						if (StringUtils.isNotBlank(getDefinitionField())) {
-							cmd.getSolrInputDocument().addField(getDefinitionField(), helper.findDefinitions(owlClass));
-						}
-						
-						// Update the helper's last call time
-						helper.updateLastCallTime();
 					}
-				} catch (OWLOntologyCreationException | URISyntaxException e) {
-					throw new SolrException(ErrorCode.SERVER_ERROR, 
+				} catch (OntologyHelperException e) {
+					throw new SolrException(ErrorCode.SERVER_ERROR,
 							"Cannot load ontology: " + e.getMessage());
 				}
 			}
-			
+
 			// Run the next processor in the chain
 			if (next != null) {
 				next.processAdd(cmd);
 			}
 		}
-		
-		private void addRelationships(SolrInputDocument doc, OWLClass owlClass, OntologyHelper helper) {
-			Map<String, List<String>> relatedClasses = helper.getRestrictions(owlClass);
-			
-			for (String relation : relatedClasses.keySet()) {
-				String uriField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				String labelField = (getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix()).replaceAll("[^A-Za-z0-9]+", "_");
-				List<String> iris = relatedClasses.get(relation);
-				doc.addField(uriField, iris);
-				doc.addField(labelField, helper.findLabelsForIRIs(iris));
+
+		private OntologyData findOntologyData(OntologyHelper helper, String iri) {
+			OntologyData data = null;
+			try {
+				data = new OntologyDataBuilder(helper, iri)
+						.includeSynonyms(includeSynonyms())
+						.includeDefinitions(includeDefinitions())
+						.includeIndirect(isIncludeIndirect())
+						.includeRelations(isIncludeRelations())
+						.build();
+			} catch (OntologyHelperException e) {
+				LOGGER.error("Problem building ontology data for {}: {}", iri, e.getMessage());
+			}
+			return data;
+		}
+
+		private void addDataToSolrDoc(SolrInputDocument doc, OntologyData data) {
+			doc.addField(getLabelField(), data.getLabels());
+			if (includeSynonyms() && data.hasSynonyms()) {
+				doc.addField(getSynonymsField(), data.getSynonyms());
+			}
+			if (includeDefinitions() && data.hasDefinitions()) {
+				doc.addField(getDefinitionField(), data.getDefinitions());
+			}
+
+			// Add child and parent URIs and labels
+			doc.addField(getChildUriField(), data.getChildIris());
+			doc.addField(getChildLabelField(), data.getChildLabels());
+			doc.addField(getParentUriField(), data.getParentIris());
+			doc.addField(getParentLabelField(), data.getParentLabels());
+
+			if (isIncludeIndirect()) {
+				// Add descendant and ancestor URIs and labels
+				doc.addField(getDescendantUriField(), data.getDescendantIris());
+				doc.addField(getDescendantLabelField(), data.getDescendantLabels());
+				doc.addField(getAncestorUriField(), data.getAncestorIris());
+				doc.addField(getAncestorLabelField(), data.getAncestorLabels());
+			}
+
+			if (isIncludeRelations()) {
+				for (String relation : data.getRelationIris().keySet()) {
+					doc.addField(buildRelationUriFieldName(relation), data.getRelationIris().get(relation));
+					doc.addField(buildRelationLabelFieldName(relation), data.getRelationLabels().get(relation));
+				}
 			}
 		}
-		
+
+		private String buildRelationUriFieldName(String relation) {
+			return normalizeFieldName(getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getUriFieldSuffix());
+		}
+
+		private String buildRelationLabelFieldName(String relation) {
+			return normalizeFieldName(getFieldPrefix() + relation + RELATION_FIELD_INDICATOR + getLabelFieldSuffix());
+		}
+
+		private String normalizeFieldName(String fieldName) {
+			return fieldName.replaceAll("[^A-Za-z0-9]+", "_");
+		}
+
 	}
-	
-	
+
+
 	private final class OntologyCheckRunnable implements Runnable {
-		
+
 		final OntologyUpdateProcessorFactory updateProcessor;
-		
+
 		public OntologyCheckRunnable(OntologyUpdateProcessorFactory processor) {
 			this.updateProcessor = processor;
 		}
@@ -516,7 +506,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 				}
 			}
 		}
-		
+
 	}
 
 }

@@ -8,7 +8,7 @@
 	</appender>
 
 	<!-- Disable all flax logging -->
-	<logger name="uk.co.flax" level="OFF"/>
+	<logger name="uk.co.flax" level="TRACE"/>
 
 	<root level="WARN">
 		<appender-ref ref="consoleAppender" />
