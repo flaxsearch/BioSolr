@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,6 +13,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryRequestBase;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.search.djoin.DuplicateDocumentList;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

@@ -263,11 +263,11 @@
     </httpCaching>
   </requestDispatcher>
    
-  <searchComponent name="filter" class="uk.co.flax.biosolr.djoin.FilterQParserSearchComponent">
+  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
     <str name="qParser">djoin</str>
   </searchComponent>
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.DJoinQParserPlugin" />
+  <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
 
   <!-- requestHandler plugins... incoming queries will be dispatched to the
      correct handler based on the path or the 'qt' param.
@@ -278,7 +278,7 @@
      will be used.
   -->
   <requestHandler name="djoin" class="solr.SearchHandler">
-    <shardHandlerFactory class="uk.co.flax.biosolr.djoin.LocalShardHandlerFactory" />
+    <shardHandlerFactory class="org.apache.solr.search.djoin.LocalShardHandlerFactory" />
     <lst name="defaults">
       <str name="shards">shard/1,shard/2,shard/3</str>
       <bool name="shards.tolerant">false</bool>

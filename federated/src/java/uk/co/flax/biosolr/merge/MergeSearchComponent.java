@@ -19,8 +19,7 @@ import org.apache.solr.schema.CopyField;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.ReturnFields;
-
-import uk.co.flax.biosolr.djoin.DuplicateDocumentList;
+import org.apache.solr.search.djoin.DuplicateDocumentList;
 
 /**
  * Inspect the result documents for merge parents, and merge the children.
