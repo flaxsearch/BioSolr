@@ -34,6 +34,7 @@ import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.flax.biosolr.ontology.core.*;
 import uk.co.flax.biosolr.solr.ontology.*;
 
 import java.io.IOException;
@@ -217,7 +218,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.enabled = params.getBool(ENABLED_PARAM, true);
 			if (enabled) {
 				// Helper factory validates ontology parameters
-				this.helperFactory = new OntologyHelperFactory(params);
+				this.helperFactory = new SolrOntologyHelperFactory(params);
 			}
 
 			this.annotationField = params.get(ANNOTATION_FIELD_PARAM);
