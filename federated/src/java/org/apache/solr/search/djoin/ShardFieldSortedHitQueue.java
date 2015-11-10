@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import static org.apache.solr.common.SolrException.ErrorCode.SERVER_ERROR;
 

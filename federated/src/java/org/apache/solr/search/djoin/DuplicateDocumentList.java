@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;

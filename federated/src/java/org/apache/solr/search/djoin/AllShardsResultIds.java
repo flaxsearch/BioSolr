@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import java.util.ArrayList;
 import java.util.Collection;

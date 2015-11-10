@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,7 +33,7 @@ import org.apache.solr.search.SortSpec;
  * During merge, when encountering docs with the same id as seen before, do not
  * ignore, rather, group together in results.
  */
-public class GroupDuplicatesMergeStrategy implements MergeStrategy {
+public class DJoinMergeStrategy implements MergeStrategy {
   
   @Override
   public boolean mergesIds() {

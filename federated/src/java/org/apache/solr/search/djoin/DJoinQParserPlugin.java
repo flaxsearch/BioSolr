@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ import org.apache.solr.search.RankQuery;
 import org.apache.solr.search.SolrIndexSearcher.QueryCommand;
 import org.apache.solr.search.SyntaxError;
 
-public class GroupDuplicatesQParserPlugin extends QParserPlugin {
+public class DJoinQParserPlugin extends QParserPlugin {
 
   @Override @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
@@ -48,7 +48,7 @@ public class GroupDuplicatesQParserPlugin extends QParserPlugin {
 
           @Override
           public MergeStrategy getMergeStrategy() {
-            return new GroupDuplicatesMergeStrategy();
+            return new DJoinMergeStrategy();
           }
 
           @Override

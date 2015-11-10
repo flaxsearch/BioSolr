@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.djoin;
+package org.apache.solr.search.djoin;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.lucene.search.SortField;
 import org.apache.solr.handler.component.ShardDoc;
+import org.apache.solr.search.djoin.ShardFieldSortedHitQueue;
 import org.junit.Test;
 
 public class TestShardFieldSortedHitQueue {
