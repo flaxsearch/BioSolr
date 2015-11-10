@@ -19,7 +19,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
-import uk.co.flax.biosolr.solr.ontology.owl.OWLOntologyHelperMethodsTest;
+import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
 
 import java.util.Arrays;
 import java.util.Collection;
