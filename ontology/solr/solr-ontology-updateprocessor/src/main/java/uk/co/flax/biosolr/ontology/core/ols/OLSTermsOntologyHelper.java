@@ -47,8 +47,8 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		super(baseUrl, null);
 	}
 
-	public OLSTermsOntologyHelper(String baseUrl, ThreadFactory threadFactory) {
-		super(baseUrl, null, threadFactory);
+	public OLSTermsOntologyHelper(String baseUrl, int pageSize, int threadpoolSize, ThreadFactory threadFactory) {
+		super(baseUrl, null, pageSize, threadpoolSize, threadFactory);
 	}
 
 	@Override

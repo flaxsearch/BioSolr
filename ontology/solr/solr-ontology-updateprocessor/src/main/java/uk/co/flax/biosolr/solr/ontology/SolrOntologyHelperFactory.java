@@ -46,6 +46,8 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
     public static final String CONFIG_FILE_PARAM = "configurationFile";
     public static final String OLS_BASE_URL = "olsBaseURL";
     public static final String OLS_ONTOLOGY_NAME = "olsOntology";
+    public static final String OLS_THREADPOOL = "olsThreadpool";
+    public static final String OLS_PAGE_SIZE = "olsPageSize";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrOntologyHelperFactory.class);
 
@@ -79,13 +81,16 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
         } else {
             String olsPrefix = params.get(OLS_BASE_URL);
 			String ontology = params.get(OLS_ONTOLOGY_NAME);
+            int tpoolSize = params.getInt(OLS_THREADPOOL, OLSOntologyHelper.THREADPOOL_SIZE);
+			int pageSize = params.getInt(OLS_PAGE_SIZE, OLSOntologyHelper.PAGE_SIZE);
 			if (StringUtils.isNotBlank(olsPrefix)) {
 				if (StringUtils.isBlank(ontology)) {
 					// Build OLS terms ontology helper
-					helper = new OLSTermsOntologyHelper(olsPrefix, new DefaultSolrThreadFactory("olsTermsOntologyHelper"));
+					helper = new OLSTermsOntologyHelper(olsPrefix, pageSize, tpoolSize,
+							new DefaultSolrThreadFactory("olsTermsOntologyHelper"));
 				} else {
 					// Build OLS ontology helper
-					helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME),
+					helper = new OLSOntologyHelper(olsPrefix, ontology, pageSize, tpoolSize,
 							new DefaultSolrThreadFactory("olsOntologyHelper"));
 				}
 			}

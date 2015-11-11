@@ -48,17 +48,18 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
-	private static final int THREADPOOL_SIZE = 8;
+	public static final int THREADPOOL_SIZE = 8;
+	public static final int PAGE_SIZE = 100;
 
 	static final String ENCODING = "UTF-8";
 	static final String TERMS_URL_SUFFIX = "/terms";
 
 	static final String SIZE_PARAM = "size";
 	static final String PAGE_PARAM = "page";
-	static final int PAGE_SIZE = 100;
 
 	private final String baseUrl;
 	private final String ontology;
+	private final int pageSize;
 
 	private final Client client;
 	private final ExecutorService executor;
@@ -76,12 +77,13 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private long lastCallTime;
 
 	public OLSOntologyHelper(String baseUrl, String ontology) {
-		this(baseUrl, ontology, null);
+		this(baseUrl, ontology, PAGE_SIZE, THREADPOOL_SIZE, null);
 	}
 
-	public OLSOntologyHelper(String baseUrl, String ontology, ThreadFactory threadFactory) {
+	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, int threadPoolSize, ThreadFactory threadFactory) {
 		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
 		this.ontology = ontology;
+		this.pageSize = pageSize;
 
 		// Initialise the HTTP client
 		this.client = ClientBuilder.newBuilder()
@@ -91,8 +93,10 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 		// Initialise the concurrent executor
 		this.executor = Objects.isNull(threadFactory) ?
-				Executors.newFixedThreadPool(THREADPOOL_SIZE) :
-				Executors.newFixedThreadPool(THREADPOOL_SIZE, new DefaultSolrThreadFactory("olsOntologyHelper"));
+				Executors.newFixedThreadPool(threadPoolSize) :
+				Executors.newFixedThreadPool(threadPoolSize, new DefaultSolrThreadFactory("olsOntologyHelper"));
+		LOGGER.trace("Initialising OLS ontology helper with threadpool size {}, results page size {}",
+				threadPoolSize, pageSize);
 	}
 
 	@Override
@@ -420,9 +424,9 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return retList;
 	}
 
-	static List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
+	public List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
 		UriBuilder builder = UriBuilder.fromUri(baseUrl)
-				.queryParam(SIZE_PARAM, PAGE_SIZE)
+				.queryParam(SIZE_PARAM, pageSize)
 				.queryParam(PAGE_PARAM, "{pageNum}");
 
 		List<String> pageUrls = new ArrayList<>(lastPage - firstPage);
