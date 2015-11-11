@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.merge;
+package org.apache.solr.search.djoin;
 
 import org.apache.lucene.search.SortField;
 import org.apache.solr.schema.SchemaField;

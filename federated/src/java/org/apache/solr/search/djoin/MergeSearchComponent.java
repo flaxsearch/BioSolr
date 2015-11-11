@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.merge;
+package org.apache.solr.search.djoin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +19,6 @@ import org.apache.solr.schema.CopyField;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.ReturnFields;
-import org.apache.solr.search.djoin.DuplicateDocumentList;
 
 /**
  * Inspect the result documents for merge parents, and merge the children.

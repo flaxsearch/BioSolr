@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.numfound;
+package org.apache.solr.search.djoin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import org.apache.solr.schema.FieldType;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.schema.SchemaField;
 
-public class MergeSearchComponent extends SearchComponent {
+public class NumFoundSearchComponent extends SearchComponent {
 
 	public static final String COMPONENT_NAME = "djoin";
 	

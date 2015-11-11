@@ -1,4 +1,4 @@
-package uk.co.flax.biosolr.merge;
+package org.apache.solr.search.djoin;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -919,13 +919,13 @@
      </lst>
   </requestHandler>
   
-  <searchComponent name="filter" class="uk.co.flax.biosolr.djoin.FilterQParserSearchComponent">
+  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
     <str name="qParser">djoin</str>
   </searchComponent>
   
-  <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent" />
+  <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
   
-  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.DJoinQParserPlugin" />
+  <searchComponent name="merge" class="org.apache.solr.search.djoin.MergeSearchComponent" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
