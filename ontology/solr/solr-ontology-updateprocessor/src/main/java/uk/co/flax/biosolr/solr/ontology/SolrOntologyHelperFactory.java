@@ -26,6 +26,7 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 
@@ -63,11 +64,12 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
 				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
 			}
 		} else if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) &&
-                (StringUtils.isBlank(params.get(OLS_BASE_URL)) || StringUtils.isBlank(params.get(OLS_ONTOLOGY_NAME)))) {
-			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS details set - need one or the other!");
+                (StringUtils.isBlank(params.get(OLS_BASE_URL)))) {
+			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS base URL set - need one or the other!");
 		}
 	}
 
+    @Override
     public OntologyHelper buildOntologyHelper() throws OntologyHelperException {
         OntologyHelper helper = null;
 
@@ -76,11 +78,17 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
             helper = buildOWLOntologyHelper(ontologyUri, params.get(CONFIG_FILE_PARAM));
         } else {
             String olsPrefix = params.get(OLS_BASE_URL);
-            if (StringUtils.isNotBlank(olsPrefix)) {
-                // Build OLS ontology helper
-				helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME),
-                        new DefaultSolrThreadFactory("olsOntologyHelper"));
-            }
+			String ontology = params.get(OLS_ONTOLOGY_NAME);
+			if (StringUtils.isNotBlank(olsPrefix)) {
+				if (StringUtils.isBlank(ontology)) {
+					// Build OLS terms ontology helper
+					helper = new OLSTermsOntologyHelper(olsPrefix, new DefaultSolrThreadFactory("olsTermsOntologyHelper"));
+				} else {
+					// Build OLS ontology helper
+					helper = new OLSOntologyHelper(params.get(OLS_BASE_URL), params.get(OLS_ONTOLOGY_NAME),
+							new DefaultSolrThreadFactory("olsOntologyHelper"));
+				}
+			}
         }
 
         if (helper == null) {

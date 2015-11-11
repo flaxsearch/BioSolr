@@ -50,12 +50,12 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private static final int THREADPOOL_SIZE = 8;
 
-	private static final String ENCODING = "UTF-8";
-	private static final String TERMS_URL_SUFFIX = "/terms";
+	static final String ENCODING = "UTF-8";
+	static final String TERMS_URL_SUFFIX = "/terms";
 
-	private static final String SIZE_PARAM = "size";
-	private static final String PAGE_PARAM = "page";
-	private static final int PAGE_SIZE = 100;
+	static final String SIZE_PARAM = "size";
+	static final String PAGE_PARAM = "page";
+	static final int PAGE_SIZE = 100;
 
 	private final String baseUrl;
 	private final String ontology;
@@ -80,7 +80,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	public OLSOntologyHelper(String baseUrl, String ontology, ThreadFactory threadFactory) {
-		this.baseUrl = baseUrl;
+		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
 		this.ontology = ontology;
 
 		// Initialise the HTTP client
@@ -144,12 +144,22 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @return a list of those terms which were found.
 	 * @throws OntologyHelperException if the lookup is interrupted.
 	 */
-	private List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
+	protected List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
 		List<Callable<OntologyTerm>> termsCalls = createTermsCalls(iris);
 		return executeCalls(termsCalls);
 	}
 
-	private <T> List<T> executeCalls(final List<Callable<T>> calls) throws OntologyHelperException {
+	/**
+	 * Asynchronously carry out a list of callable tasks, such as looking up
+	 * ontology terms, returning the objects deserialized from the returned
+	 * data.
+	 * @param calls the list of calls to make.
+	 * @param <T> the type of object to deserialize.
+	 * @return a list of deserialized objects.
+	 * @throws OntologyHelperException if the calls are interrupted while
+	 * being made.
+	 */
+	protected <T> List<T> executeCalls(final List<Callable<T>> calls) throws OntologyHelperException {
 		List<T> ret = new ArrayList<>(calls.size());
 
 		try {
@@ -203,7 +213,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @param <T> placeholder for the clazz parameter.
 	 * @return a list of Callable requests.
 	 */
-	private <T> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
+	protected <T> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
 		List<Callable<T>> calls = new ArrayList<>(urls.size());
 
 		urls.forEach(url -> calls.add(() ->
@@ -410,7 +420,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return retList;
 	}
 
-	private List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
+	static List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
 		UriBuilder builder = UriBuilder.fromUri(baseUrl)
 				.queryParam(SIZE_PARAM, PAGE_SIZE)
 				.queryParam(PAGE_PARAM, "{pageNum}");
@@ -467,6 +477,10 @@ public class OLSOntologyHelper implements OntologyHelper {
 					.collect(Collectors.toMap(Node::getIri, Node::getLabel));
 			graphLabels.putAll(nodeLabels);
 		}
+	}
+
+	String getBaseUrl() {
+		return baseUrl;
 	}
 
 }
