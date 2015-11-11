@@ -29,7 +29,9 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
 
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
 
 /**
@@ -64,11 +66,13 @@ public class SolrOntologyHelperFactoryTest {
 		new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
 	}
 
-	@Test(expected = org.apache.solr.common.SolrException.class)
+	@Test
 	public void construct_missingOLSOntology() throws Exception {
 		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put(SolrOntologyHelperFactory.OLS_BASE_URL, "http://www.ebi.ac.uk/ols/beta/api");
-		new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
+		OntologyHelperFactory factory = new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
+		OntologyHelper helper = factory.buildOntologyHelper();
+		assertTrue(helper instanceof OLSTermsOntologyHelper);
 	}
 
 	@Test(expected = org.apache.solr.common.SolrException.class)
