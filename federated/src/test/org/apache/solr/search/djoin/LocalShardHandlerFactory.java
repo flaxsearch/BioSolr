@@ -21,10 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.HttpShardHandler;
 import org.apache.solr.handler.component.HttpShardHandlerFactory;
@@ -41,11 +40,11 @@ import org.apache.solr.util.plugin.SolrCoreAware;
 
 public class LocalShardHandlerFactory extends HttpShardHandlerFactory implements SolrCoreAware {
 
-  private SolrCore core;
+  private CoreContainer container;
 
   @Override
   public void inform(SolrCore core) {
-    this.core = core;
+    container = core.getCoreDescriptor().getCoreContainer();
   }
   
   @Override
@@ -55,55 +54,41 @@ public class LocalShardHandlerFactory extends HttpShardHandlerFactory implements
       private List<ShardResponse> responseList = new ArrayList<>();
 
       @Override
-      @SuppressWarnings("serial")
+      @SuppressWarnings({ "serial", "rawtypes", "unchecked" })
       public void submit(ShardRequest sreq, final String shard, ModifiableSolrParams params) {
-        final SolrQueryRequest req = new SolrQueryRequestBase(core, params) {};
-        final SolrQueryResponse rsp = new SolrQueryResponse();
-        SolrRequestHandler handler = core.getRequestHandler("shard");
-        
-        if (params.get("ids") != null) {
-          String[] ids = params.get("ids").split(",");
-          for (int i = 0; i < ids.length; ++i) {
-            ids[i] = shard + "/" + ids[i];
-          }
-          params.set("ids", String.join(",", ids));
-        }
-        
-        core.execute(handler, req, rsp);
-
-        ShardResponse sr = new ShardResponse();
-        sreq.responses.add(sr);
-        responseList.add(sr);
-        sr.setShardRequest(sreq);
-        sr.setSolrResponse(new SolrResponse() {
-
-          @Override
-          public long getElapsedTime() {
-            return 1;
-          }
-
-          @Override
-          public void setResponse(NamedList<Object> rsp) {
-            throw new UnsupportedOperationException();
-          }
-
-          @Override
-          @SuppressWarnings({ "unchecked", "rawtypes" })
-          public NamedList getResponse() {
-            try {
-              NamedList nl = BinaryResponseWriter.getParsedResponse(req, rsp);
-              SolrDocumentList docs = (SolrDocumentList)nl.get("response");
-              for (SolrDocument doc : docs) {
-                String id = (String)doc.getFieldValue("id");
-                doc.setField("id", id.split("/")[2]);
-              }
-              return nl;
-            } finally {
-              req.close();
-            }
-          }
+        try (SolrCore core = container.getCore(shard.replace("/", ""))) { // ignore any '/'
+          SolrQueryRequest req = new SolrQueryRequestBase(core, params) {};
+          SolrQueryResponse rsp = new SolrQueryResponse();
+          SolrRequestHandler handler = core.getRequestHandler(null);
+                  
+          core.execute(handler, req, rsp);
+          final NamedList response = BinaryResponseWriter.getParsedResponse(req, rsp);
+          req.close();
+          response.add("shard", shard);
           
-        });
+          ShardResponse sr = new ShardResponse();
+          sreq.responses.add(sr);
+          responseList.add(sr);
+          sr.setShardRequest(sreq);
+          sr.setSolrResponse(new SolrResponse() {
+  
+            @Override
+            public long getElapsedTime() {
+              return 1;
+            }
+  
+            @Override
+            public void setResponse(NamedList<Object> rsp) {
+              throw new UnsupportedOperationException();
+            }
+  
+            @Override
+            public NamedList getResponse() {
+              return response;
+            }
+            
+          });
+        }
       }
       
       private ShardResponse take() {

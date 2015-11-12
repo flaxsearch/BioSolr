@@ -88,6 +88,12 @@ public class DJoinMergeStrategy implements MergeStrategy {
     Float maxScore = null;
     boolean partialResults = false;
     for (ShardResponse srsp : sreq.responses) {
+      String shard = srsp.getShard();
+      // this hack is needed for test code since ShardResponse is so unfriendly
+      if (shard == null) {
+        shard = (String)srsp.getSolrResponse().getResponse().get("shard");
+      }
+      
       SolrDocumentList docs = null;
 
       if (shardInfo != null) {
@@ -115,7 +121,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
           nl.add("time", srsp.getSolrResponse().getElapsedTime());
         }
 
-        shardInfo.add(srsp.getShard(), nl);
+        shardInfo.add(shard, nl);
       }
       // now that we've added the shard info, let's only proceed if we have no error.
       if (srsp.getException() != null) {
@@ -140,7 +146,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
 
       NamedList sortFieldValues = (NamedList) (srsp.getSolrResponse().getResponse().get("sort_values"));
       NamedList unmarshalledSortFieldValues = unmarshalSortValues(ss, sortFieldValues, schema);
-      sortFieldValuesMap.put(srsp.getShard(), unmarshalledSortFieldValues);
+      sortFieldValuesMap.put(shard, unmarshalledSortFieldValues);
 
       // go through every doc in this response, construct a ShardDoc, and
       // put it in the priority queue so it can be ordered.
@@ -160,7 +166,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
 
         ShardDoc shardDoc = new ShardDoc();
         shardDoc.id = id;
-        shardDoc.shard = srsp.getShard();
+        shardDoc.shard = shard;
         shardDoc.orderInShard = i;
         if (score != null) {
           shardDoc.score = score;

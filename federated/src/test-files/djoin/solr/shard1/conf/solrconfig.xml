@@ -262,34 +262,8 @@
        <!-- <cacheControl>max-age=30, public</cacheControl> -->
     </httpCaching>
   </requestDispatcher>
-   
-  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
-    <str name="qParser">djoin</str>
-  </searchComponent>
-  
-  <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
 
-  <!-- requestHandler plugins... incoming queries will be dispatched to the
-     correct handler based on the path or the 'qt' param.
-     Names starting with a '/' are accessed with the a path equal to the 
-     registered name.  Names without a leading '/' are accessed with:
-      http://host/app/select?qt=name
-     If no qt is defined, the requestHandler that declares default="true"
-     will be used.
-  -->
-  <requestHandler name="djoin" class="solr.SearchHandler">
-    <shardHandlerFactory class="org.apache.solr.search.djoin.LocalShardHandlerFactory" />
-    <lst name="defaults">
-      <str name="shards">shard/1,shard/2,shard/3</str>
-      <bool name="shards.tolerant">false</bool>
-      <str name="rq">{!djoin}</str>
-    </lst>
-    <arr name="last-components">
-      <str>filter</str>
-    </arr>
-  </requestHandler> 
-
-  <requestHandler name="shard" class="solr.SearchHandler" default="true" />
+  <requestHandler name="select" class="solr.SearchHandler" default="true" />
   
 
   <!-- Update request handler.  

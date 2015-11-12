@@ -21,9 +21,12 @@
 -->
 
 <solr persistent="false">
-  <cores adminPath="/admin/cores" defaultCoreName="collection1"
+  <cores adminPath="/admin/cores" defaultCoreName="aggregator"
          host="${host:}" hostPort="${hostPort:}" hostContext="${hostContext:}"
          zkClientTimeout="${zkClientTimeout:15000}">
-    <core name="collection1" shard="${shard:}" collection="${collection:collection1}" instanceDir="collection1"/>
+    <core name="aggregator" shard="${shard:}" collection="aggregator" instanceDir="aggregator"/>
+    <core name="shard1" shard="${shard:}" collection="shard1" instanceDir="shard1"/>
+    <core name="shard2" shard="${shard:}" collection="shard2" instanceDir="shard2"/>
+    <core name="shard3" shard="${shard:}" collection="shard3" instanceDir="shard3"/>
   </cores>
 </solr>
