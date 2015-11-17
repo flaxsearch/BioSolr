@@ -32,12 +32,17 @@ public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
     
     numberOfDocs = 0;
     for (String[] doc : DOCUMENTS) {
-      assertNull(h.validateUpdate(adoc("id", Integer.toString(numberOfDocs), "colour", doc[0])));
+      assertNull(h.validateUpdate(adoc("id", Integer.toString(numberOfDocs), "colour", doc[0], "letter", doc[1], "letter", doc[2])));
       numberOfDocs++;
     }
     assertNull(h.validateUpdate(commit()));
   }
 
-  final static String[][] DOCUMENTS = new String[][] { { "red" }, { "green" }, { "blue" }, { "pink" }, { "blue" } };
+  final static String[][] DOCUMENTS = new String[][] {
+    { "red", "alpha", "beta" },
+    { "green", "alpha", "gamma" },
+    { "blue", "delta", "gamma" },
+    { "pink", "theta", "gamma" },
+    { "blue", "epsilon", "zeta" } };
 
 }

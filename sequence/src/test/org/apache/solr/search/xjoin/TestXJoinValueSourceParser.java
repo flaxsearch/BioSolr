@@ -70,7 +70,7 @@ public class TestXJoinValueSourceParser extends AbstractXJoinTestCase {
     searcher.close();
   }
   
-  // mock function qparser returning an argument of "score"
+  // mock function qparser returning a given argument
   // (to match getScore() in the xjoin results)
   private FunctionQParser mockFunctionQParser(String arg) throws Exception {
     FunctionQParser fqp = mock(FunctionQParser.class);

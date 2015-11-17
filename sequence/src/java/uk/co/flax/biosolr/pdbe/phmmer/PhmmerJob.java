@@ -6,9 +6,6 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 public class PhmmerJob {
-
-  // phmmer REST service URL
-  public static final String BASE_URL = "http://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
   
   private PhmmerClient client;
 

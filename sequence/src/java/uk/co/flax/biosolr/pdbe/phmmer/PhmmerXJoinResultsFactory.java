@@ -1,8 +1,21 @@
 package uk.co.flax.biosolr.pdbe.phmmer;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -13,15 +26,37 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
   
   // initialisation parameters
   public static final String INIT_DATABASE = "database";
+  public static final String INIT_DEBUG_FILE = "debug.file";
 
   // request parameters
   public static final String PHMMER_SEQUENCE = "sequence";
 
+  private PhmmerClient client;
+  
   private String database;
 
   @Override
   @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
+    String debugFile = (String) args.get(INIT_DEBUG_FILE);
+    if (debugFile != null) {
+      try {
+        byte[] result = Files.readAllBytes(Paths.get(debugFile));
+        client = mock(PhmmerClient.class);
+        try (JsonReader reader = Json.createReader(new ByteArrayInputStream(result))) {
+          JsonObject json = reader.readObject();
+          if (json == null) {
+            throw new RuntimeException("Can not initialise from " + INIT_DEBUG_FILE);
+          }
+          when(client.getResults(any(String.class), any(String.class))).thenReturn(json);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      client = new PhmmerClient();
+    }
+
     database = (String)args.get(INIT_DATABASE);
   }
 
@@ -31,7 +66,6 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
     if (sequence == null || sequence.length() == 0) {
       throw new RuntimeException("Missing or empty sequence");
     }
-    PhmmerClient client = new PhmmerClient();
     PhmmerJob job = new PhmmerJob(client, database, sequence);
     return new Results(job.runJob());
   }
@@ -43,26 +77,27 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
     private Results(PhmmerResults results) {
       this.results = results;
     }
-    
-    @Override
-    public Alignment getResult(String joinIdStr) {
-      int chain = Integer.parseInt(joinIdStr.substring(joinIdStr.length() - 1)) + 'A' - 1;
-      String pdbIdChain = joinIdStr.substring(0,  joinIdStr.length() - 1) + Character.valueOf((char)chain);
-      return results.getAlignment(pdbIdChain);
-    }
 
     @Override
     public Iterable<String> getJoinIds() {
-      List<String> ids = new ArrayList<>();
-      for (String id : results.getTargets()) {
-        int chainId = (int)id.charAt(id.length() - 1) - (int)'A' + 1;
-        ids.add(id.substring(0, id.length() - 1) + chainId);
-      }
-      return ids;
+      Set<String> pdbIds = results.getPdbIds();
+      String[] ids = pdbIds.toArray(new String[pdbIds.size()]);
+      Arrays.sort(ids);
+      return Arrays.asList(ids);
+    }
+    
+    @Override
+    public Collection<Alignment> getResult(String joinIdStr) {
+      Map<String, Alignment> map = results.getAlignments().get(joinIdStr);
+      return map != null ? map.values() : null;
+    }
+
+    public int getNumChains() {
+      return results.getNumChains();
     }
     
     public int getNumEntries() {
-      return results.getSize();
+      return results.getNumEntries();
     }
     
   }

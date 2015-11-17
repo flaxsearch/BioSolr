@@ -1760,37 +1760,22 @@
 
   <searchComponent name="xjoin_fasta" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
     <str name="factoryClass">uk.co.flax.biosolr.pdbe.fasta.FastaXJoinResultsFactory</str>
-    <str name="joinField">entry_entity</str>
+    <str name="joinField">pdb_id</str>
     <lst name="external">
       <str name="email">sameer@ebi.ac.uk</str>
       <str name="program">ssearch</str>
       <str name="database">pdb</str>
       <str name="stype">protein</str>
+      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/bin/uk/co/flax/biosolr/pdbe/fasta/result2</str>
     </lst>
   </searchComponent>
 
   <searchComponent name="xjoin_phmmer" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
     <str name="factoryClass">uk.co.flax.biosolr.pdbe.phmmer.PhmmerXJoinResultsFactory</str>
-    <str name="joinField">entry_entity</str>
+    <str name="joinField">pdb_id</str>
     <lst name="external">
       <str name="database">pdb</str>
-    </lst>
-  </searchComponent>
-  
-  <searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
-    <str name="joinField">entry_entity</str>
-    <lst name="external">
-      <str name="string">test</str>
-      <str name="values">2afi_1,3aeu_2,1aky_1</str>
-    </lst>
-  </searchComponent>
-  
-  <searchComponent name="xjoin_test2" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
-    <str name="joinField">entry_entity</str>
-    <lst name="external">
-      <str name="string">test2</str>
+      <str name="debug.file">/Users/tomjon/flax/BioSolr/sequence/bin/uk/co/flax/biosolr/pdbe/phmmer/result</str>
     </lst>
   </searchComponent>
   
@@ -1799,6 +1784,12 @@
         <str name="echoParams">all</str>
         <str name="defType">edismax</str>
         <str name="df">text</str>
+        
+        <bool name="group">true</bool>
+        <str name="group.field">pdb_id</str>
+        
+        <str name="fq">{!xjoin}xjoin_fasta</str>
+        <str name="bf">fasta(percent_identity)</str>
         
         <bool name="xjoin_fasta">true</bool>
         <double name="xjoin_fasta.external.explowlim">0.0</double>
@@ -1809,22 +1800,16 @@
         <str name="xjoin_fasta.fl">pdb_id_chain,e_value,percent_identity,return_sequence_string,query_sequence_string,query_overlap_start,query_overlap_end,db_overlap_start,db_overlap_end,query_sequence_overlap,return_sequence_overlap</str>
 
         <bool name="xjoin_phmmer">false</bool>
-        <str name="xjoin_phmmer.results">num_entries</str>
+        <str name="xjoin_phmmer.results">num_chains,num_entries</str>
         <str name="xjoin_phmmer.fl">pdb_id_chain,e_value,score,species</str>
-        
-        <bool name="xjoin_test">true</bool>
-        <str name="xjoin_test.results">test</str>
-        <str name="xjoin_test.fl">value,score</str>
       </lst>
       <arr name="first-components">
         <str>xjoin_fasta</str>
         <str>xjoin_phmmer</str>
-        <str>xjoin_test</str>
       </arr>
       <arr name="last-components">
         <str>xjoin_fasta</str>
         <str>xjoin_phmmer</str>
-        <str>xjoin_test</str>
       </arr>
   </requestHandler>
   

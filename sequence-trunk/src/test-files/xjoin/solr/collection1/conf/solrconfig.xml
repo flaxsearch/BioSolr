@@ -30,17 +30,17 @@
     <lockType>single</lockType>
   </indexConfig>
   
-  <!--	Enables JMX if and only if an existing MBeanServer is found, use 
-  		this if you want to configure JMX through JVM parameters. Remove
-  		this to disable exposing Solr configuration and statistics to JMX.
-  		
-		If you want to connect to a particular server, specify the agentId
-		e.g. <jmx agentId="myAgent" />
-		
-		If you want to start a new MBeanServer, specify the serviceUrl
-		e.g <jmx serviceurl="service:jmx:rmi:///jndi/rmi://localhost:9999/solr" />
-		
-		For more details see http://wiki.apache.org/solr/SolrJmx
+  <!--  Enables JMX if and only if an existing MBeanServer is found, use 
+      this if you want to configure JMX through JVM parameters. Remove
+      this to disable exposing Solr configuration and statistics to JMX.
+      
+    If you want to connect to a particular server, specify the agentId
+    e.g. <jmx agentId="myAgent" />
+    
+    If you want to start a new MBeanServer, specify the serviceUrl
+    e.g <jmx serviceurl="service:jmx:rmi:///jndi/rmi://localhost:9999/solr" />
+    
+    For more details see http://wiki.apache.org/solr/SolrJmx
   -->
   <jmx />
 
@@ -272,6 +272,14 @@
     <str name="xJoinSearchComponent">xjoin</str>
   </queryParser>
 
+  <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="string">component with no results</str>
+    </lst>
+  </searchComponent>
+
   <searchComponent name="xjoin" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
     <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
     <str name="joinField">id</str>
@@ -297,16 +305,16 @@
     <str name="joinField">colour</str>
     <lst name="external">
       <str name="values">red,pink</str>
-      <str name="missingId">3</str>
       <str name="string">component with different join field</str>
     </lst>
   </searchComponent>
 
-  <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+  <searchComponent name="xjoin4" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
     <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
-    <str name="joinField">id</str>
+    <str name="joinField">letter</str>
     <lst name="external">
-      <str name="string">component with no results</str>
+      <str name="values">alpha,gamma</str>
+      <str name="string">component with a multi-valued join field</str>
     </lst>
   </searchComponent>
       
@@ -323,12 +331,15 @@
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <bool name="xjoin">true</bool>
+      <bool name="xjoin4">false</bool>
     </lst>
     <arr name="first-components">
       <str>xjoin</str>
+      <str>xjoin4</str>
     </arr>
     <arr name="last-components">
       <str>xjoin</str>
+      <str>xjoin4</str>
     </arr>
   </requestHandler> 
 

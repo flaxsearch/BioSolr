@@ -369,9 +369,9 @@
          is recommended (see below).
          "dir" - the target directory for transaction logs, defaults to the
                 solr data directory.  --> 
-    <updateLog>
+    <!-- updateLog>
       <str name="dir">${solr.ulog.dir:}</str>
-    </updateLog>
+    </updateLog -->
  
     <!-- AutoCommit
 
@@ -919,33 +919,13 @@
      </lst>
   </requestHandler>
   
-  <searchComponent name="filterDJoin" class="uk.co.flax.biosolr.djoin.FilterQParserSearchComponent">
+  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
     <str name="qParser">djoin</str>
   </searchComponent>
   
-  <searchComponent name="merge" class="uk.co.flax.biosolr.merge.MergeSearchComponent">
-    <str name="joinField">name</str>
-    <bool name="ignoreConversionErrors">true</bool>
-  </searchComponent>
+  <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
   
-  <requestHandler name="/djoin" class="solr.SearchHandler">
-    <lst name="defaults">
-      <str name="echoParams">all</str>
-      <str name="wt">xml</str>
-      <bool name="indent">true</bool>
-      <str name="df">name</str>
-      <str name="shards">http://localhost:8984/solr/pdb_entity_db1,http://localhost:8985/solr/pdb_entity_db1,http://localhost:8986/solr/pdb_entity_db1</str>
-      <!-- bool name="shards.info">true</bool -->
-      <bool name="shards.tolerant">true</bool>
-      <str name="fl">*,score,[djoin]</str>
-      <str name="sort">score desc,name asc</str>
-    </lst>
-    <arr name="last-components">
-       <str>merge</str>
-    </arr>
-  </requestHandler>
-  
-  <queryParser name="djoin" class="uk.co.flax.biosolr.djoin.GroupDuplicatesQParserPlugin" />
+  <searchComponent name="merge" class="org.apache.solr.search.djoin.MergeSearchComponent" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
@@ -953,14 +933,18 @@
       <str name="wt">xml</str>
       <bool name="indent">true</bool>
       <str name="df">name</str>
+
       <str name="shards">http://localhost:8984/solr/pdb_entity_db1,http://localhost:8985/solr/pdb_entity_db1,http://localhost:8986/solr/pdb_entity_db1</str>
       <!-- bool name="shards.info">true</bool -->
       <bool name="shards.tolerant">true</bool>
-      <str name="fl">*,score</str>
-      <str name="sort">score desc,name asc</str>
+
+      <str name="rq">{!djoin}</str>
+      
+      <bool name="merge">true</bool>
     </lst>
     <arr name="last-components">
-       <str>filterDJoin</str>
+       <str>filter</str>
+       <str>merge</str>
     </arr>
   </requestHandler>
 

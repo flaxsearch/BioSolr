@@ -41,10 +41,11 @@ import org.junit.Test;
 
 public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
 
+  static final String COMPONENT_NAME_0 = "xjoin0";
   static final String COMPONENT_NAME = "xjoin";
   static final String COMPONENT_NAME_2 = "xjoin2";
   static final String COMPONENT_NAME_3 = "xjoin3";
-  static final String COMPONENT_NAME_0 = "xjoin0";
+  static final String COMPONENT_NAME_4 = "xjoin4";
   static final String PARSER_NAME = "xjoin";
   
   static SolrCore core;
@@ -78,10 +79,11 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     when(req.getSchema()).thenReturn(core.getLatestSchema());
 
     // put results for XJoin components in request context
+    initComponent(core, context, COMPONENT_NAME_0);
     initComponent(core, context, COMPONENT_NAME);
     initComponent(core, context, COMPONENT_NAME_2);
     initComponent(core, context, COMPONENT_NAME_3);
-    initComponent(core, context, COMPONENT_NAME_0);
+    initComponent(core, context, COMPONENT_NAME_4);
     
     // get a search, used by some tests
     searcher = core.getRegisteredSearcher().get();
@@ -115,9 +117,9 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     DocIterator it = docs.iterator();
     assertTrue(it.hasNext());
     assertEquals(3, it.nextDoc());
-    assertFalse(it.hasNext());
+    assertFalse(it.hasNext());    
   }
-
+  
   @Test(expected=XJoinQParserPlugin.Exception.class)
   public void testConflictingJoinFields() throws Exception {
     parse(COMPONENT_NAME + " OR " + COMPONENT_NAME_3);
@@ -128,6 +130,24 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
     Query q = parse(COMPONENT_NAME_0);
     DocSet docs = searcher.getDocSet(q);
     assertEquals(0, docs.size());
+  }
+  
+  @Test
+  public void testMultiValued() throws Exception {
+    Query q = parse(COMPONENT_NAME_4);
+    DocSet docs = searcher.getDocSet(q);
+
+    assertEquals(4, docs.size());
+    DocIterator it = docs.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(0, it.nextDoc());
+    assertTrue(it.hasNext());
+    assertEquals(1, it.nextDoc());
+    assertTrue(it.hasNext());
+    assertEquals(2, it.nextDoc());
+    assertTrue(it.hasNext());
+    assertEquals(3, it.nextDoc());
+    assertFalse(it.hasNext());    
   }
   
 }

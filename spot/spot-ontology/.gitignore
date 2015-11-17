@@ -3,6 +3,8 @@
 /solr-conf/documents/lib
 /solr-conf/ontology/data
 /solr-conf/ontology/lib
+/solr-conf/ols_documents/data
+/solr-conf/ols_documents/lib
 
 .idea
 *.tgz

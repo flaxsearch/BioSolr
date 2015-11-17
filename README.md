@@ -12,3 +12,5 @@ If you're interested in joining this exciting collaboration please contact Flax 
 http://www.flax.co.uk/contact_us
 and/or Dr Sameer Velankar via
 http://www.ebi.ac.uk/about/people/sameer-velankar
+
+To round off this phase of the BioSolr project there is an open workshop on 3rd/4th February 2016 at EMBL-EBI http://www.ebi.ac.uk/pdbe/about/events/open-source-search-bioinformatics - a great chance to hear more about open source search for bioinformatics with Apache Lucene/Solr and Elasticsearch

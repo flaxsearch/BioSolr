@@ -55,7 +55,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
   public static final String NAME = "xjoin";
 
   /** For choosing the internal algorithm */
-  private static final String METHOD = "method";
+  public static final String METHOD = "method";
   
   @Override @SuppressWarnings("rawtypes")
   public void init(NamedList args) {

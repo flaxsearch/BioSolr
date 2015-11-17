@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.rpc.ServiceException;
 
@@ -119,41 +121,33 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
       throw new RuntimeException("No results");
     }
 
-    boolean unique = new Boolean(params.get(FASTA_UNIQUE_PDB_IDS));
-    return new Results(job.getResults(), unique);
+    return new Results(job.getResults());
   }
 
   public static class Results implements XJoinResults<String> {
 
     private FastaJobResults results;
-    private Map<String, Alignment> alignments;
 
-    public Results(FastaJobResults results, boolean unique) {
+    public Results(FastaJobResults results) {
       this.results = results;
-      alignments = results.getAlignments(unique);
     }
 
     @Override
     public Iterable<String> getJoinIds() {
-      String[] entries = new String[alignments.size()];
+      Set<PDb.Id> pdbIds = results.getAlignments().keySet();
+      String[] entries = new String[pdbIds.size()];
       int i = 0;
-      for (Alignment a : alignments.values()) {
-        entries[i++] = getEntryEntity(a);
+      for (PDb.Id pdbId : pdbIds) {
+        entries[i++] = pdbId.toString().toLowerCase();
       }
       Arrays.sort(entries);
       return Arrays.asList(entries);
     }
 
     @Override
-    public Alignment getResult(String joinId) {
-      String[] bits = joinId.split("_");
-      if (bits.length != 2) {
-        throw new RuntimeException("Bad entry_entity format: " + joinId);
-      }
-      String pdbId = bits[0].toUpperCase();
-      int chain = Integer.parseInt(bits[1]) + 'A' - 1;
-      String pdbIdChain = pdbId + "_" + Character.valueOf((char) chain);
-      return alignments.get(pdbIdChain);
+    public Collection<PDb.Alignment> getResult(String joinId) {
+      Map<String, PDb.Alignment> map = results.getAlignments().get(new PDb.Id(joinId.toUpperCase()));
+      return map != null ? map.values() : null;
     }
 
     public int getNumChains() {
@@ -164,18 +158,6 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
       return results.getNumEntries();
     }
 
-  }
-
-  public static String getEntryEntity(Alignment a) {
-    // pdb SOLR entry_entity: lower case, and numbers for chain instead of
-    // letters
-    if (a.getChain().length() == 1) {
-      int chainId = (int) a.getChain().charAt(0) - (int) 'A' + 1;
-      return a.getPdbId().toLowerCase() + "_" + chainId;
-    } else {
-      // chain is "Entity" (from PRE_PDB entries)
-      return a.getPdbId().toLowerCase() + "_" + a.getChain().toLowerCase();
-    }
   }
 
 }

@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -40,12 +38,8 @@ public class FastaJob implements Runnable {
   private Pattern pattern1 = Pattern.compile("^PDB:(.*?_.*?)\\s+(.+?)\\s+([0-9.e-]+?)$|^PRE_PDB:(\\w{4} Entity)\\s+(.+?)\\s+([0-9.e-]+?)$");
   private Pattern pattern2 = Pattern.compile("^>>PDB:(.*?_.*?)\\s+.*?$|^>>PRE_PDB:(\\w{4} Entity).*?$");
   private Pattern pattern3 = Pattern.compile("^Smith-Waterman score:.*?\\;(.*?)\\% .*? overlap \\((.*?)\\)$");
-  private Pattern pattern4 = Pattern.compile("^EMBOSS?\\s+(\\s*.*?)$");
+  private Pattern pattern4 = Pattern.compile("^EMBOS[S ] (\\s*.*?)$");
   private Pattern pattern5 = Pattern.compile("^PDB:.*? (\\s*.*?)$|^PRE_PD.*? (\\s*.*?)$");
-
-  // sometimes an alignment appears twice in the results - need to ignore all
-  // but the first, so remember those we have completed
-  private Set<Alignment> completeAlignments = new HashSet<>();
 
   public IOException getException() {
     return exception;
@@ -60,7 +54,6 @@ public class FastaJob implements Runnable {
       byte[] result = getRawResults();
       InputStream in = new ByteArrayInputStream(result);
       results = parseResults(new BufferedReader(new InputStreamReader(in)));
-      results.chooseShownAlignments();
     }
     return results;
   }
@@ -127,17 +120,15 @@ public class FastaJob implements Runnable {
   }
 
   // create an Alignment from a matching line
-  private Alignment parseAlignment(Matcher matcher) {
+  private PDb.Alignment parseAlignment(Matcher matcher) {
     int n = firstGroup(matcher);
     String pdbIdChain = matcher.group(n);
     if (pdbIdChain.contains("Entity")) {
       pdbIdChain = pdbIdChain.replaceFirst(" ", "_");
     }
     String[] s = pdbIdChain.split("_");
-    String pdbId = s[0];
-    String chain = s[1];
     double eValue = new Double(matcher.group(n + 2));
-    return new Alignment(pdbId, chain, eValue);
+    return new PDb.Alignment(new PDb.Id(s[0]), s[1], eValue);
   }
 
   private FastaJobResults parseResults(BufferedReader reader) throws IOException {
@@ -148,25 +139,24 @@ public class FastaJob implements Runnable {
       Matcher matcher1 = pattern1.matcher(line);
       Matcher matcher2 = pattern2.matcher(line);
       if (matcher1.find()) {
-        Alignment alignment = parseAlignment(matcher1);
+        PDb.Alignment alignment = parseAlignment(matcher1);
         results.addAlignment(alignment);
         line = reader.readLine();
       } else if (matcher2.find()) {
         int n = firstGroup(matcher2);
         String pdbIdChain = matcher2.group(n);
-
         if (pdbIdChain.contains("Entity")) {
           pdbIdChain = pdbIdChain.replaceFirst(" ", "_");
         }
-
-        Alignment a = results.getAlignment(pdbIdChain);
-        assert a != null;
-
-        // ignore second set of sequence details for this alignment
-        // (but still need to consume lines)
-        if (completeAlignments.contains(a)) {
-          a = null;
+        String[] bits = pdbIdChain.split("_");
+        PDb.Alignment a = results.getAlignment(bits[0], bits[1]);
+        if (a == null) {
+          throw new RuntimeException("Alignment not yet seen: " + pdbIdChain);
         }
+
+        // sometimes an alignment appears twice in the results - need to ignore all
+        // but the first (but still need to consume lines)
+        boolean complete = a.isComplete();
 
         while ((line = reader.readLine()) != null) {
           Matcher m2 = pattern2.matcher(line);
@@ -180,7 +170,7 @@ public class FastaJob implements Runnable {
             String[] o = overLap.split(":");
             String[] oIn = o[0].split("-");
             String[] oOut = o[1].split("-");
-            if (a != null) {
+            if (! complete) {
               a.setPercentIdentity(identity);
               try {
                 a.setQueryOverlapStart(Integer.valueOf(oIn[0]));
@@ -194,19 +184,15 @@ public class FastaJob implements Runnable {
           } else if (m2.find()) {
             break;
           } else if (m4.find()) {
-            if (a != null) {
+            if (! complete) {
               a.addQuerySequence(m4.group(1));
             }
           } else if (m5.find()) {
             int n4 = firstGroup(m5);
-            if (a != null) {
+            if (! complete) {
               a.addReturnSequence(m5.group(n4));
             }
           }
-        }
-
-        if (a != null) {
-          completeAlignments.add(a);
         }
       } else {
         line = reader.readLine();

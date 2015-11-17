@@ -6,26 +6,41 @@ import java.util.Set;
 
 public class PhmmerResults {
 
-  private Map<String, Alignment> alignments;
+  private Map<String, Map<String, Alignment>> alignments;
+  
+  private int numChains;
   
   public PhmmerResults(int size) {
     alignments = new HashMap<>(size);
+    numChains = 0;
   }
   
-  public void addAlignment(Alignment alignment) {
-    alignments.put(alignment.getTarget(), alignment);
+  /*package*/ void addAlignment(Alignment alignment) {
+    String[] bits = alignment.getTarget().split("_"); // split out the pdb id from e.g. 1cms_A
+    Map<String, Alignment> map = alignments.get(bits[0]);
+    if (map == null) {
+      map = new HashMap<>();
+      alignments.put(bits[0], map);
+    }
+    if (map.put(bits[1], alignment) == null) {
+      ++numChains;
+    }
   }
   
-  public Set<String> getTargets() {
+  public Set<String> getPdbIds() {
     return alignments.keySet();
   }
   
-  public int getSize() {
-    return alignments.size();
+  public Map<String, Map<String, Alignment>> getAlignments() {
+    return alignments;
   }
-  
-  public Alignment getAlignment(String pdbIdChain) {
-    return alignments.get(pdbIdChain);
+
+  public int getNumChains() {
+    return numChains;
+  }
+
+  public int getNumEntries() {
+    return alignments.size();
   }
   
 }

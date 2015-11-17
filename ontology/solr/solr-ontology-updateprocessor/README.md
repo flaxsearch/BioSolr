@@ -39,6 +39,11 @@ processor chain. Define a custom chain by adding the following to solrconfig.xml
       
       <!-- Location of the ontology -->
       <str name="ontologyURI">file:///home/mlp/Downloads/efo.owl</str>
+      
+      <!-- ALTERNATE OPTION - configure OLS for ontology location:
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api/ontologies</str>
+      <str name="olsOntology">efo</str>
+      -->
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
@@ -75,9 +80,12 @@ Default: `true`.
 * **annotationField** *[REQUIRED]* - the field in the input document that
 contains the annotation URI. This is used as the reference when looking up
 details in the ontology.
-* **ontologyURI** *[REQUIRED]* - the location of the ontology being
-referenced. Eg. `http://www.ebi.ac.uk/efo/efo.owl` or
+* **ontologyURI** *[REQUIRED if using OWL file]* - the location of the 
+ontology being referenced. Eg. `http://www.ebi.ac.uk/efo/efo.owl` or
 `file:///home/mlp/Downloads/efo.owl`.
+* **olsBaseURL** *[REQUIRED if using OLS]* - the base URL for OLS lookups.
+* **olsOntology** *[REQUIRED if using OLS]* - the ontology to search for
+terms in OLS.
 * **fieldPrefix** - a value to be prepended to all fields created by the
 indexer. Defaults to the `annotationField` value, may be set blank.
 * **labelField** - the field in your schema that should be used for the

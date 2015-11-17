@@ -58,7 +58,7 @@ public class TestJoinSpec {
     }
   };
 
-  private void assertResult(Integer[] values, String v) {
+  private void assertParseResult(Integer[] values, String v) {
     JoinSpec<Integer> js = JoinSpec.parse(v);
     Iterator<Integer> it = js.iterator(ranges);
     List<Integer> list = new ArrayList<>();
@@ -71,13 +71,13 @@ public class TestJoinSpec {
   @Test
   public void testUnary() {
     Integer[] values = { 1, 2, 3 };
-    assertResult(values, "1-3");
+    assertParseResult(values, "1-3");
   }
   
   @Test
   public void test() {
     Integer[] values = { 1, 5, 8 };
-    assertResult(values, "(5-7 XOR 6-8) OR 1");
+    assertParseResult(values, "(5-7 XOR 6-8) OR 1");
   }
   
 }

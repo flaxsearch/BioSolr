@@ -4,7 +4,7 @@
 
 	<groupId>uk.co.flax</groupId>
 	<artifactId>solr-ontology-update-processor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2</version>
 
 	<name>Solr Ontology Update Processor</name>
 	<description>Solr update processor for adding ontology data to documents with ontology annotations.</description>
@@ -13,8 +13,9 @@
 		<!-- use UTF-8 for everything -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<solr.version>5.0.0</solr.version>
+		<solr.version>5.3.1</solr.version>
 		<owlapi.version>3.5.2</owlapi.version>
+		<jackson.version>2.5.4</jackson.version>
 	</properties>
 
 	<build>
@@ -75,6 +76,26 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<version>1.1.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>2.22.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>2.22.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<!-- Logging - required for tests -->
