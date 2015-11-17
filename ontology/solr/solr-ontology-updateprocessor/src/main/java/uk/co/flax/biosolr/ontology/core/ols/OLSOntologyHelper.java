@@ -52,6 +52,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	public static final int PAGE_SIZE = 100;
 
 	static final String ENCODING = "UTF-8";
+	static final String ONTOLOGIES_URL_SUFFIX = "/ontologies";
 	static final String TERMS_URL_SUFFIX = "/terms";
 
 	static final String SIZE_PARAM = "size";
@@ -81,7 +82,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, int threadPoolSize, ThreadFactory threadFactory) {
-		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+		this.baseUrl = buildBaseUrl(baseUrl, ontology);
 		this.ontology = ontology;
 		this.pageSize = pageSize;
 
@@ -97,6 +98,14 @@ public class OLSOntologyHelper implements OntologyHelper {
 				Executors.newFixedThreadPool(threadPoolSize, new DefaultSolrThreadFactory("olsOntologyHelper"));
 		LOGGER.trace("Initialising OLS ontology helper with threadpool size {}, results page size {}",
 				threadPoolSize, pageSize);
+	}
+
+	private String buildBaseUrl(final String baseUrl, final String ontology) {
+		String url = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+		if (StringUtils.isNotBlank(ontology)) {
+			url = url + ONTOLOGIES_URL_SUFFIX + "/" + ontology;
+		}
+		return url;
 	}
 
 	@Override
@@ -201,7 +210,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		for (final String iri : iris) {
 			try {
 				final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
-				urls.add(baseUrl + "/" + ontology + TERMS_URL_SUFFIX + "/" + dblEncodedIri);
+				urls.add(baseUrl + TERMS_URL_SUFFIX + "/" + dblEncodedIri);
 			} catch (UnsupportedEncodingException e) {
 				// Not expecting to get here
 				LOGGER.error(e.getMessage());

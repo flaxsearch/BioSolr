@@ -235,7 +235,7 @@
             <str name="labelField">ontology_label</str>
 
             <!-- Location of the ontology -->
-            <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api/ontologies</str>
+            <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api</str>
             <str name="olsOntology">efo</str>
 
             <!-- Exclude indirect relations -->

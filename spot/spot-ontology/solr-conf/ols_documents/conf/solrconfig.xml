@@ -622,7 +622,7 @@
       <str name="labelField">efo_labels</str>
       
       <!-- OLS base URL -->
-      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api/ontologies</str>
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api</str>
       <!-- OLS ontology name -->
       <str name="olsOntology">efo</str>
     </processor>
