@@ -86,7 +86,7 @@ ontology being referenced. Eg. `http://www.ebi.ac.uk/efo/efo.owl` or
 * **olsBaseURL** *[REQUIRED if using OLS]* - the base URL for OLS lookups.
 Eg. `http://www.ebi.ac.uk/ols/beta/api`.
 * **olsOntology** *[only if using OLS]* - the ontology to search for
-terms in OLS. Eg. `efo`, `cmpo`.
+terms in OLS. Eg. `efo`, `cmpo`. [See below](#additional-configuration-ols)
 * **fieldPrefix** - a value to be prepended to all fields created by the
 indexer. Defaults to the `annotationField` value, may be set blank.
 * **labelField** - the field in your schema that should be used for the
