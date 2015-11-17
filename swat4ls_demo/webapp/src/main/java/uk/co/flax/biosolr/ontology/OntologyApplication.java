@@ -16,6 +16,8 @@
 package uk.co.flax.biosolr.ontology;
 
 import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
 import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
@@ -25,10 +27,20 @@ import uk.co.flax.biosolr.ontology.search.DocumentSearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
 
 /**
+ * Main class for the Ontology web application.
+ *
  * Created by mlp on 17/11/15.
  * @author mlp
  */
 public class OntologyApplication extends Application<OntologyConfiguration> {
+
+	@Override
+	public void initialize(Bootstrap<OntologyConfiguration> bootstrap) {
+		// Add bundle for static asset directories
+		bootstrap.addBundle(new AssetsBundle("/static", "/", "index.html", "static"));
+		// Add webjars AssetsBundle, to include bootstrap, etc.
+		bootstrap.addBundle(new AssetsBundle("/META-INF/resources/webjars", "/webjars", null, "webjars"));
+	}
 
 	@Override
 	public void run(OntologyConfiguration configuration, Environment environment) throws Exception {

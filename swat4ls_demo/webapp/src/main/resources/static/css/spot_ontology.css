@@ -1,0 +1,81 @@
+body {
+	padding-top: 70px;
+}
+
+.search_form {
+	margin: 10px 0;
+}
+
+.results_header {
+	background-color: #dee7e7;
+	margin: 10px 0;
+}
+
+ul.label-display {
+	display: inline;
+	padding-left: 0;
+}
+
+.label-display li {
+	background-color: #dee7e7;
+	display: inline-block;
+	margin-right: 4px;
+	padding: 2px;
+}
+
+textarea {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 10pt;
+}
+
+.buttonRight {
+	margin-top: 10px;
+	text-align: right;
+}
+
+.facet-header {
+	font-weight: bold;
+}
+
+.facet-field {
+	font-size: smaller;
+	font-weight: bold;
+}
+
+ul.facet-list {
+	padding: 2px;
+}
+
+.facet-list li {
+	font-size: 12px;
+	list-style: none;
+	margin-left: 8px;
+}
+
+.applied-filters ul {
+	display: inline;
+}
+
+.applied-filters li {
+	display: inline-block;
+    margin: 0 4px;
+    padding: 0 4px;
+    border: 2px solid #b8cacb;
+    border-radius: 4px;
+}
+
+span.expand-collapse {
+	cursor: pointer;
+}
+
+span.not-expandable {
+	padding-left: 15px;
+}
+
+a {
+	cursor: pointer;
+}
+
+.facet-options {
+	font-size: 12px;
+}
