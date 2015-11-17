@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.core;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
@@ -25,6 +26,9 @@ import uk.co.flax.biosolr.solr.ontology.SolrOntologyHelperFactoryTest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for the OntologyDataBuilder.
@@ -95,6 +99,19 @@ public class OntologyDataBuilderTest {
 		// Check relations - should be null
 		assertNull(data.getRelationIris());
 		assertNull(data.getRelationLabels());
+	}
+
+	@Test
+	public void build_iriNotInOntology() throws Exception {
+		final String iri = OWLOntologyHelperMethodsTest.TEST_IRI;
+
+		OntologyHelper helper = mock(OntologyHelper.class);
+		when(helper.isIriInOntology(iri)).thenReturn(false);
+
+		OntologyData data = new OntologyDataBuilder(helper, iri).build();
+		assertNull(data);
+
+		verify(helper).isIriInOntology(iri);
 	}
 
 }

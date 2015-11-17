@@ -393,15 +393,15 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @return a list of IRIs referencing the terms found for the
 	 * given URL.
 	 */
-	private List<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
-		List<String> retList;
+	private Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
+		Set<String> retList;
 
 		// Build call for first page
 		List<Callable<RelatedTermsResult>> calls = createCalls(buildPageUrls(baseUrl, 0, 1), RelatedTermsResult.class);
 		List<RelatedTermsResult> results = executeCalls(calls);
 
 		if (results.size() == 0) {
-			retList = Collections.emptyList();
+			retList = Collections.emptySet();
 		} else {
 			Page page = results.get(0).getPage();
 			if (page.getTotalPages() > 1) {
@@ -412,7 +412,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				results.addAll(executeCalls(calls));
 			}
 
-			retList = new ArrayList<>(page.getTotalSize());
+			retList = new HashSet<>(page.getTotalSize());
 			for (RelatedTermsResult result : results) {
 				result.getTerms().forEach(t -> {
 					terms.put(t.getIri(), t);
