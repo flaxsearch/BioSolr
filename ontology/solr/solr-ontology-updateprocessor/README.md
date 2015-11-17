@@ -127,7 +127,7 @@ definitions will not be indexed.
 Default: `annotationField_definition_t`.
 * **configurationFile** - the path to a properties-style file containing 
 additional, ontology-specific configuration, such as the property annotation to use
-for synonyms, definitions, etc. [See below](#additional_configuration_owl_files)
+for synonyms, definitions, etc. [See below](#additional-configuration-owl-files)
 for the format of this file, and
 the default values used when not defined. There is no default value for this
 configuration option.
