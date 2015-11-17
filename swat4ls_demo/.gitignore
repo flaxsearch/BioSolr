@@ -1,0 +1,3 @@
+# Ignore Solr data and library directories
+solr-conf/documents/data
+solr-conf/documents/lib
