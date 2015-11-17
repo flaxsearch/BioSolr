@@ -57,8 +57,8 @@
 	<!-- boolean type: "true" or "false" -->
 	<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" />
 
-	<!-- A general text field that has reasonable, generic cross-language defaults: it tokenizes with StandardTokenizer, removes stop words from 
-		case-insensitive "stopwords.txt" (empty by default), and down cases. At query time only, it also applies synonyms. -->
+	<!-- A general text field that has reasonable, generic cross-language defaults: it tokenizes with StandardTokenizer,
+	     and down cases. -->
 	<fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
 		<analyzer type="index">
 			<tokenizer class="solr.StandardTokenizerFactory" />
