@@ -75,8 +75,9 @@ public class DJoinMergeStrategy implements MergeStrategy {
 
     // Merge the docs via a priority queue so we don't have to sort *all* of the
     // documents... we only need to order the top (rows+start)
-    Map<String, NamedList> sortFieldValuesMap = new HashMap<>();    
-    ShardFieldSortedHitQueue queue = new ShardFieldSortedHitQueue(sortFieldValuesMap, sortFields, ss.getOffset() + ss.getCount(), rb.req.getSearcher());
+    Map<String, NamedList> sortFieldValuesMap = new HashMap<>();
+    Map<String, NamedList> unmarshalledSortFieldValuesMap = new HashMap<>();
+    ShardFieldSortedHitQueue queue = new ShardFieldSortedHitQueue(unmarshalledSortFieldValuesMap, sortFields, ss.getOffset() + ss.getCount(), rb.req.getSearcher());
 
     NamedList<Object> shardInfo = null;
     if (rb.req.getParams().getBool(ShardParams.SHARDS_INFO, false)) {
@@ -145,8 +146,9 @@ public class DJoinMergeStrategy implements MergeStrategy {
       numFound += docs.getNumFound();
 
       NamedList sortFieldValues = (NamedList) (srsp.getSolrResponse().getResponse().get("sort_values"));
+      sortFieldValuesMap.put(shard, sortFieldValues);
       NamedList unmarshalledSortFieldValues = unmarshalSortValues(ss, sortFieldValues, schema);
-      sortFieldValuesMap.put(shard, unmarshalledSortFieldValues);
+      unmarshalledSortFieldValuesMap.put(shard, unmarshalledSortFieldValues);
 
       // go through every doc in this response, construct a ShardDoc, and
       // put it in the priority queue so it can be ordered.
@@ -182,30 +184,31 @@ public class DJoinMergeStrategy implements MergeStrategy {
     int resultSize = queue.size() - ss.getOffset();
     resultSize = Math.max(0, resultSize); // there may not be any docs in range
     
-    // build resultIds, which is used to request fields from each shard
+    // build resultIds, which is used to request fields from each shard, and initialise responseDocs
+    DuplicateDocumentList responseDocs = new DuplicateDocumentList(resultSize, maxScore, numFound, ss.getOffset());
     Map<Object, ShardDoc> resultIds = new AllShardsResultIds(sreq.actualShards);
     for (int i = resultSize - 1; i >= 0; i--) {
       ShardDoc shardDoc = queue.pop();
       shardDoc.positionInResponse = i;
+      
       // Need the toString() for correlation with other lists that must
       // be strings (like keys in highlighting, explain, etc)
       resultIds.put(shardDoc.id.toString(), shardDoc);
+      
+      // pre-populate responseDocs
+      NamedList docSortValues = sortFieldValuesMap.get(shardDoc.shard);
+      NamedList sortValue = new NamedList();
+      for (int j = 0; j < docSortValues.size(); ++j) {
+        String fieldName = docSortValues.getName(j);
+        List values = (List)docSortValues.getVal(j);
+        sortValue.add(fieldName, values.get(shardDoc.orderInShard));
+      }
+      responseDocs.setParentDoc(shardDoc.positionInResponse, docSortValues.size() > 0 ? sortValue : null, shardDoc.score);
     }
 
     // Add hits for distributed requests
     // https://issues.apache.org/jira/browse/SOLR-3518
     rb.rsp.addToLog("hits", numFound);
-
-    SolrDocumentList responseDocs = new DuplicateDocumentList();
-    if (maxScore != null) {
-      responseDocs.setMaxScore(maxScore);
-    }
-    responseDocs.setNumFound(numFound);
-    responseDocs.setStart(ss.getOffset());
-    // size appropriately
-    for (int i = 0; i < resultSize; i++) {
-      responseDocs.add(null);
-    }
 
     // save these results in a private area so we can access them
     // again when retrieving stored fields.
@@ -213,7 +216,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
     rb.resultIds = resultIds;
     rb.setResponseDocs(responseDocs);
 
-    populateNextCursorMarkFromMergedShards(rb, sortFieldValuesMap);
+    populateNextCursorMarkFromMergedShards(rb, unmarshalledSortFieldValuesMap);
 
     if (partialResults) {
       if (rb.rsp.getResponseHeader().get("partialResults") == null) {

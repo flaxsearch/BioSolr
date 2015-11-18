@@ -29,19 +29,33 @@ import org.apache.solr.common.SolrDocumentList;
 public class DuplicateDocumentList extends SolrDocumentList {
   
   public static String MERGE_PARENT_FIELD = "__merge_parent__";
+  public static String SORT_VALUE_FIELD = "sortValue";
+
+  public DuplicateDocumentList(int initialSize, Float maxScore, long numFound, int offset) {
+    for (int i = 0; i < initialSize; ++i) {
+      add(null);
+    }
+    if (maxScore != null) {
+      setMaxScore(maxScore);
+    }
+    setNumFound(numFound);
+    setStart(offset);
+  }
   
   @Override
   public SolrDocument set(int index, SolrDocument doc) {
-    SolrDocument old = get(index);
-    if (old == null) {
-      SolrDocument parent = new SolrDocument();
-      parent.setField(MERGE_PARENT_FIELD, true);
-      parent.addChildDocument(doc);
-      super.set(index, parent);
-    } else {
-      old.addChildDocument(doc);
-    }
+    get(index).addChildDocument(doc);
     return null;
+  }
+  
+  public void setParentDoc(int index, Object sortValue, float score) {
+    SolrDocument parent = new SolrDocument();
+    parent.setField(MERGE_PARENT_FIELD, true);
+    parent.setField("score", score);
+    if (sortValue != null) {
+      parent.setField(SORT_VALUE_FIELD, sortValue);
+    }
+    super.set(index, parent);
   }
 
 }

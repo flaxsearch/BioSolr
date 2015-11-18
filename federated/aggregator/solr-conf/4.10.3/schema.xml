@@ -152,7 +152,7 @@
     -->
     
     <!-- DJoin custom field type -->
-    <fieldType name="djoin_int" class="org.apache.solr.search.djoin.ForgivingInteger" />
+    <fieldType name="djoin_int" class="org.apache.solr.search.djoin.fieldtypes.ForgivingInteger" />
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim.
        It supports doc values but in that case the field needs to be
