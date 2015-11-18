@@ -51,7 +51,9 @@ public class DuplicateDocumentList extends SolrDocumentList {
   public void setParentDoc(int index, Object sortValue, float score) {
     SolrDocument parent = new SolrDocument();
     parent.setField(MERGE_PARENT_FIELD, true);
-    parent.setField("score", score);
+    if (! Float.isNaN(score)) {
+      parent.setField("score", score);
+    }
     if (sortValue != null) {
       parent.setField(SORT_VALUE_FIELD, sortValue);
     }
