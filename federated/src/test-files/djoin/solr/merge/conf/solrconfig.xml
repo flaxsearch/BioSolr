@@ -262,10 +262,6 @@
        <!-- <cacheControl>max-age=30, public</cacheControl> -->
     </httpCaching>
   </requestDispatcher>
-   
-  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
-    <str name="qParser">djoin</str>
-  </searchComponent>
   
   <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
    
@@ -280,7 +276,6 @@
       <bool name="merge">true</bool>
     </lst>
     <arr name="last-components">
-      <str>filter</str>
       <str>merge</str>
     </arr>
   </requestHandler> 

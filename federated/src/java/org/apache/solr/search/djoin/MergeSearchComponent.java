@@ -1,6 +1,5 @@
 package org.apache.solr.search.djoin;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,31 +22,29 @@ import org.apache.solr.search.ReturnFields;
 /**
  * Inspect the result documents for merge parents, and merge the children.
  */
-//TODO make this extend the FilterQParserSearchComponent so you only need one!
-public class MergeSearchComponent extends SearchComponent {
+public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
+  
+  // return whether to do a merge at all
+  private boolean doMerge(ResponseBuilder rb) {
+    SolrParams params = rb.req.getParams();
+    if (! params.getBool(getName(), false)) {
+      return false;
+    }
 
-	public static final String COMPONENT_NAME = "merge";
-	
-  @Override
-  @SuppressWarnings("rawtypes")
-  public void init(NamedList args) {
-  	super.init(args);
-  }
-
-  @Override
-  public void prepare(ResponseBuilder rb) throws IOException {
-    // do nothing (not called in aggregator)
-  }
-
-  @Override
-  public void process(ResponseBuilder rb) throws IOException {
-    // do nothing (not called in aggregator)
+    if (rb.stage != ResponseBuilder.STAGE_GET_FIELDS) {
+      return false;
+    }
+    
+    return true;
   }
   
   // need to ask distributed servers for source fields for all copy fields needed in the aggregator
   @Override
   public void modifyRequest(ResponseBuilder rb, SearchComponent who, ShardRequest sreq) {
-    if (rb.stage != ResponseBuilder.STAGE_GET_FIELDS) {
+    // do the filterQParser stuff first
+    super.modifyRequest(rb, who, sreq);
+    
+    if (! doMerge(rb)) {
       return;
     }
     
@@ -73,12 +70,7 @@ public class MergeSearchComponent extends SearchComponent {
   
   @Override
   public void finishStage(ResponseBuilder rb) {
-    SolrParams params = rb.req.getParams();
-    if (! params.getBool(getName(), false)) {
-      return;
-    }
-
-    if (rb.stage != ResponseBuilder.STAGE_GET_FIELDS) {
+    if (! doMerge(rb)) {
       return;
     }
 
@@ -222,16 +214,6 @@ public class MergeSearchComponent extends SearchComponent {
 		    superDoc.setField(field.getName(), newValues.iterator().next());
 		  }
 		}
-	}
-	
-	@Override
-	public String getDescription() {
-		return "$description";
-	}
-
-	@Override
-	public String getSource() {
-		return "$source";
 	}
 
 }

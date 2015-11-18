@@ -21,27 +21,14 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
+import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SyntaxError;
 
-public class FilterQParserSearchComponent extends SearchComponent {
-
-  // initialisation parameters
-  public static final String INIT_QPARSER = "qParser";
-  
-  private String qParser;
-
-  @Override
-  @SuppressWarnings("rawtypes")
-  public void init(NamedList args) {
-    super.init(args);
-  
-    qParser = (String)args.get(INIT_QPARSER);
-  }
+public class FilterDJoinQParserSearchComponent extends SearchComponent {
 
   @Override
   public void prepare(ResponseBuilder rb) throws IOException {
@@ -60,7 +47,10 @@ public class FilterQParserSearchComponent extends SearchComponent {
       for (String value : sreq.params.getParams(name)) {
         try {
           SolrParams params = QueryParsing.getLocalParams(value, sreq.params);
-          if (params != null && params.get("type").equals(qParser)) {
+          if (params == null) continue;
+
+          QParserPlugin qParser = rb.req.getCore().getQueryPlugin(params.get("type"));
+          if (qParser instanceof DJoinQParserPlugin) {
             sreq.params.remove(name, value);
           }
         } catch (SyntaxError e) {

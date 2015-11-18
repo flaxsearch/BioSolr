@@ -263,9 +263,7 @@
     </httpCaching>
   </requestDispatcher>
    
-  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
-    <str name="qParser">djoin</str>
-  </searchComponent>
+  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterDJoinQParserSearchComponent" />
   
   <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
 
