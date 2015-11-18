@@ -268,35 +268,22 @@
   </searchComponent>
   
   <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
+   
+  <searchComponent name="merge" class="org.apache.solr.search.djoin.MergeSearchComponent" />
 
-  <requestHandler name="djoin" class="solr.SearchHandler">
+  <requestHandler name="merge" class="solr.SearchHandler" default="true">
     <shardHandlerFactory class="org.apache.solr.search.djoin.LocalShardHandlerFactory" />
     <lst name="defaults">
-      <str name="shards">shard1,shard2,shard3</str>
-      <bool name="shards.tolerant">false</bool>
-      <str name="rq">{!djoin}</str>
-    </lst>
-    <arr name="last-components">
-      <str>filter</str>
-    </arr>
-  </requestHandler> 
-
-  <requestHandler name="merge" class="solr.SearchHandler">
-    <shardHandlerFactory class="org.apache.solr.search.djoin.LocalShardHandlerFactory" />
-    <lst name="defaults">
-      <str name="shards">shard1,shard2,shard3</str>
-      <bool name="shards.tolerant">false</bool>
+      <str name="shards">shard1/,shard2/,shard3/</str>
+      <bool name="shards.tolerant">true</bool>
       <str name="rq">{!djoin}</str>
       <bool name="merge">true</bool>
     </lst>
     <arr name="last-components">
       <str>filter</str>
-      <!-- str>merge</str -->
+      <str>merge</str>
     </arr>
   </requestHandler> 
-
-  <requestHandler name="shard" class="solr.SearchHandler" default="true" />
-  
 
   <!-- Update request handler.  
   

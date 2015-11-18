@@ -1,7 +1,8 @@
-package org.apache.solr.search.djoin;
+package org.apache.solr.search.djoin.fieldtypes;
 
 import org.apache.lucene.search.SortField;
 import org.apache.solr.schema.SchemaField;
+import org.apache.solr.search.djoin.MergeAbstractFieldType;
 
 public class ForgivingInteger extends MergeAbstractFieldType {
 	

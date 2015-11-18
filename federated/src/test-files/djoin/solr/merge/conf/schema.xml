@@ -53,6 +53,8 @@
     -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 
+    <fieldType name="djoinString" class="org.apache.solr.search.djoin.fieldtypes.DJoinString" sortMissingLast="true" omitNorms="true"/>
+
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
 
@@ -267,7 +269,7 @@
    -->
 
    <field name="id" type="string" indexed="true" stored="true" required="true" />
-   <field name="letter" type="string" indexed="true" stored="true" required="true" />
+   <field name="letter" type="djoinString" indexed="true" stored="true" required="true" multiValued="true" />
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 

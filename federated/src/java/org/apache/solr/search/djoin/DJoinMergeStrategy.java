@@ -280,8 +280,7 @@ public class DJoinMergeStrategy implements MergeStrategy {
       final SortField sortField = sortFields[sortFieldNum];
       final SortField.Type type = sortField.getType();
 
-      // :TODO: would be simpler to always serialize every position of
-      // SortField[]
+      // :TODO: would be simpler to always serialize every position of SortField[]
       if (type == SortField.Type.SCORE || type == SortField.Type.DOC)
         continue;
 

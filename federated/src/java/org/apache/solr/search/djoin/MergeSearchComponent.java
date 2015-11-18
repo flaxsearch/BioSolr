@@ -23,6 +23,7 @@ import org.apache.solr.search.ReturnFields;
 /**
  * Inspect the result documents for merge parents, and merge the children.
  */
+//TODO make this extend the FilterQParserSearchComponent so you only need one!
 public class MergeSearchComponent extends SearchComponent {
 
 	public static final String COMPONENT_NAME = "merge";
@@ -125,8 +126,10 @@ public class MergeSearchComponent extends SearchComponent {
             addConvertedFieldValue(shard, parent, value, field);
           }
           
-          SchemaField field = schema.getField(fieldName);
-          if (field.getName().equals("score")) {
+          SchemaField field = schema.getFieldOrNull(fieldName);
+          if (field == null) {
+            // do nothing
+          } else if (field.getName().equals("score")) {
             score = Math.max(score != null ? score : 0.0f, (Float)value);
             if (nl != null) {
               nl.add("score", score);
