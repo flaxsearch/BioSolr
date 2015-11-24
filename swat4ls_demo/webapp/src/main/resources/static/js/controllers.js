@@ -1,8 +1,8 @@
 ontologyApp
-.controller('SearchCtrl', ['$scope', '$http', function($scope, $http) {
+.controller('SearchCtrl', ['$scope', '$http', '$log', function($scope, $http, $log) {
 	
 	var self = this;
-	
+
 	self.init = function() {
 		// Look up the dynamic label fields
 		$http({
@@ -21,25 +21,26 @@ ontologyApp
 		// Kludge so we can use checklist-model for the parent/child label checkboxes
 		$scope.efo_child_labels = 'efo_child_labels';
 		$scope.efo_parent_labels = 'efo_parent_labels';
-	}
+	};
 	
 	self.logError = function(errorMsg) {
 		if (window.console) {
 			console.log(data.errorMessage);
 		}
-	}
+	};
 	
 	$scope.changePage = function() {
+//		$log.log("Page changed to " + $scope.currentPage);
 		var start = 10 * ($scope.currentPage - 1);
-		var params = { 
-			q: $scope.query, 
-			additionalFields: $scope.additionalFields, 
+		var params = {
+			q: $scope.query,
+			additionalFields: $scope.additionalFields,
 			start: start,
 			appliedFilters: $scope.appliedFilters,
 			facetStyle: $scope.facetStyle
 		}
 		self.updateModel(params);
-	}
+	};
 	
 	// Event handler to catch search form submit
 	$scope.search = function() {
@@ -52,7 +53,7 @@ ontologyApp
 		$scope.fq = undefined;
 		$scope.appliedFilters = undefined;
 		self.updateModel(params);
-	}
+	};
 	
 	$scope.addFilter = function(field, term) {
 		var filter = field + ':"' + term + '"';
@@ -71,7 +72,7 @@ ontologyApp
 			facetStyle: $scope.facetStyle
 		};
 		self.updateModel(params);
-	}
+	};
 	
 	$scope.removeFilter = function(filter) {
 		for (var i = 0; i < $scope.fq.length; i ++) {
@@ -87,7 +88,7 @@ ontologyApp
 			facetStyle: $scope.facetStyle
 		};
 		self.updateModel(params);
-	}
+	};
 	
 	self.updateModel = function(params) {
 		$http({
@@ -109,12 +110,12 @@ ontologyApp
 				$scope.facets = data.facets;
 			}
 		});
-	}
+	};
 	
 	$scope.hasRelated = function(result) {
 		// Use underscore.js's size function
 		return _.size(result.relatedLabels) > 0;
-	}
+	};
 	
 	$scope.formatRelatedType = function(type) {
 		var ret = '';
@@ -129,7 +130,7 @@ ontologyApp
 		// Capitalise first word
 		ret = ret.charAt(0).toUpperCase() + ret.slice(1);
 		return ret;
-	}
+	};
 	
 	$scope.getFacetLabel = function(label) {
 		var ret = label;
@@ -143,15 +144,15 @@ ontologyApp
 		}
 		
 		return ret;
-	}
+	};
 	
 	$scope.getAppliedFilterLabel = function(filter) {
 		return $scope.getFacetLabel(filter.split(':')[0]);
-	}
+	};
 	
 	$scope.getAppliedFilterValue = function(filter) {
 		return filter.substr(filter.indexOf(':') + 1);
-	}
+	};
 	
 	$scope.showTopLevelFacets = function() {
 		var ret = $scope.facetStyle == 'NONE';
@@ -166,15 +167,15 @@ ontologyApp
 		}
 		
 		return ret;
-	}
+	};
 	
 	$scope.showSecondLevelFacets = function() {
 		return $scope.filtersApplied();
-	}
+	};
 	
 	$scope.filtersApplied = function() {
 		return $scope.fq && $scope.fq.length > 0;
-	}
+	};
 	
 	$scope.updateFacetStyle = function(fs) {
 		$scope.facetStyle = fs;
@@ -185,7 +186,7 @@ ontologyApp
 			facetStyle: $scope.facetStyle
 		};
 		self.updateModel(params);
-	}
+	};
 	
 	// Initialise the page
 	self.init();
