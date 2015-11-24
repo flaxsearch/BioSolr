@@ -22,9 +22,7 @@ import uk.co.flax.biosolr.solr.ontology.SolrOntologyHelperFactoryTest;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for the RelatedTermsResult class.
@@ -49,6 +47,21 @@ public class RelatedTermsResultTest {
 		assertFalse(result.getTerms().isEmpty());
 		assertNotNull(result.getPage());
 		assertEquals(0, result.getPage().getNumber());
+	}
+
+	@Test
+	public void isSinglePage() {
+		// No page information in result
+		RelatedTermsResult r = new RelatedTermsResult(null, null, null);
+		assertTrue(r.isSinglePage());
+
+		// Multiple pages
+		r = new RelatedTermsResult(null, null, new Page(0, 0, 10, 0));
+		assertFalse(r.isSinglePage());
+
+		// Single page
+		r = new RelatedTermsResult(null, null, new Page(0, 0, 1, 0));
+		assertTrue(r.isSinglePage());
 	}
 
 }

@@ -15,11 +15,9 @@
  */
 package uk.co.flax.biosolr.ontology.core.ols;
 
-import org.apache.hadoop.ipc.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
-import uk.co.flax.biosolr.ontology.core.ols.terms.EmbeddedOntologyTerms;
 import uk.co.flax.biosolr.ontology.core.ols.terms.OntologyTerm;
 import uk.co.flax.biosolr.ontology.core.ols.terms.RelatedTermsResult;
 
@@ -29,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * OLS-specific ontology helper implementation, handling the case
@@ -43,6 +42,8 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSTermsOntologyHelper.class);
 
+	private Map<String, Set<RelatedTermsResult>> nonDefinitiveTerms = new HashMap<>();
+
 	public OLSTermsOntologyHelper(String baseUrl) {
 		super(baseUrl, null);
 	}
@@ -53,47 +54,70 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 
 	@Override
 	protected List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
-		List<Callable<RelatedTermsResult>> termsCalls = createTermsCalls(iris);
+		// Strip out the IRIs we already know to have non-definitive terms
+		List<String> callIris = iris.stream()
+				.filter(i -> !nonDefinitiveTerms.containsKey(i))
+				.collect(Collectors.toList());
+		List<Callable<RelatedTermsResult>> termsCalls = createTermsCalls(callIris);
 		List<RelatedTermsResult> callResults = executeCalls(termsCalls);
 		List<OntologyTerm> terms = new ArrayList<>(iris.size());
 
-		Map<String, RelatedTermsResult> lookupMap = new HashMap<>();
-		List<RelatedTermsResult> lookups = new ArrayList<>(callResults.size());
+		Map<String, Set<RelatedTermsResult>> lookupMap = new HashMap<>();
 		callResults.forEach(r -> {
-			if (r.getPage().getTotalPages() > 1) {
-				OntologyTerm t = findDefinitiveTerm(r.getTerms(), true);
-				if (t == null) {
-					// Need to look up more pages - hold on to this result
-					lookups.add(r);
-					lookupMap.put(getRelatedResultIri(r), r);
+			OntologyTerm t  = findDefinitiveTerm(r.getTerms());
+			if (t == null) {
+				if (r.isSinglePage()) {
+					// Single page and non-definitive - add to the ndt list, resolve later
+					nonDefinitiveTerms.put(getRelatedResultIri(r), Collections.singleton(r));
 				} else {
-					terms.add(t);
+					// Need to look up more pages - hold on to this result
+					Set<RelatedTermsResult> lookupSet = new TreeSet<>(
+							(RelatedTermsResult r1, RelatedTermsResult r2) -> r1.getPage().compareTo(r2.getPage()));
+					lookupSet.add(r);
+					lookupMap.put(getRelatedResultIri(r), lookupSet);
 				}
-			} else if (!r.getTerms().isEmpty()) {
-				terms.add(findDefinitiveTerm(r.getTerms(), false));
+			} else {
+				terms.add(t);
 			}
 		});
 
-		if (!lookups.isEmpty()) {
-			List<Callable<RelatedTermsResult>> lookupCalls = new ArrayList<>(lookups.size());
-			lookups.forEach(l -> lookupCalls.addAll(createRemainingTermsCalls(l)));
+		if (!lookupMap.isEmpty()) {
+			List<Callable<RelatedTermsResult>> lookupCalls = new ArrayList<>(lookupMap.size());
+			lookupMap.values().stream()
+					.flatMap(Set::stream)
+					.map(this::createRemainingTermsCalls)
+					.forEach(lookupCalls::addAll);
 			List<RelatedTermsResult> lookupResults = executeCalls(lookupCalls);
 			lookupResults.forEach(r -> {
-				if (lookupMap.containsKey(getRelatedResultIri(r)) && !r.getTerms().isEmpty()) {
-					OntologyTerm t = findDefinitiveTerm(r.getTerms(), true);
+				if (lookupMap.containsKey(getRelatedResultIri(r)) && r.hasTerms()) {
+					OntologyTerm t = findDefinitiveTerm(r.getTerms());
 					if (t != null) {
 						// Found the definitive term for this IRI
 						terms.add(t);
 						lookupMap.remove(t.getIri());
+					} else {
+						// Still non-definitive - add page to lookup map
+						lookupMap.get(getRelatedResultIri(r)).add(r);
 					}
 				}
 			});
 
 			if (!lookupMap.isEmpty()) {
-				// Take first result for remaining entries
-				lookupMap.values().forEach(r -> terms.add(findDefinitiveTerm(r.getTerms(), false)));
+				// These are now all non-definitive - add to the cache
+				nonDefinitiveTerms.putAll(lookupMap);
 			}
 		}
+
+		// Now grab the first term for the non-definitive terms
+		iris.stream()
+				.filter(nonDefinitiveTerms::containsKey)
+				.map(nonDefinitiveTerms::get)
+				.forEach(s -> {
+					OntologyTerm t = s.iterator().next().getFirstTerm();
+					if (t != null) {
+						terms.add(t);
+					}
+				});
 
 		return terms;
 	}
@@ -121,8 +145,9 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	private String getRelatedResultIri(RelatedTermsResult result) {
 		String ret = null;
 
-		if (!result.getTerms().isEmpty()) {
-			ret = result.getTerms().get(0).getIri();
+		OntologyTerm t = result.getFirstTerm();
+		if (t != null) {
+			ret = t.getIri();
 		}
 
 		return ret;
@@ -163,7 +188,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	 * @return the definitive OntologyTerm, or <code>null</code> if none can
 	 * be found (this should only happen if the results list is empty).
 	 */
-	private static OntologyTerm findDefinitiveTerm(List<OntologyTerm> terms, boolean defining) {
+	private static OntologyTerm findDefinitiveTerm(List<OntologyTerm> terms) {
 		OntologyTerm term = null;
 
 		for (OntologyTerm t : terms) {
@@ -171,10 +196,6 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 				term = t;
 				break;
 			}
-		}
-
-		if (term == null && !defining) {
-			term = terms.get(0);
 		}
 
 		return term;
