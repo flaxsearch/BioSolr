@@ -918,11 +918,7 @@
        <str name="df">text</str>
      </lst>
   </requestHandler>
-  
-  <searchComponent name="filter" class="org.apache.solr.search.djoin.FilterQParserSearchComponent">
-    <str name="qParser">djoin</str>
-  </searchComponent>
-  
+
   <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
   
   <searchComponent name="merge" class="org.apache.solr.search.djoin.MergeSearchComponent" />
@@ -943,7 +939,6 @@
       <bool name="merge">true</bool>
     </lst>
     <arr name="last-components">
-       <str>filter</str>
        <str>merge</str>
     </arr>
   </requestHandler>
