@@ -73,10 +73,10 @@ public class Document {
 	@Field("efo_labels")
 	private List<String> efoLabels;
 	
-	@Field("efo_parent_labels")
+	@Field("efo_uri_parent_labels_t")
 	private List<String> parentLabels;
 	
-	@Field("efo_child_labels")
+	@Field("efo_uri_child_labels_t")
 	private List<String> childLabels;
 	
 	@Field("facet_labels")
