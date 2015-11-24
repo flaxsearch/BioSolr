@@ -407,12 +407,15 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 		// Build call for first page
 		List<Callable<RelatedTermsResult>> calls = createCalls(buildPageUrls(baseUrl, 0, 1), RelatedTermsResult.class);
-		List<RelatedTermsResult> results = executeCalls(calls);
+		// Sort returned calls by page number
+		SortedSet<RelatedTermsResult> results = new TreeSet<>(
+				(RelatedTermsResult r1, RelatedTermsResult r2) -> r1.getPage().compareTo(r2.getPage()));
+		results.addAll(executeCalls(calls));
 
 		if (results.size() == 0) {
 			retList = Collections.emptySet();
 		} else {
-			Page page = results.get(0).getPage();
+			Page page = results.first().getPage();
 			if (page.getTotalPages() > 1) {
 				// Get remaining pages
 				calls = createCalls(
@@ -433,7 +436,15 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return retList;
 	}
 
-	public List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
+	/**
+	 * Build a list of URLs for a range of pages.
+	 * @param baseUrl the base URL; the page size and page number will be appended to
+	 *                this as query parameters.
+	 * @param firstPage the first page in the range, inclusive.
+	 * @param lastPage the last page in the range, exclusive.
+	 * @return the list of generated URLs.
+	 */
+	protected List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
 		UriBuilder builder = UriBuilder.fromUri(baseUrl)
 				.queryParam(SIZE_PARAM, pageSize)
 				.queryParam(PAGE_PARAM, "{pageNum}");

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by mlp on 27/10/15.
  * @author mlp
  */
-public class Page {
+public class Page implements Comparable<Page> {
 
 	private final int size;
 	private final int totalSize;
@@ -54,6 +54,14 @@ public class Page {
 
 	public int getNumber() {
 		return number;
+	}
+
+	public int compareTo(Page p) {
+		if (p == null) {
+			return 1;
+		} else {
+			return number - p.number;
+		}
 	}
 
 }
