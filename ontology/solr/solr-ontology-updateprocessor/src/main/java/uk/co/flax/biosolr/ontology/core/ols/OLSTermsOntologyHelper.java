@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.ols.terms.OntologyTerm;
 import uk.co.flax.biosolr.ontology.core.ols.terms.RelatedTermsResult;
+import uk.co.flax.biosolr.ontology.core.ols.terms.TermLinkType;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -27,7 +28,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * OLS-specific ontology helper implementation, handling the case
@@ -42,7 +42,9 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSTermsOntologyHelper.class);
 
+	// Cache of terms with no defining ontology
 	private Map<String, Set<RelatedTermsResult>> nonDefinitiveTerms = new HashMap<>();
+
 
 	public OLSTermsOntologyHelper(String baseUrl) {
 		super(baseUrl, null);
@@ -199,6 +201,78 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		}
 
 		return term;
+	}
+
+	@Override
+	public Collection<String> getParentIris(String iri) throws OntologyHelperException {
+		Collection<String> parents;
+
+		checkTerm(iri);
+		if (!nonDefinitiveTerms.containsKey(iri)) {
+			parents = super.getParentIris(iri);
+		} else {
+			// This IRI has no defining ontology - look up parents for all found terms
+			parents = findRelatedNonDefinitiveTerms(iri, TermLinkType.PARENTS);
+		}
+
+		return parents;
+	}
+
+	@Override
+	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
+		Collection<String> parents;
+
+		checkTerm(iri);
+		if (!nonDefinitiveTerms.containsKey(iri)) {
+			parents = super.getParentIris(iri);
+		} else {
+			// This IRI has no defining ontology - look up ancestors for all found terms
+			parents = findRelatedNonDefinitiveTerms(iri, TermLinkType.ANCESTORS);
+		}
+
+		return parents;
+	}
+
+	private Collection<String> findRelatedNonDefinitiveTerms(String iri, TermLinkType type) {
+		Collection<String> terms;
+
+		if (isRelationInCache(iri, type)) {
+			terms = retrieveRelatedIrisFromCache(iri, type);
+		} else {
+			terms = new HashSet<>();
+			nonDefinitiveTerms.get(iri).stream().forEach(r -> {
+				for (OntologyTerm t : r.getTerms()) {
+					try {
+						terms.addAll(findRelatedTerms(t, type));
+					} catch (OntologyHelperException e) {
+						LOGGER.error("Problem getting {} for {} in {}: {}",
+								type.toString(), iri, t.getOntologyName(), e.getMessage());
+					}
+				}
+			});
+			cacheRelatedIris(iri, type, terms);
+		}
+
+		return terms;
+	}
+
+	private Collection<String> findRelatedTerms(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
+		Collection<String> iris;
+
+		if (term == null) {
+			iris = Collections.emptyList();
+		} else if (isRelationInCache(term.getIri(), linkType)) {
+			iris = retrieveRelatedIrisFromCache(term.getIri(), linkType);
+		} else {
+			String linkUrl = getLinkUrl(term, linkType);
+			if (linkUrl == null) {
+				iris = Collections.emptyList();
+			} else {
+				iris = queryWebServiceForTerms(linkUrl);
+			}
+		}
+
+		return iris;
 	}
 
 }

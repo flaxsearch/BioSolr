@@ -125,7 +125,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		client.close();
 	}
 
-	private void checkTerm(String iri) throws OntologyHelperException {
+	protected void checkTerm(String iri) throws OntologyHelperException {
 		checkTerms(Collections.singletonList(iri));
 	}
 
@@ -360,7 +360,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @return the URL, or <code>null</code> if the term is null, or doesn't
 	 * have a link of the required type.
 	 */
-	private String getLinkUrl(OntologyTerm term, TermLinkType linkType) {
+	static String getLinkUrl(OntologyTerm term, TermLinkType linkType) {
 		String ret = null;
 
 		if (term != null) {
@@ -373,11 +373,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return ret;
 	}
 
-	private boolean isRelationInCache(String iri, TermLinkType relation) {
+	protected boolean isRelationInCache(String iri, TermLinkType relation) {
 		return relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation);
 	}
 
-	private Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
+	protected Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
 		Collection<String> ret = null;
 
 		if (relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation)) {
@@ -387,22 +387,26 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return ret;
 	}
 
-	private void cacheRelatedIris(String iri, TermLinkType relation, Collection<String> iris) {
+	protected void cacheRelatedIris(String iri, TermLinkType relation, Collection<String> iris) {
 		if (!relatedIris.containsKey(iri)) {
 			relatedIris.put(iri, new HashMap<>());
 		}
 
-		relatedIris.get(iri).put(relation, iris);
+		if (relatedIris.get(iri).containsKey(relation)) {
+			relatedIris.get(iri).get(relation).addAll(iris);
+		} else {
+			relatedIris.get(iri).put(relation, iris);
+		}
 	}
 
 	/**
 	 * Find the IRIs of all terms referenced by a related URL.
 	 * @param baseUrl the base URL to look up, from a Link or similar
 	 *                query-type URL.
-	 * @return a list of IRIs referencing the terms found for the
+	 * @return a set of IRIs referencing the terms found for the
 	 * given URL.
 	 */
-	private Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
+	protected Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
 		Set<String> retList;
 
 		// Build call for first page

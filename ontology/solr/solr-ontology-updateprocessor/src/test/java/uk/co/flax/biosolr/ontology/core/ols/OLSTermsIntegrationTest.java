@@ -17,7 +17,6 @@ package uk.co.flax.biosolr.ontology.core.ols;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
@@ -26,9 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for the OLS Terms ontology helper class.
@@ -36,7 +33,6 @@ import static org.junit.Assert.assertTrue;
  * Created by mlp on 10/11/15.
  * @author mlp
  */
-@Ignore
 public class OLSTermsIntegrationTest {
 
 	public static final String BASE_URL = "http://www.ebi.ac.uk/ols/beta/api";
