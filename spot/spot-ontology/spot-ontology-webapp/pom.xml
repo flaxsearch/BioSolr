@@ -10,6 +10,7 @@
 	<artifactId>spot-ontology-webapp</artifactId>
 
 	<properties>
+		<!-- Main class -->
 		<mainClass>uk.co.flax.biosolr.ontology.OntologyApplication</mainClass>
 	</properties>
 

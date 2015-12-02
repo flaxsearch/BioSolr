@@ -16,9 +16,15 @@
 package uk.co.flax.biosolr.solr.update.processor;
 
 import org.apache.solr.SolrTestCaseJ4;
+import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
+import org.junit.Test;
+import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
+import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperTest;
 
 /**
+ * OLS-specific version of the OntologyUpdateProcessorFactoryTest.
+ *
  * Created by mlp on 10/11/15.
  * @author mlp
  */

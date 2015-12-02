@@ -1,0 +1,72 @@
+<div class="row search_form"><div class="col-md-10">
+    <form ng-submit="search()" class="form-inline">
+        <input type="text" ng-model="query" class="form-control" />
+        <button type="submit" class="btn">Search</button>
+        <input type="checkbox" checklist-model="additionalFields" checklist-value="efo_child_labels" /> Include child labels
+        <input type="checkbox" checklist-model="additionalFields" checklist-value="efo_parent_labels" /> Include parent labels
+        
+        <div ng-show="dynamicLabels">Include additional labels in search:
+            <span ng-repeat="label in dynamicLabels"><input type="checkbox" checklist-model="additionalFields" checklist-value="label" /> "{{formatRelatedType(label)}}" </span>
+        </div>
+    </form>
+</div></div>
+
+<div class="row" ng-show="error"><div class="col-md-10">
+    <div>{{ error }}</div>
+</div></div>
+
+<div ng-if="results">
+    <div class="row results_header"><div class="col-md-10">
+        Showing records {{ start }}-{{ end }} of {{ total }} results.
+        <span ng-show="filtersApplied()" class="applied-filters"><br />
+            Filtered by:
+            <ul>
+                <li ng-repeat="filter in fq">{{getAppliedFilterLabel(filter)}}: {{getAppliedFilterValue(filter)}} <a ng-click="removeFilter(filter)">[x]</a></li>
+            </ul>
+        </span>
+    </div></div>
+
+	<div class="row" ng-repeat="result in results">
+		<div class="col-md-1">{{ start+$index }}.</div>
+		<div class="col-md-9">
+			<strong>{{ result.title }}</strong><br />
+			{{result.firstAuthor}} - {{result.publication}}<br />
+			<div ng-show="result.efoLabels" class="row">
+				<div class="col-md-3"><strong>Annotation</strong></div>
+				<div class="col-md-9">
+				 <ul class="label-display">
+					 <li ng-repeat="label in result.efoLabels">{{ label }}</li>
+				 </ul>
+				</div>
+			</div>
+			<div ng-show="result.childLabels" class="row">
+				<div class="col-md-3"><strong>Children</strong></div>
+				<div class="col-md-9">
+				<ul class="label-display">
+					<li ng-repeat="label in result.childLabels">{{ label }}</li>
+				</ul>
+				</div>
+			</div>
+			<div ng-show="result.parentLabels" class="row">
+				<div class="col-md-3"><strong>Parent(s)</strong></div>
+				<div class="col-md-9">
+				<ul class="label-display">
+					<li ng-repeat="label in result.parentLabels">{{ label }}</li>
+				</ul>
+				</div>
+			</div>
+			<div ng-show="hasRelated(result)">
+				<div ng-repeat="(key, labels) in result.relatedLabels" class="row">
+					<div class="col-md-3"><strong>{{ formatRelatedType(key) }}</strong></div>
+					<div class="col-md-9"><ul class="label-display">
+						<li ng-repeat="label in labels track by $index">{{ label }}</li>
+					</ul></div>
+				</div>
+			</div>
+		</div>
+	</div><!-- result row -->
+
+    <uib-pagination total-items="total" ng-model="$parent.currentPage" ng-change="changePage()"
+					boundary-links="true" previous-text="&lsaquo;" next-text="&rsaquo;"
+					first-text="&laquo;" last-text="&raquo;" max-size="5"></uib-pagination>
+</div><!-- Results -->

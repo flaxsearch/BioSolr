@@ -24,8 +24,9 @@ import java.util.Map;
 /**
  * POJO wrapping the results of a related terms lookup, such as a child
  * or parent terms query.
- *
+ * <p>
  * Created by mlp on 27/10/15.
+ *
  * @author mlp
  */
 public class RelatedTermsResult {
@@ -56,6 +57,29 @@ public class RelatedTermsResult {
 
 	public Page getPage() {
 		return page;
+	}
+
+	/**
+	 * Is this a single page result?
+	 * @return <code>true</code> if the page object indicates there is only one
+	 * page, or there is no page information in the result.
+	 */
+	public boolean isSinglePage() {
+		return page == null || page.getTotalPages() == 1;
+	}
+
+	public OntologyTerm getFirstTerm() {
+		OntologyTerm t = null;
+
+		if (hasTerms()) {
+			t = embedded.getTerms().get(0);
+		}
+
+		return t;
+	}
+
+	public boolean hasTerms() {
+		return embedded != null && embedded.getTerms() != null && !embedded.getTerms().isEmpty();
 	}
 
 }

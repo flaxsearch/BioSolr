@@ -84,8 +84,9 @@ details in the ontology.
 ontology being referenced. Eg. `http://www.ebi.ac.uk/efo/efo.owl` or
 `file:///home/mlp/Downloads/efo.owl`.
 * **olsBaseURL** *[REQUIRED if using OLS]* - the base URL for OLS lookups.
-* **olsOntology** *[REQUIRED if using OLS]* - the ontology to search for
-terms in OLS.
+Eg. `http://www.ebi.ac.uk/ols/beta/api`.
+* **olsOntology** *[only if using OLS]* - the ontology to search for
+terms in OLS. Eg. `efo`, `cmpo`. [See below](#additional-configuration-ols)
 * **fieldPrefix** - a value to be prepended to all fields created by the
 indexer. Defaults to the `annotationField` value, may be set blank.
 * **labelField** - the field in your schema that should be used for the
@@ -126,12 +127,13 @@ definitions will not be indexed.
 Default: `annotationField_definition_t`.
 * **configurationFile** - the path to a properties-style file containing 
 additional, ontology-specific configuration, such as the property annotation to use
-for synonyms, definitions, etc. See below for the format of this file, and
+for synonyms, definitions, etc. [See below](#additional-configuration-owl-files)
+for the format of this file, and
 the default values used when not defined. There is no default value for this
 configuration option.
 
 
-### Additional configuration
+### Additional configuration (OWL files)
 
 The plugin attempts to use sensible defaults for the property annotations for 
 labels, synonyms and definitions. However, if the ontology being referenced uses
@@ -155,3 +157,18 @@ If more than one property is required, these should be comma-separated:
 The `ignore_properties` definition indicates that any nodes found under this
 class should be ignored. This can be useful when indexing related nodes which may now
 be obsolete, for example.
+
+
+### Additional configuration (OLS)
+ 
+If using the OLS API to retrieve the ontology information, you may optionally
+supply the ontology being referenced (via the `olsOntology` configuration
+option). This is likely to reduce the time taken to carry out the indexing,
+but reduces flexibility - you may not know, or be using multiple ontologies
+in a single annotation field.
+
+When an ontology is not specified, the plugin will use the OLS field 
+`is_defining_ontology` to attempt to find the best version of a record to use.
+If no defining ontology can be found, it will usually default to the first
+instance of the record returned by the search. This may result in unexpected
+content in the related nodes fields (parents, children, other relations).

@@ -39,7 +39,8 @@ import java.util.Map;
  * @author mlp
  */
 public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 {
-	private static final String ONTOLOGY_UPDATE_CHAIN = "ontology";
+
+	static final String ONTOLOGY_UPDATE_CHAIN = "ontology";
 
 	static void checkNumDocs(int n) {
 		SolrQueryRequest req = req();
@@ -79,8 +80,8 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 
 		SolrQueryRequest req = req("id:1");
 		assertQ("Could not find child", req, "//result[@numFound=1]",
-				"//arr[@name='annotation_uri_child_uris_s']/str[last()][.='" + OWLOntologyHelperMethodsTest.TEST_CHILD_IRI + "']",
-		"//arr[@name='annotation_uri_child_labels_t']/str[last()][.='material entity']");
+				"//arr[@name='annotation_uri_child_uris_s']/str[1][.='" + OWLOntologyHelperMethodsTest.TEST_CHILD_IRI + "']",
+		"//arr[@name='annotation_uri_child_labels_t']/str[1][.='material entity']");
 	}
 
 	@Test

@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  */
 public class OLSIntegrationTest {
 
-	public static final String BASE_URL = "http://www.ebi.ac.uk/ols/beta/api/ontologies";
+	public static final String BASE_URL = "http://www.ebi.ac.uk/ols/beta/api";
 	public static final String ONTOLOGY = "efo";
 
 	public static final String BAD_IRI = "http://blah.com/blah";

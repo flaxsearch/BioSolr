@@ -28,8 +28,8 @@ import org.apache.solr.client.solrj.beans.Field;
  */
 public class Document {
 	
-	public static final String RELATED_IRI_SUFFIX = "_rel_iris";
-	public static final String RELATED_LABEL_SUFFIX = "_rel_labels";
+	public static final String RELATED_IRI_SUFFIX = "_rel_uris_s";
+	public static final String RELATED_LABEL_SUFFIX = "_rel_labels_t";
 	
 	@Field("id")
 	private String id;
@@ -82,9 +82,9 @@ public class Document {
 	@Field("facet_labels")
 	private List<String> facetLabels;
 
-	@Field("*_rel_iris")
+	@Field("*_rel_uris_s")
 	private Map<String, List<String>> relatedIris = new HashMap<>();
-	@Field("*_rel_labels")
+	@Field("*_rel_labels_t")
 	private Map<String, List<String>> relatedLabels = new HashMap<>();
 	
 	@Field("child_hierarchy")

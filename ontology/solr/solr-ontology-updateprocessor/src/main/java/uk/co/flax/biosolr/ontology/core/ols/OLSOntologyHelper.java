@@ -52,6 +52,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	public static final int PAGE_SIZE = 100;
 
 	static final String ENCODING = "UTF-8";
+	static final String ONTOLOGIES_URL_SUFFIX = "/ontologies";
 	static final String TERMS_URL_SUFFIX = "/terms";
 
 	static final String SIZE_PARAM = "size";
@@ -81,7 +82,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	}
 
 	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, int threadPoolSize, ThreadFactory threadFactory) {
-		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+		this.baseUrl = buildBaseUrl(baseUrl, ontology);
 		this.ontology = ontology;
 		this.pageSize = pageSize;
 
@@ -97,6 +98,14 @@ public class OLSOntologyHelper implements OntologyHelper {
 				Executors.newFixedThreadPool(threadPoolSize, new DefaultSolrThreadFactory("olsOntologyHelper"));
 		LOGGER.trace("Initialising OLS ontology helper with threadpool size {}, results page size {}",
 				threadPoolSize, pageSize);
+	}
+
+	private String buildBaseUrl(final String baseUrl, final String ontology) {
+		String url = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+		if (StringUtils.isNotBlank(ontology)) {
+			url = url + ONTOLOGIES_URL_SUFFIX + "/" + ontology;
+		}
+		return url;
 	}
 
 	@Override
@@ -116,7 +125,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		client.close();
 	}
 
-	private void checkTerm(String iri) throws OntologyHelperException {
+	protected void checkTerm(String iri) throws OntologyHelperException {
 		checkTerms(Collections.singletonList(iri));
 	}
 
@@ -201,7 +210,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		for (final String iri : iris) {
 			try {
 				final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
-				urls.add(baseUrl + "/" + ontology + TERMS_URL_SUFFIX + "/" + dblEncodedIri);
+				urls.add(baseUrl + TERMS_URL_SUFFIX + "/" + dblEncodedIri);
 			} catch (UnsupportedEncodingException e) {
 				// Not expecting to get here
 				LOGGER.error(e.getMessage());
@@ -351,7 +360,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @return the URL, or <code>null</code> if the term is null, or doesn't
 	 * have a link of the required type.
 	 */
-	private String getLinkUrl(OntologyTerm term, TermLinkType linkType) {
+	static String getLinkUrl(OntologyTerm term, TermLinkType linkType) {
 		String ret = null;
 
 		if (term != null) {
@@ -364,11 +373,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return ret;
 	}
 
-	private boolean isRelationInCache(String iri, TermLinkType relation) {
+	protected boolean isRelationInCache(String iri, TermLinkType relation) {
 		return relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation);
 	}
 
-	private Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
+	protected Collection<String> retrieveRelatedIrisFromCache(String iri, TermLinkType relation) {
 		Collection<String> ret = null;
 
 		if (relatedIris.containsKey(iri) && relatedIris.get(iri).containsKey(relation)) {
@@ -378,32 +387,39 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return ret;
 	}
 
-	private void cacheRelatedIris(String iri, TermLinkType relation, Collection<String> iris) {
+	protected void cacheRelatedIris(String iri, TermLinkType relation, Collection<String> iris) {
 		if (!relatedIris.containsKey(iri)) {
 			relatedIris.put(iri, new HashMap<>());
 		}
 
-		relatedIris.get(iri).put(relation, iris);
+		if (relatedIris.get(iri).containsKey(relation)) {
+			relatedIris.get(iri).get(relation).addAll(iris);
+		} else {
+			relatedIris.get(iri).put(relation, iris);
+		}
 	}
 
 	/**
 	 * Find the IRIs of all terms referenced by a related URL.
 	 * @param baseUrl the base URL to look up, from a Link or similar
 	 *                query-type URL.
-	 * @return a list of IRIs referencing the terms found for the
+	 * @return a set of IRIs referencing the terms found for the
 	 * given URL.
 	 */
-	private List<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
-		List<String> retList;
+	protected Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
+		Set<String> retList;
 
 		// Build call for first page
 		List<Callable<RelatedTermsResult>> calls = createCalls(buildPageUrls(baseUrl, 0, 1), RelatedTermsResult.class);
-		List<RelatedTermsResult> results = executeCalls(calls);
+		// Sort returned calls by page number
+		SortedSet<RelatedTermsResult> results = new TreeSet<>(
+				(RelatedTermsResult r1, RelatedTermsResult r2) -> r1.getPage().compareTo(r2.getPage()));
+		results.addAll(executeCalls(calls));
 
 		if (results.size() == 0) {
-			retList = Collections.emptyList();
+			retList = Collections.emptySet();
 		} else {
-			Page page = results.get(0).getPage();
+			Page page = results.first().getPage();
 			if (page.getTotalPages() > 1) {
 				// Get remaining pages
 				calls = createCalls(
@@ -412,7 +428,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				results.addAll(executeCalls(calls));
 			}
 
-			retList = new ArrayList<>(page.getTotalSize());
+			retList = new HashSet<>(page.getTotalSize());
 			for (RelatedTermsResult result : results) {
 				result.getTerms().forEach(t -> {
 					terms.put(t.getIri(), t);
@@ -424,7 +440,15 @@ public class OLSOntologyHelper implements OntologyHelper {
 		return retList;
 	}
 
-	public List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
+	/**
+	 * Build a list of URLs for a range of pages.
+	 * @param baseUrl the base URL; the page size and page number will be appended to
+	 *                this as query parameters.
+	 * @param firstPage the first page in the range, inclusive.
+	 * @param lastPage the last page in the range, exclusive.
+	 * @return the list of generated URLs.
+	 */
+	protected List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
 		UriBuilder builder = UriBuilder.fromUri(baseUrl)
 				.queryParam(SIZE_PARAM, pageSize)
 				.queryParam(PAGE_PARAM, "{pageNum}");
