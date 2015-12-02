@@ -20,10 +20,11 @@ package org.apache.solr.search.djoin;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.response.SolrQueryResponse;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -31,51 +32,301 @@ import org.junit.Test;
  * Four cores, one for each of three 'shards' ("shard1", "shard2", "shard3"), and one for aggregator ("djoin").
  */
 public class TestMerge extends BaseTestCase {
+  
+  private final static String[] FIELDS = new String[] { "id", "letter", "single", "text", "ignore", "required", "singlevalued", "default" };
 
   private final static String[][] DOCUMENTS_1 = new String[][] {
-    { "1", "D" },
-    { "3", "Q" } };
+    { "1", "D", "x", "foo", "_", "_", "@" },
+    { "3", "Q", "z", "foo", "_", "_", "@" } };
 
   private final static String[][] DOCUMENTS_2 = new String[][] {
-    { "1", "A" },
-    { "2", "B" },
-    { "3", "C" } };
+    { "1", "A", null, "foo,bar", "_", "_", "@" },
+    { "2", "B", "y", "foo", "_", "_", "@" },
+    { "3", "C", "z", "foo", "_", "_", "@" } };
 
   private final static String[][] DOCUMENTS_3 = new String[][] {
-    { "1", "E" },
-    { "2", "B" },
-    { "3", "C" } };
+    { "1", "E", null, "bar,baz", "_", "_", "@" },
+    { "2", "B", "y", "foo", "_", "_", "@" },
+    { "3", "C", "z", "foo", "_", "_", "@" } };
+
+  private final static String[][] DOCUMENTS_4 = new String[][] {
+    { "1", "E", "w", "foo", null, null, "!", "xxx" } };
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     initCores("djoin/solr/solr-merge.xml", "djoin/solr");
-    loadShardCore("shard1", DOCUMENTS_1, "id", "letter");
-    loadShardCore("shard2", DOCUMENTS_2, "id", "letter");
-    loadShardCore("shard3", DOCUMENTS_3, "id", "letter");
+    loadShardCore("shard1", DOCUMENTS_1, FIELDS);
+    loadShardCore("shard2", DOCUMENTS_2, FIELDS);
+    loadShardCore("shard3", DOCUMENTS_3, FIELDS);
+    loadShardCore("shard4", DOCUMENTS_4, FIELDS);
   }
   
+  /**
+   * Docs from each shard should be 'grouped' by unique id and appear in order by least letter.
+   * 
+   * Single-valued fields should accept multiple identical values.
+   * 
+   * Required fields should have a value from a least one shard, but not necessarily all.
+   */
   @Test
   public void testMerge() throws Exception {
     try (SolrCore core = h.getCoreContainer().getCore("merge")) {
       ModifiableSolrParams params = new ModifiableSolrParams();
       params.add("q", "*:*");
-      params.add("rows", "2");
       params.add("sort", "letter asc");
-      params.add("fl", "*,[shard]");
+      params.add("fl", "*");
 
-      SolrQueryResponse rsp = query(core, "merge", params);
-      assertNull(rsp.getException());
-      SolrDocumentList docs = (SolrDocumentList)rsp.getValues().get("response");
-      assertEquals(2, docs.size());
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
       
-      assertEquals(0, docs.get(0).getChildDocumentCount());
-      assertEquals("1", docs.get(0).get("id"));
-      assertEquals(new HashSet<String>(Arrays.asList("A", "D", "E")), docs.get(0).get("letter"));
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("1", doc0.getFieldValue("id"));
+      assertEquals(new HashSet<String>(Arrays.asList("A", "D", "E")), doc0.getFieldValue("letter"));
       
-      assertEquals(0, docs.get(1).getChildDocumentCount());
-      assertEquals("2", docs.get(1).get("id"));
-      assertEquals(new HashSet<String>(Arrays.asList("B")), docs.get(1).get("letter"));
+      SolrDocument doc1 = docs.get(1);
+      assertEquals("2", doc1.getFieldValue("id"));
+      assertEquals(new HashSet<String>(Arrays.asList("B")), doc1.getFieldValue("letter"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals("3", doc2.getFieldValue("id"));
+      assertEquals(new HashSet<String>(Arrays.asList("C", "Q")), doc2.getFieldValue("letter"));
     }
   }
+  
+  /**
+   * Fields not defined in the aggregator schema (but are present in shards) should not appear.
+   */
+  @Test
+  public void testNotDefined() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("fl", "*");
 
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      for (SolrDocument doc : docs) {
+        assertNull(doc.getFieldValue("ignore"));
+      }
+    }
+  }
+  
+  /**
+   * Single-valued fields should not accept multiple different values.
+   */
+  @Test(expected=MergeException.FieldNotMultiValued.class)
+  public void testSingleValued() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard1/,shard4/");
+      params.add("fl", "*");
+
+      queryThrow(core, "merge", params);
+    }
+  }
+  
+  /**
+   * Copy-field directives in the aggregator schema should be respected.
+   */
+  @Test
+  public void testCopyFields() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "*");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("x", doc0.getFieldValue("copy"));
+      assertEquals(new HashSet<String>(Arrays.asList("A", "D", "E", "x")), doc0.getFieldValue("multicopy"));
+      
+      SolrDocument doc1 = docs.get(1);
+      assertEquals("y", doc1.getFieldValue("copy"));
+      assertEquals(new HashSet<String>(Arrays.asList("B", "y")), doc1.getFieldValue("multicopy"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals("z", doc2.getFieldValue("copy"));
+      assertEquals(new HashSet<String>(Arrays.asList("C", "Q", "z")), doc2.getFieldValue("multicopy"));
+    }   
+  }
+  
+  /**
+   * Required fields should expect a value from at least one shard.
+   */
+  @Test(expected=MergeException.MissingRequiredField.class)
+  public void testRequired() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard2/,shard3/");
+      params.add("fl", "*");
+
+      queryThrow(core, "merge", params);
+    }   
+  }
+  
+  /**
+   * All values from shard's multi-valued fields should be present in the merged field.
+   */
+  @Test
+  public void testMultiValued() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "text");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals(new HashSet<String>(Arrays.asList("foo", "bar", "baz")), doc0.getFieldValue("text"));
+    }   
+  }
+  
+  /**
+   * Fields should not be returned if they are non-stored, even if asked for.
+   */
+  @Test
+  public void testNonStored() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "required");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertNull(doc0.getFieldValue("required"));
+    }   
+  }
+  
+  /**
+   * Fields should be checked for requiredness even if not stored (but only if in field list).
+   */
+  @Test(expected=MergeException.MissingRequiredField.class)
+  public void testNonStoredRequired() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard4/");
+      params.add("fl", "*");
+
+      queryThrow(core, "merge", params);
+    }   
+  }
+  
+  /**
+   * Fields should be checked for single-valuedness even if not stored (but only if in field list).
+   */
+  @Test(expected=MergeException.FieldNotMultiValued.class)
+  public void testNonStoredSingleValued() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard1/,shard2/,shard3/,shard4/");
+      params.add("fl", "*");
+
+      queryThrow(core, "merge", params);
+    }   
+  }
+  
+  /**
+   * Default values in the schema should be used if no value is returned from shards.
+   */
+  @Test
+  public void testDefaultValue() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "default");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("foo", doc0.getFieldValue("default"));
+    }   
+  }
+  
+  /**
+   * Default values in the schema should not override existing values.
+   */
+  @Test
+  public void testDefaultExists() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard4/");
+      params.add("fl", "default");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(1, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("xxx", doc0.getFieldValue("default"));
+    }   
+  }
+  
+  /**
+   * When [shard] is in the field list, it should be returned (and correct!).
+   */
+  @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void testWantsShard() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "*");
+      params.add("merge.shardInfo", "true");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      NamedList[] nls = new NamedList[3];
+      for (int i = 0; i < nls.length; ++i) {
+        nls[i] = new NamedList();
+        nls[i].add("address", "shard" + (i + 1) + "/");
+      }
+
+      SolrDocument doc0 = docs.get(0);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc0.getFieldValue("[shard]"));
+      
+      SolrDocument doc1 = docs.get(1);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[1], nls[2])), doc1.getFieldValue("[shard]"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc2.getFieldValue("[shard]"));
+    }   
+  }
+  
+  /**
+   * When shardInfo is not requested, the [shard] field should not be returned.
+   */
+  @Test
+  public void testNotWantsShard() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "*");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      for (SolrDocument doc : docs) {
+        assertNull(doc.getFieldValue("[shard]"));
+      }
+    }   
+  }
+  
 }

@@ -249,7 +249,12 @@
 
    <field name="id" type="string" indexed="true" stored="true" required="true" />
    <field name="letter" type="string" indexed="true" stored="true" required="true" />
-   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+   <field name="single" type="string" indexed="true" stored="true" required="false" />
+   <field name="text" type="string" indexed="true" stored="true" required="false" multiValued="true" />
+   <field name="ignore" type="string" indexed="true" stored="true" required="false" />
+   <field name="required" type="string" indexed="true" stored="true" required="false" />
+   <field name="singlevalued" type="string" indexed="true" stored="true" required="false" />
+   
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 
         field name or dynamic field, rather than reporting them as an error. 

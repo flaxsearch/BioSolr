@@ -1,6 +1,5 @@
 package org.apache.solr.search.djoin;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +23,8 @@ import org.apache.solr.search.ReturnFields;
  */
 public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
   
+  public static final String SHARD_INFO_PARAM = "shardInfo";
+  
   // return whether to do a merge at all
   private boolean doMerge(ResponseBuilder rb) {
     SolrParams params = rb.req.getParams();
@@ -38,7 +39,13 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     return true;
   }
   
+  // whether to return shard info
+  private boolean wantsShards(ResponseBuilder rb) {
+    return rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
+  }
+  
   // need to ask distributed servers for source fields for all copy fields needed in the aggregator
+  // also add in [shard] field if we want shard info
   @Override
   public void modifyRequest(ResponseBuilder rb, SearchComponent who, ShardRequest sreq) {
     // do the filterQParser stuff first
@@ -46,6 +53,10 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     
     if (! doMerge(rb)) {
       return;
+    }
+    
+    if (wantsShards(rb)) {
+      sreq.params.add(CommonParams.FL, "[shard]");
     }
     
     ReturnFields rf = rb.rsp.getReturnFields();
@@ -88,23 +99,21 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     IndexSchema schema = rb.req.getCore().getLatestSchema();
     ReturnFields rf = rb.rsp.getReturnFields();
 
+    boolean wantsShards = rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
+
     SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
     for (SolrDocument parent : docs) {
       parent.remove(DuplicateDocumentList.MERGE_PARENT_FIELD);
 
-      List shardList = rf.wantsField("[shard]") ? new ArrayList() : null;
+      Set shardList = wantsShards ? new HashSet() : null;
       Float score = null;
       for (SolrDocument doc : parent.getChildDocuments()) {
         String shard = (String)doc.getFieldValue("[shard]");
         NamedList nl = null;
         if (shardList != null) {
-          if (rf.wantsScore()) {
-            nl = new NamedList();
-            nl.add("address", shard);
-            shardList.add(nl);
-          } else {
-            shardList.add(shard);
-          }
+          nl = new NamedList();
+          nl.add("address", shard);
+          shardList.add(nl);
         }
         
         for (String fieldName : doc.getFieldNames()) {
@@ -112,9 +121,6 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
           
           for (CopyField cf : schema.getCopyFieldsList(fieldName)) {
             SchemaField field = cf.getDestination();
-            if (! field.stored()) {
-              continue;
-            }
             addConvertedFieldValue(shard, parent, value, field);
           }
           
@@ -126,28 +132,36 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
             if (nl != null) {
               nl.add("score", score);
             }
-          } else if (field.stored()) {
+          } else {
             addConvertedFieldValue(shard, parent, value, field);          
           }
         }
       }
       if (shardList != null) {
         parent.setField("[shard]", shardList);
+      } else {
+        parent.removeFields("[shard]");
       }
       if (score != null) {
         parent.setField("score", score);
+      } else {
+        parent.removeFields("score");
       }
 
+      // check required fields are present, and then remove if non-stored
       for (SchemaField field : schema.getFields().values()) {
         Object value = parent.getFieldValue(field.getName());
         if (value == null) {
           value = field.getDefaultValue();
-          if (value != null && field.stored()) {
+          if (value != null) {
             parent.setField(field.getName(), value);
           }
         }
         if (value == null && field.isRequired() && rf.wantsField(field.getName())) {
-          throw new RuntimeException("Required field has no value: " + field.getName());
+          throw new MergeException.MissingRequiredField(field);
+        }
+        if (! field.stored()) {
+          parent.removeFields(field.getName());
         }
       }
 
@@ -209,7 +223,7 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
 		} else {
 		  newValues.add(mergeValue);
 		  if (newValues.size() > 1) {
-        throw new RuntimeException("Field not multi-valued: " + field.getName());
+        throw new MergeException.FieldNotMultiValued(field);
 		  } else if (newValues.size() == 1) {
 		    superDoc.setField(field.getName(), newValues.iterator().next());
 		  }

@@ -937,6 +937,7 @@
       <str name="rq">{!djoin}</str>
       
       <bool name="merge">true</bool>
+      <bool name="merge.shardInfo">true</bool>
     </lst>
     <arr name="last-components">
        <str>merge</str>
