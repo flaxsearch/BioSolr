@@ -125,6 +125,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		client.close();
 	}
 
+	/**
+	 * Check whether a term is in the terms cache and, if not, attempt to add it.
+	 * @param iri the IRI to look up.
+	 * @throws OntologyHelperException if problems occur looking up the IRI.
+	 */
 	protected void checkTerm(String iri) throws OntologyHelperException {
 		checkTerms(Collections.singletonList(iri));
 	}

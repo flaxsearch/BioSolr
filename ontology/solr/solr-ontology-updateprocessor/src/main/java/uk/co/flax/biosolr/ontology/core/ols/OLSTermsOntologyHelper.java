@@ -57,9 +57,9 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	@Override
 	protected List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
 		// Strip out the IRIs we already know to have non-definitive terms
-		List<String> callIris = iris.stream()
+		Set<String> callIris = iris.stream()
 				.filter(i -> !nonDefinitiveTerms.containsKey(i))
-				.collect(Collectors.toList());
+				.collect(Collectors.toSet());
 		List<Callable<RelatedTermsResult>> termsCalls = createTermsCalls(callIris);
 		List<RelatedTermsResult> callResults = executeCalls(termsCalls);
 		List<OntologyTerm> terms = new ArrayList<>(iris.size());
@@ -129,7 +129,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	 * @param iris the IRIs to look up.
 	 * @return a list of Callable requests.
 	 */
-	private List<Callable<RelatedTermsResult>> createTermsCalls(List<String> iris) {
+	private List<Callable<RelatedTermsResult>> createTermsCalls(Collection<String> iris) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
@@ -144,6 +144,14 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return createCalls(urls, RelatedTermsResult.class);
 	}
 
+	/**
+	 * Get the IRI for this set of results. This assumes that the incoming
+	 * result is from a term query, and so all the IRIs in the result will
+	 * be the same.
+	 * @param result the result
+	 * @return the IRI of the first term in the result set, or <code>null</code>
+	 * if the result has no terms.
+	 */
 	private String getRelatedResultIri(RelatedTermsResult result) {
 		String ret = null;
 
@@ -155,20 +163,34 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return ret;
 	}
 
+	/**
+	 * Build the base URL for searching for a particular term.
+	 * @param iri the term to look up.
+	 * @return the URL.
+	 * @throws UnsupportedEncodingException if the default encoding (UTF-8) is
+	 * not supported.
+	 */
 	private String buildTermUrl(String iri) throws UnsupportedEncodingException {
+		// IRI is double encoded in the URL
 		final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
 		return getBaseUrl() + TERMS_URL_SUFFIX + "/" + dblEncodedIri;
 	}
 
+	/**
+	 * Build the calls required to retrieve all the remaining pages of results
+	 * for a term lookup.
+	 * @param result the term result, holding the first page of results.
+	 * @return a list of lookup calls.
+	 */
 	private List<Callable<RelatedTermsResult>> createRemainingTermsCalls(RelatedTermsResult result) {
 		List<Callable<RelatedTermsResult>> calls;
 
 		try {
-			if (result.getTerms() == null || result.getTerms().isEmpty()) {
-				calls = Collections.emptyList();
-			} else {
+			if (result.hasTerms()) {
 				final String termUrl = buildTermUrl(getRelatedResultIri(result));
 				calls = createCalls(buildPageUrls(termUrl, 1, result.getPage().getTotalPages()), RelatedTermsResult.class);
+			} else {
+				calls = Collections.emptyList();
 			}
 		} catch (UnsupportedEncodingException e) {
 			// Not expecting to get here
@@ -186,6 +208,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	 * the first term found where <code>is_defining_ontology</code> is true,
 	 * or the first returned term, if there is no term from the defining
 	 * ontology.
+	 *
 	 * @param terms the embedded ontology term results object.
 	 * @return the definitive OntologyTerm, or <code>null</code> if none can
 	 * be found (this should only happen if the results list is empty).
@@ -233,6 +256,12 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return parents;
 	}
 
+	/**
+	 * Look up related terms of a particular type for an IRI.
+	 * @param iri the IRI whose related terms are required.
+	 * @param type the type of relationship being searched.
+	 * @return a collection of IRIs matching the required relationship.
+	 */
 	private Collection<String> findRelatedNonDefinitiveTerms(String iri, TermLinkType type) {
 		Collection<String> terms;
 
@@ -256,6 +285,15 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return terms;
 	}
 
+	/**
+	 * Find all of the terms which are related to a particular ontology term
+	 * with a particular relationship.
+	 * @param term the term being searched.
+	 * @param linkType the type of relationship to look up.
+	 * @return a collection of IRIs.
+	 * @throws OntologyHelperException if there are problems looking up the
+	 * relationship in the web service.
+	 */
 	private Collection<String> findRelatedTerms(OntologyTerm term, TermLinkType linkType) throws OntologyHelperException {
 		Collection<String> iris;
 
