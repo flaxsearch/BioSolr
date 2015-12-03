@@ -590,7 +590,8 @@
       <str name="labelField">efo_labels</str>
       
       <!-- Location of the ontology -->
-      <str name="ontologyURI">file:///home/mlp/Downloads/efo.owl</str>
+      <!--<str name="ontologyURI">file:///home/mlp/Downloads/efo.owl</str>-->
+      <str name="ontologyURI">http://www.ebi.ac.uk/efo/efo.owl</str>
       <!-- Location of the config file with synonym property URIs, etc. -->
       <str name="configurationFile">/home/mlp/flax/BioSolr/spot/spot-ontology/solr-conf/documents/conf/ontology/efo.properties</str>
     </processor>
