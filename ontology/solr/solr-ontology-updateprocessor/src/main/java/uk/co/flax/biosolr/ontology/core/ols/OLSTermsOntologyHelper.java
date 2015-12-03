@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.ols.terms.OntologyTerm;
-import uk.co.flax.biosolr.ontology.core.ols.terms.RelatedTermsResult;
+import uk.co.flax.biosolr.ontology.core.ols.terms.SingleTermResult;
 import uk.co.flax.biosolr.ontology.core.ols.terms.TermLinkType;
 
 import java.io.UnsupportedEncodingException;
@@ -43,8 +43,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSTermsOntologyHelper.class);
 
 	// Cache of terms with no defining ontology
-	private Map<String, Set<RelatedTermsResult>> nonDefinitiveTerms = new HashMap<>();
-
+	private Map<String, Set<SingleTermResult>> nonDefinitiveTerms = new HashMap<>();
 
 	public OLSTermsOntologyHelper(String baseUrl) {
 		super(baseUrl, null);
@@ -60,49 +59,43 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		Set<String> callIris = iris.stream()
 				.filter(i -> !nonDefinitiveTerms.containsKey(i))
 				.collect(Collectors.toSet());
-		List<Callable<RelatedTermsResult>> termsCalls = createTermsCalls(callIris);
-		List<RelatedTermsResult> callResults = executeCalls(termsCalls);
+		List<Callable<SingleTermResult>> termsCalls = createTermsCalls(callIris, 0, 1);
+		List<SingleTermResult> callResults = executeCalls(termsCalls);
 		List<OntologyTerm> terms = new ArrayList<>(iris.size());
 
-		Map<String, Set<RelatedTermsResult>> lookupMap = new HashMap<>();
-		callResults.forEach(r -> {
-			OntologyTerm t  = findDefinitiveTerm(r.getTerms());
-			if (t == null) {
-				if (r.isSinglePage()) {
-					// Single page and non-definitive - add to the ndt list, resolve later
-					nonDefinitiveTerms.put(getRelatedResultIri(r), Collections.singleton(r));
-				} else {
-					// Need to look up more pages - hold on to this result
-					Set<RelatedTermsResult> lookupSet = new TreeSet<>(
-							(RelatedTermsResult r1, RelatedTermsResult r2) -> r1.getPage().compareTo(r2.getPage()));
-					lookupSet.add(r);
-					lookupMap.put(getRelatedResultIri(r), lookupSet);
-				}
+		Map<String, Set<SingleTermResult>> lookupMap = new HashMap<>();
+		callResults.stream().filter(SingleTermResult::hasTerms).forEach(r -> {
+			if (r.isDefinitiveResult()) {
+				terms.add(r.getDefinitiveResult());
+			} else if (r.isSinglePage()) {
+				// Single page and non-definitive - add to the ndt list, resolve later
+				nonDefinitiveTerms.put(r.getIri(), Collections.singleton(r));
 			} else {
-				terms.add(t);
+				// Need to look up more pages - hold on to this result
+				Set<SingleTermResult> lookupSet = new TreeSet<>(
+						(SingleTermResult r1, SingleTermResult r2) -> r1.getPage().compareTo(r2.getPage()));
+				lookupSet.add(r);
+				lookupMap.put(r.getIri(), lookupSet);
 			}
 		});
 
 		if (!lookupMap.isEmpty()) {
-			List<Callable<RelatedTermsResult>> lookupCalls = new ArrayList<>(lookupMap.size());
-			lookupMap.values().stream()
-					.flatMap(Set::stream)
-					.map(this::createRemainingTermsCalls)
+			List<Callable<SingleTermResult>> lookupCalls = new ArrayList<>(lookupMap.size());
+			lookupMap.values().stream().flatMap(Set::stream)
+					.map(r -> createTermsCalls(Collections.singletonList(r.getIri()), 1, r.getPage().getTotalPages()))
 					.forEach(lookupCalls::addAll);
-			List<RelatedTermsResult> lookupResults = executeCalls(lookupCalls);
-			lookupResults.forEach(r -> {
-				if (lookupMap.containsKey(getRelatedResultIri(r)) && r.hasTerms()) {
-					OntologyTerm t = findDefinitiveTerm(r.getTerms());
-					if (t != null) {
-						// Found the definitive term for this IRI
-						terms.add(t);
-						lookupMap.remove(t.getIri());
-					} else {
-						// Still non-definitive - add page to lookup map
-						lookupMap.get(getRelatedResultIri(r)).add(r);
-					}
-				}
-			});
+			List<SingleTermResult> lookupResults = executeCalls(lookupCalls);
+			lookupResults.stream()
+					.filter(SingleTermResult::hasTerms)
+					.forEach(r -> {
+						if (lookupMap.containsKey(r.getIri()) && r.isDefinitiveResult()) {
+							terms.add(r.getDefinitiveResult());
+							lookupMap.remove(r.getIri());
+						} else {
+							// Still non-definitive - add page to lookup map
+							lookupMap.get(r.getIri()).add(r);
+						}
+					});
 
 			if (!lookupMap.isEmpty()) {
 				// These are now all non-definitive - add to the cache
@@ -113,11 +106,10 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		// Now grab the first term for the non-definitive terms
 		iris.stream()
 				.filter(nonDefinitiveTerms::containsKey)
-				.map(nonDefinitiveTerms::get)
-				.forEach(s -> {
-					OntologyTerm t = s.iterator().next().getFirstTerm();
-					if (t != null) {
-						terms.add(t);
+				.forEach(iri -> {
+					SingleTermResult r = nonDefinitiveTerms.get(iri).iterator().next();
+					if (r.hasTerms()) {
+						terms.add(r.getFirstTerm());
 					}
 				});
 
@@ -129,38 +121,19 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	 * @param iris the IRIs to look up.
 	 * @return a list of Callable requests.
 	 */
-	private List<Callable<RelatedTermsResult>> createTermsCalls(Collection<String> iris) {
+	private List<Callable<SingleTermResult>> createTermsCalls(Collection<String> iris, int startPage, int endPage) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
 			try {
 				final String termUrl = buildTermUrl(iri);
-				urls.addAll(buildPageUrls(termUrl, 0, 1));
+				urls.addAll(buildPageUrls(termUrl, startPage, endPage));
 			} catch (UnsupportedEncodingException e) {
 				// Not expecting to get here
 				LOGGER.error(e.getMessage());
 			}
 		}
-		return createCalls(urls, RelatedTermsResult.class);
-	}
-
-	/**
-	 * Get the IRI for this set of results. This assumes that the incoming
-	 * result is from a term query, and so all the IRIs in the result will
-	 * be the same.
-	 * @param result the result
-	 * @return the IRI of the first term in the result set, or <code>null</code>
-	 * if the result has no terms.
-	 */
-	private String getRelatedResultIri(RelatedTermsResult result) {
-		String ret = null;
-
-		OntologyTerm t = result.getFirstTerm();
-		if (t != null) {
-			ret = t.getIri();
-		}
-
-		return ret;
+		return createCalls(urls, SingleTermResult.class);
 	}
 
 	/**
@@ -174,56 +147,6 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		// IRI is double encoded in the URL
 		final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
 		return getBaseUrl() + TERMS_URL_SUFFIX + "/" + dblEncodedIri;
-	}
-
-	/**
-	 * Build the calls required to retrieve all the remaining pages of results
-	 * for a term lookup.
-	 * @param result the term result, holding the first page of results.
-	 * @return a list of lookup calls.
-	 */
-	private List<Callable<RelatedTermsResult>> createRemainingTermsCalls(RelatedTermsResult result) {
-		List<Callable<RelatedTermsResult>> calls;
-
-		try {
-			if (result.hasTerms()) {
-				final String termUrl = buildTermUrl(getRelatedResultIri(result));
-				calls = createCalls(buildPageUrls(termUrl, 1, result.getPage().getTotalPages()), RelatedTermsResult.class);
-			} else {
-				calls = Collections.emptyList();
-			}
-		} catch (UnsupportedEncodingException e) {
-			// Not expecting to get here
-			LOGGER.error(e.getMessage());
-			calls = Collections.emptyList();
-		}
-
-		return calls;
-	}
-
-	/**
-	 * Run through a list of OntologyTerm items, extracted from an embedded
-	 * ontology term results object, finding the
-	 * definitive definition of the term. This is defined as <em>either</em>
-	 * the first term found where <code>is_defining_ontology</code> is true,
-	 * or the first returned term, if there is no term from the defining
-	 * ontology.
-	 *
-	 * @param terms the embedded ontology term results object.
-	 * @return the definitive OntologyTerm, or <code>null</code> if none can
-	 * be found (this should only happen if the results list is empty).
-	 */
-	private static OntologyTerm findDefinitiveTerm(List<OntologyTerm> terms) {
-		OntologyTerm term = null;
-
-		for (OntologyTerm t : terms) {
-			if (t.isDefiningOntology()) {
-				term = t;
-				break;
-			}
-		}
-
-		return term;
 	}
 
 	@Override

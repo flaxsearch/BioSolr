@@ -51,6 +51,10 @@ public class RelatedTermsResult {
 		return embedded;
 	}
 
+	/**
+	 * Get the terms held in the embedded ontology terms list.
+	 * @return a list of terms. Never <code>null</code>.
+	 */
 	public List<OntologyTerm> getTerms() {
 		return (embedded == null ? Collections.emptyList() : embedded.getTerms());
 	}
@@ -68,16 +72,9 @@ public class RelatedTermsResult {
 		return page == null || page.getTotalPages() == 1;
 	}
 
-	public OntologyTerm getFirstTerm() {
-		OntologyTerm t = null;
-
-		if (hasTerms()) {
-			t = embedded.getTerms().get(0);
-		}
-
-		return t;
-	}
-
+	/**
+	 * @return <code>true</code> if this result contains any terms.
+	 */
 	public boolean hasTerms() {
 		return embedded != null && embedded.getTerms() != null && !embedded.getTerms().isEmpty();
 	}
