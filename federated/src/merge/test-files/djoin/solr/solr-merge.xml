@@ -28,5 +28,6 @@
     <core name="shard1" shard="${shard:}" collection="shard1" instanceDir="shard1"/>
     <core name="shard2" shard="${shard:}" collection="shard2" instanceDir="shard2"/>
     <core name="shard3" shard="${shard:}" collection="shard3" instanceDir="shard3"/>
+    <core name="shard4" shard="" collection="shard4" instanceDir="shard4"/>
   </cores>
 </solr>

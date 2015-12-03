@@ -18,8 +18,11 @@ package org.apache.solr.search.djoin;
  */
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.solr.SolrTestCaseJ4;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.request.SolrQueryRequest;
@@ -36,12 +39,15 @@ public abstract class BaseTestCase extends SolrTestCaseJ4 {
   public static void loadShardCore(String coreName, String[][] documents, String... fields) throws SAXException {
     TestHarnessWrapper w = new TestHarnessWrapper(h, coreName);
     for (String[] doc : documents) {
-      String[] fieldsAndValues = new String[2 * doc.length];
+      List<String> fieldsAndValues = new ArrayList<>(2 * doc.length);
       for (int i = 0; i < doc.length; ++i) {
-        fieldsAndValues[2 * i] = fields[i];
-        fieldsAndValues[2 * i + 1] = doc[i];
+        if (doc[i] == null) continue;
+        for (String value : doc[i].split(",")) {
+          fieldsAndValues.add(fields[i]);
+          fieldsAndValues.add(value);
+        }
       }
-      assertNull(w.validateUpdate(adoc(fieldsAndValues)));
+      assertNull(w.validateUpdate(adoc(fieldsAndValues.toArray(new String[fieldsAndValues.size()]))));
     }
     assertNull(w.validateUpdate(commit()));
   }
@@ -62,6 +68,19 @@ public abstract class BaseTestCase extends SolrTestCaseJ4 {
       return rsp;
     } finally {
       req.close();
+    }
+  }
+  
+  public static SolrDocumentList queryDocs(SolrCore core, String handlerName, SolrParams params) {
+    SolrQueryResponse rsp = query(core, handlerName, params);
+    assertNull(rsp.getException());
+    return (SolrDocumentList)rsp.getValues().get("response");
+  }
+  
+  public static void queryThrow(SolrCore core, String handlerName, SolrParams params) throws Exception {
+    SolrQueryResponse rsp = query(core, handlerName, params);
+    if (rsp.getException() != null) {
+      throw rsp.getException();
     }
   }
 
