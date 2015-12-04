@@ -24,7 +24,7 @@ Once you've done this, verify you can startup Solr:
 >: bin/solr start
 ```
 
-Now open a browser and check we can see the Solr admin page at http://localhost:8983/
+Now open a browser and check we can see the Solr admin page at [http://localhost:8983/](http://localhost:8983/)
 
 Now we're happy we can run Solr, so let's shut down our Solr server again...
 ```
@@ -46,7 +46,7 @@ We've supplied the required configuration to get us up and running quickly, so l
 >: solr-start.sh
 ```
 
-Now reload your page at http://localhost:8983 - this time, you should see a new documents core.  If so, great! Now we're ready to start indexing some data.
+Now reload your page at [http://localhost:8983/](http://localhost:8983/) - this time, you should see a new documents core.  If so, great! Now we're ready to start indexing some data.
 
 ## Part Two - Indexing some example data
 
