@@ -30,10 +30,10 @@ import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Factory class to build OntologyHelper instances.
@@ -48,6 +48,10 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
     public static final String OLS_ONTOLOGY_NAME = "olsOntology";
     public static final String OLS_THREADPOOL = "olsThreadpool";
     public static final String OLS_PAGE_SIZE = "olsPageSize";
+    public static final String LABEL_PROPERTIES = "labelProperties";
+    public static final String SYNONYM_PROPERTIES = "synonymProperties";
+    public static final String DEFINITION_PROPERTIES = "definitionProperties";
+    public static final String IGNORE_PROPERTIES = "ignoreProperties";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrOntologyHelperFactory.class);
 
@@ -59,14 +63,8 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
     }
 
 	private void validateParameters() {
-		if (StringUtils.isNotBlank(params.get(CONFIG_FILE_PARAM))) {
-			String configurationFile = params.get(CONFIG_FILE_PARAM);
-			Path path = FileSystems.getDefault().getPath(configurationFile);
-			if (!path.toFile().exists()) {
-				throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No such config file '" + configurationFile + "'");
-			}
-		} else if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) &&
-                (StringUtils.isBlank(params.get(OLS_BASE_URL)))) {
+		if (StringUtils.isBlank(params.get(ONTOLOGY_URI_PARAM)) &&
+				(StringUtils.isBlank(params.get(OLS_BASE_URL)))) {
 			throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, "No ontology URI or OLS base URL set - need one or the other!");
 		}
 	}
@@ -77,7 +75,7 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
 
         String ontologyUri = params.get(ONTOLOGY_URI_PARAM);
         if (StringUtils.isNotBlank(ontologyUri)) {
-            helper = buildOWLOntologyHelper(ontologyUri, params.get(CONFIG_FILE_PARAM));
+            helper = buildOWLOntologyHelper(ontologyUri, params);
         } else {
             String olsPrefix = params.get(OLS_BASE_URL);
 			String ontology = params.get(OLS_ONTOLOGY_NAME);
@@ -103,20 +101,20 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
         return helper;
     }
 
-    private OntologyHelper buildOWLOntologyHelper(String ontologyUri, String configurationFile) throws OntologyHelperException {
+    private OntologyHelper buildOWLOntologyHelper(String ontologyUri, SolrParams params) throws OntologyHelperException {
         OntologyHelper helper;
         try {
-            OWLOntologyConfiguration config;
-            if (StringUtils.isNotBlank(configurationFile)) {
-                config = OWLOntologyConfiguration.fromPropertiesFile(configurationFile);
-            } else {
-                config = OWLOntologyConfiguration.defaultConfiguration();
-            }
+            String[] labels = params.getParams(LABEL_PROPERTIES);
+            String[] synonyms = params.getParams(SYNONYM_PROPERTIES);
+            String[] definitions = params.getParams(DEFINITION_PROPERTIES);
+            String[] ignore = params.getParams(IGNORE_PROPERTIES);
 
+            OWLOntologyConfiguration config = new OWLOntologyConfiguration(
+					arrayToList(labels, OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+					arrayToList(synonyms, OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+					arrayToList(definitions, OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+					arrayToList(ignore));
             helper = new OWLOntologyHelper(ontologyUri, config);
-        } catch (IOException e) {
-            LOGGER.error("IO exception reading properties file: {}", e.getMessage());
-            throw new OntologyHelperException(e);
         } catch (URISyntaxException e) {
             LOGGER.error("URI exception initialising ontology helper: {}", e.getMessage());
             throw new OntologyHelperException(e);
@@ -127,5 +125,21 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
 
         return helper;
     }
+
+	private static List<String> arrayToList(String[] array, String... defaults) {
+		List<String> ret;
+
+		if (array == null || array.length == 0) {
+			ret = Arrays.asList(defaults);
+		} else {
+			ret = new ArrayList<>(array.length);
+			for (String entry : array) {
+				String[] parts = entry.split(",\\s*");
+				ret.addAll(Arrays.asList(parts));
+			}
+		}
+
+		return ret;
+	}
 
 }

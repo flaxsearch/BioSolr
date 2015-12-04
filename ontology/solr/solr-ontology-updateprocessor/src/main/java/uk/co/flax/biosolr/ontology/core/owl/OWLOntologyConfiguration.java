@@ -59,7 +59,7 @@ public class OWLOntologyConfiguration {
 		this.definitionPropertyUris = definitionUris;
 		this.ignorePropertyUris = ignoreUris;
 	}
-	
+
 	/**
 	 * Build an ontology configuration using sensible defaults.
 	 * @return the default ontology configuration.

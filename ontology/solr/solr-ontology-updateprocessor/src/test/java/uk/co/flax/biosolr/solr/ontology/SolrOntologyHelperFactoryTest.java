@@ -59,13 +59,6 @@ public class SolrOntologyHelperFactoryTest {
 		new SolrOntologyHelperFactory(params);
 	}
 
-	@Test(expected = org.apache.solr.common.SolrException.class)
-	public void construct_missingConfigFile() throws Exception {
-		Map<String, String> paramMap = new HashMap<>();
-		paramMap.put(SolrOntologyHelperFactory.CONFIG_FILE_PARAM, "blah");
-		new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
-	}
-
 	@Test
 	public void construct_missingOLSOntology() throws Exception {
 		Map<String, String> paramMap = new HashMap<>();
