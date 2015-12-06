@@ -51,6 +51,18 @@ Now reload your page at [http://localhost:8983/](http://localhost:8983/) - this 
 ## Part Two - Indexing some example data
 
 
-## Part Three - Run the BioSolr 
+## Part Three - Run the sample web application
+
+ 
+## Part Four - Install BioSolr plugins
+
+
+## Part Five - Configure BioSolr
+
+
+## Part Six - Reindex our data to take advantage of ontology enrichment
+
+
+## Part Seven - Ontology-powered search!
 
 
