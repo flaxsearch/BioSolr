@@ -89,7 +89,7 @@ Looks like we get 96 results - and most of these are results from the "Diabetes"
 
 #### Additional Task
 
-[x] You can explore the source code for this webapp by looking in the webapp/ directory of this Github repository.
+- [x] You can explore the source code for this webapp by looking in the webapp/ directory of this Github repository.
 
 TODO - find some good ontology expansion queries - measurements might show this, or else find expanded diseases
  
