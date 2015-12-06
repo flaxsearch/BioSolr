@@ -70,7 +70,7 @@ public class Document {
 	@Field("uri_key")
 	private int uriKey;
 	
-	@Field("efo_labels")
+	@Field("efo_uri_label_t")
 	private List<String> efoLabels;
 	
 	@Field("efo_uri_parent_labels_t")
