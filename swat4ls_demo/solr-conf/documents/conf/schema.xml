@@ -27,7 +27,7 @@
 	<field name="snp" type="string" indexed="true" stored="true" multiValued="false" />
 	<field name="disease_trait" type="text_general" indexed="true" stored="true" multiValued="false" />
     <field name="disease_trait_str" type="string" indexed="true" stored="false" multiValued="false" />
-	<field name="p_value" type="double" indexed="true" stored="true" multiValued="false" />
+	<!--<field name="p_value" type="double" indexed="true" stored="true" multiValued="false" />-->
 
 	<field name="efo_uri" type="string" indexed="true" stored="true" multiValued="false" />
 

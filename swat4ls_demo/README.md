@@ -50,6 +50,25 @@ Now reload your page at [http://localhost:8983/](http://localhost:8983/) - this 
 
 ## Part Two - Indexing some example data
 
+We've supplied some sample data to demonstrate how BioSolr can index information annotated with ontology terms. This data is stored in the file `data/gwas-catalog-annotation-data.csv` - you can open this file in Excel and take a look at it if you like. You'll see this file contains a column `efo_uri` which contains annotations to the Experimental Factor Ontology.
+
+*For reference:
+Data is taken from the GWAS Catalog:
+http://www.ebi.ac.uk/gwas
+Experimental Factor Ontology:
+http://www.ebi.ac.uk/efo*
+
+Now let's index this data.  You can upload CSV files directly to Solr using curl:
+
+```
+>: curl http://localhost:8983/solr/documents/update --data-binary @data/gwas-catalog-annotation-data.csv -H 'Content-type:application/csv'
+>: curl http://localhost:8983/solr/documents/update --data '<commit/>' -H 'Content-type:text/xml; charset=utf-8'
+
+```
+
+The first command here uploads the data, the second one commits the changes and makes your newly indexed documents visible.
+
+Now, if you open the admin interface once more and look at the overview of the documents core [http://localhost:8983/solr/#/documents](http://localhost:8983/solr/#/documents), you should see we now have 26,385 documents in our index.
 
 ## Part Three - Run the sample web application
 
