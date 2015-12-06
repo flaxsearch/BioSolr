@@ -58,8 +58,8 @@ public class Document {
 	@Field("disease_trait")
 	private String diseaseTrait;
 	
-	@Field("p_value")
-	private double pValue;
+//	@Field("p_value")
+//	private double pValue;
 	
 	@Field("efo_uri")
 	private String efoUri;
@@ -202,19 +202,19 @@ public class Document {
 		this.diseaseTrait = diseaseTrait;
 	}
 
-	/**
-	 * @return the pValue
-	 */
-	public double getpValue() {
-		return pValue;
-	}
-
-	/**
-	 * @param pValue the pValue to set
-	 */
-	public void setpValue(double pValue) {
-		this.pValue = pValue;
-	}
+//	/**
+//	 * @return the pValue
+//	 */
+//	public double getpValue() {
+//		return pValue;
+//	}
+//
+//	/**
+//	 * @param pValue the pValue to set
+//	 */
+//	public void setpValue(double pValue) {
+//		this.pValue = pValue;
+//	}
 
 	/**
 	 * @return the efoUri

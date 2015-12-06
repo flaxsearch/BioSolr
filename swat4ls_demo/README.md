@@ -72,10 +72,31 @@ Now, if you open the admin interface once more and look at the overview of the d
 
 Next, we've supplied you with a simple web application to search our new Solr index.  Let's try running this.
 
+```
+>: cd ~/Projects/BioSolr/swat4ls_demo/tools
+>: java -jar swat4ls-webapp-1.0-SNAPSHOT.jar server webapp.yml
+```
 
+You should see a bunch of logging information as the web application starts up. If all goes well, you'll eventually see a message like this:
+```
+INFO  [2015-12-06 18:50:49,002] org.eclipse.jetty.server.Server: Started @1637ms
+```
 
+Now we can open up our example application by browsing to [http://localhost:8080/](http://localhost:8080/).
+
+Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for "Diabetes".
+Looks like we get 96 results - and most of these are results from the "Diabetes" journal.
+
+#### Additional Task
+
+[x] You can explore the source code for this webapp by looking in the webapp/ directory of this Github repository.
+
+TODO - find some good ontology expansion queries - measurements might show this, or else find expanded diseases
  
 ## Part Four - Install BioSolr plugins
+
+Now we're going to try and improve our search results using the structure of the ontology.  To do this, we need to add the BioSolr ontology expansion plugin.
+
 
 
 ## Part Five - Configure BioSolr
