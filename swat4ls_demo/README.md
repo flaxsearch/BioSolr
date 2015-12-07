@@ -10,7 +10,6 @@ In this tutorial you will learn how to:
  * Install BioSolr plugins to ontology-enrich your Solr index
  * Configure BioSolr
  * Perform ontology-powered searches
- * Further enhance your searches with dynamic, ontology-enabled faceting
  
 ## Part One - Installing Solr
 
@@ -86,15 +85,25 @@ INFO  [2015-12-06 18:50:49,002] org.eclipse.jetty.server.Server: Started @1637ms
 
 Now we can open up our example application by browsing to [http://localhost:8080/](http://localhost:8080/).
 
-Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for "Diabetes".
-Looks like we get 96 results - and most of these are results from the "Diabetes" journal.
+Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for "Lung cancer".
+Looks like we get 31 results, all containing lung cancer in the title or the association line, so for example:
 
-TODO - find some good ontology expansion queries - measurements might show this, or else find expanded diseases
+> 1.    Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.
+>       Broderick P - Cancer Res
+>       rs4254535 is associated with Lung cancer
 
-Let's kill our search web application and move on to installing BioSolr.
+But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 3 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
+
+Let's try another example.  We could search for `schizophrenia` - this gives us nice results, we get 51 documents that seems to be annotated to schizophrenia or treatment responses in schizophrenia.  But what if we want other mental disorders?  If we search for `mental disorder` we get no results.
+
+BioSolr's ontology expansion plugin will help us improve these search results a lot.  So let's kill our search web application and move on to installing BioSolr.
 
 #### Additional Tasks
 
+- [x] Try searching for other diseases that you might expect to find results for
+- [x] What happens if you search by other anatomical features? Try `heart` or `liver`
+- [x] Does checking the boxes to include parent or child labels help?
+- [x] Can you find measurements?  For example, you could try searching for `blood markers`
 - [x] You can explore the source code for this webapp by looking in the `webapp/` directory of this Github repository.
  
 ## Part Four - Install BioSolr plugins
