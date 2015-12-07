@@ -88,9 +88,9 @@ Now we can open up our example application by browsing to [http://localhost:8080
 Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for `Lung cancer`.
 Looks like we get 31 results, all containing lung cancer in the title or the association line, so for example:
 
-> 1.    Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.  
+> 1.    **Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.**  
 >       Broderick P - Cancer Res.  
->       rs4254535 is associated with Lung cancer  
+>       *rs4254535* is associated with *Lung cancer*  
 
 But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 3 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
 
@@ -208,25 +208,25 @@ Then, we tried `lung disease` and only got 3 results.  Again, we should be able 
 - [x] Include parent labels
 Now if we rerun the search, we should see 53 results, across a whole variety of lung disease.  Our top hit, for example, should look like this:
 
-> 1.    Variants in FAM13A are associated with chronic obstructive pulmonary disease.  
+> 1.    **Variants in FAM13A are associated with chronic obstructive pulmonary disease.**  
 >       Cho MH - Nat Genet.  
->       rs7671167 is associated with Chronic obstructive pulmonary disease.  
->       Annotation chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].  
->       Children chronic bronchitis.  
->       Parent(s) lung disease.  
->       Has disease location trachea lung.  
+>       *rs7671167* is associated with *Chronic obstructive pulmonary disease.*   
+>       **Annotation** chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].  
+>       **Children** chronic bronchitis.  
+>       **Parent(s)** lung disease.  
+>       **Has disease location** trachea lung.  
 
 This looks much more like it! But we can even go one better than this - let's try searching for `lung` again. Uncheck all the boxes so we get 49 results.
 This time, though, let's also include diseases which are located in the lung...
 - [x] "Has disease location"
 Now you should see that we have 75 results; we're using relationships in the ontology to improve our results.  For example, one of our results looks like this:
 
-> 10.   Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.  
+> 10.   **Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.**  
 >       Kong X - Am J Respir Crit Care Med.  
->       rs641525 is associated with Emphysema-related traits.  
->       Annotation emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].  
->       Parent(s) lung disease.  
->       Has disease location lung.  
+>       *rs641525* is associated with *Emphysema-related traits.*  
+>       **Annotation** emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].  
+>       **Parent(s)** lung disease.  
+>       **Has disease location** lung.  
 
 If you look closely, you'll see that "lung" is not mentioned anywhere in our data, only the extra fields that have come from the ontology.  We'd actually have picked this result up by including parents (`lung disease`), but this is only because EFO nicely defines hierarchy.  If we were using a different ontology with a different hierarchy (maybe one which doesn't use hierarchy in the ways we'd like), we can use a relationship other than `is a` to find this result.
 
@@ -234,8 +234,24 @@ Next, we tried searching for `schizophrenia`.  Let's try this again - yep, still
 This isn't unexpected - most of our data about schizophrenia should be nicely mapped to a specific term and would include the text "schizophrenia" in the title or the annotation line.
 But last time we tried to search for other `mental disorders` and found no results at all.  Now, if we search including child labels, we got 150 results! This covers a wide range of disorders, like "schizophrenia", "bipolar disorder" and many more.  For example:
 
-> 1.    Cross-disorder genomewide analysis of schizophrenia, bipolar disorder, and depression.  
+> 1.    **Cross-disorder genomewide analysis of schizophrenia, bipolar disorder, and depression.**  
 >       Huang J - Am J Psychiatry  
->       rs1001021 is associated with Schizophrenia, bipolar disorder and depression (combined)  
->       Annotation bipolar disorder [http://www.ebi.ac.uk/efo/EFO_0000289]  
->       Parent(s) mental or behavioural disorder  
+>       *rs1001021* is associated with *Schizophrenia, bipolar disorder and depression (combined)*  
+>       **Annotation** bipolar disorder [http://www.ebi.ac.uk/efo/EFO_0000289]  
+>       **Parent(s)** mental or behavioural disorder  
+
+This shows the power of including additional information from the ontology in your Solr index. You'll also see the search is just as fast as it was previously: by including extra data when we built our index, we have almost no penalty in search time - which is usually the best option for users.
+
+#### Additional Tasks
+
+- [x] Play around with the index some more
+- [x] Can you redo the searches for anatomical features from earlier?  What happens if you search by `heart` or `liver` and include child terms?
+- [x] Try checking extra boxes to include additional relations.  Can you find more ways to search the data?
+
+## Conclusions
+
+This is the end of the BioSolr ontology expansion tutorial. You've seen how to install Solr, load some example data, extend Solr with the ontology expansion plugin developed by BioSolr into a Solr installation, and you've seen some of the extra features this plugin can give you.
+
+If you have any comments, questions or feedback on this demo, you can use the tracker for this repository here - https://github.com/flaxsearch/BioSolr/issues, or send an email to matt@flax.co.uk or tburdett@ebi.ac.uk.
+
+*BioSolr is funded by the BBSRC Flexible Interchange Programme (FLIP) grant number BB/M013146/1*
