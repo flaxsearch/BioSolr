@@ -19,8 +19,8 @@ ontologyApp
 		$scope.additionalFields = [];
 		$scope.selectedFacetStyle = $scope.facetStyle = "NONE";
 		// Kludge so we can use checklist-model for the parent/child label checkboxes
-		$scope.efo_child_labels = 'efo_child_labels';
-		$scope.efo_parent_labels = 'efo_parent_labels';
+		$scope.efo_child_labels = 'efo_uri_child_labels_t';
+		$scope.efo_parent_labels = 'efo_uri_parent_labels_t';
 	};
 	
 	self.logError = function(errorMsg) {
