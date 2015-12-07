@@ -207,24 +207,24 @@ Then, we tried `lung disease` and only got 3 results.  Again, we should be able 
 - [x] Include parent labels
 Now if we rerun the search, we should see 53 results, across a whole variety of lung disease.  Our top hit, for example, should look like this:
 
-> 1.    Variants in FAM13A are associated with chronic obstructive pulmonary disease.
->       Cho MH - Nat Genet.
->       rs7671167 is associ.ated with Chronic obstructive pulmonary disease.
->       Annotation chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].
->       Children chronic bronchitis.
->       Parent(s) lung disease.
->       Has disease location trachea lung.
+> 1.    Variants in FAM13A are associated with chronic obstructive pulmonary disease.  
+>       Cho MH - Nat Genet.  
+>       rs7671167 is associated with Chronic obstructive pulmonary disease.  
+>       Annotation chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].  
+>       Children chronic bronchitis.  
+>       Parent(s) lung disease.  
+>       Has disease location trachea lung.  
 
 This looks much more like it! But we can even go one better than this - let's try searching for `lung` again. Uncheck all the boxes so we get 49 results.
 This time, though, let's also include diseases which are located in the lung...
 - [x] "Has disease location"
 Now you should see that we have 75 results; we're using relationships in the ontology to improve our results.  For example, one of our results looks like this:
 
-> 10.   Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.
->       Kong X - Am J Respir Crit Care Med.
->       rs641525 is associated with Emphysema-related traits.
->       Annotation emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].
->       Parent(s) lung disease.
->       Has disease location lung.
+> 10.   Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.  
+>       Kong X - Am J Respir Crit Care Med.  
+>       rs641525 is associated with Emphysema-related traits.  
+>       Annotation emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].  
+>       Parent(s) lung disease.  
+>       Has disease location lung.  
 
 If you look closely, you'll see that "lung" is not mentioned anywhere in our data, only the extra fields that have come from the ontology.  We'd actually have picked this result up by including parents (`lung disease`), but this is only because EFO nicely defines hierarchy.  If we were using a different ontology with a different hierarchy (maybe one which doesn't use hierarchy in the ways we'd like), we can use a relationship other than `is a` to find this result.
