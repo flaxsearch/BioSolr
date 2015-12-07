@@ -60,7 +60,6 @@ Now let's index this data.  You can upload CSV files directly to Solr using curl
 ```
 >: curl http://localhost:8983/solr/documents/update --data-binary @data/gwas-catalog-annotation-data.csv -H 'Content-type:application/csv'
 >: curl http://localhost:8983/solr/documents/update --data '<commit/>' -H 'Content-type:text/xml; charset=utf-8'
-
 ```
 
 The first command here uploads the data, the second one commits the changes and makes your newly indexed documents visible.
