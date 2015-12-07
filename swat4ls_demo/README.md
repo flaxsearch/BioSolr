@@ -85,11 +85,11 @@ INFO  [2015-12-06 18:50:49,002] org.eclipse.jetty.server.Server: Started @1637ms
 
 Now we can open up our example application by browsing to [http://localhost:8080/](http://localhost:8080/).
 
-Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for "Lung cancer".
+Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for `Lung cancer`.
 Looks like we get 31 results, all containing lung cancer in the title or the association line, so for example:
 
 > 1.    Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.
->       Broderick P - Cancer Res
+>       Broderick P - Cancer Res.
 >       rs4254535 is associated with Lung cancer
 
 But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 3 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
@@ -201,5 +201,30 @@ Restart the application again:
 >: java -jar swat4ls-webapp-1.0-SNAPSHOT.jar server webapp.yml
 ```
 
-If we redo our search for "Diabetes" from earlier...
+Now let's go back to our earlier searches.  If you remember, we tried looking for `lung cancer` and we got 31 results.  We should be able to do the same search again, and get the same results.
 
+Then, we tried `lung disease` and only got 3 results.  Again, we should be able to verify this. But now let's check the box to use ontology expansion:
+- [x] Include parent labels
+Now if we rerun the search, we should see 53 results, across a whole variety of lung disease.  Our top hit, for example, should look like this:
+
+> 1.    Variants in FAM13A are associated with chronic obstructive pulmonary disease.
+>       Cho MH - Nat Genet.
+>       rs7671167 is associ.ated with Chronic obstructive pulmonary disease.
+>       Annotation chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].
+>       Children chronic bronchitis.
+>       Parent(s) lung disease.
+>       Has disease location trachea lung.
+
+This looks much more like it! But we can even go one better than this - let's try searching for `lung` again. Uncheck all the boxes so we get 49 results.
+This time, though, let's also include diseases which are located in the lung...
+- [x] "Has disease location"
+Now you should see that we have 75 results; we're using relationships in the ontology to improve our results.  For example, one of our results looks like this:
+
+> 10.   Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.
+>       Kong X - Am J Respir Crit Care Med.
+>       rs641525 is associated with Emphysema-related traits.
+>       Annotation emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].
+>       Parent(s) lung disease.
+>       Has disease location lung.
+
+If you look closely, you'll see that "lung" is not mentioned anywhere in our data, only the extra fields that have come from the ontology.  We'd actually have picked this result up by including parents (`lung disease`), but this is only because EFO nicely defines hierarchy.  If we were using a different ontology with a different hierarchy (maybe one which doesn't use hierarchy in the ways we'd like), we can use a relationship other than `is a` to find this result.
