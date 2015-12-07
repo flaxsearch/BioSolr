@@ -88,9 +88,9 @@ Now we can open up our example application by browsing to [http://localhost:8080
 Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for `Lung cancer`.
 Looks like we get 31 results, all containing lung cancer in the title or the association line, so for example:
 
-> 1.    Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.
->       Broderick P - Cancer Res.
->       rs4254535 is associated with Lung cancer
+> 1.    Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.  
+>       Broderick P - Cancer Res.  
+>       rs4254535 is associated with Lung cancer  
 
 But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 3 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
 
@@ -120,7 +120,7 @@ Before we start, let's shutdown our running Solr server
 Now, take the BioSolr plugin jar file out of the `plugins/` directory and copy it into our Solr setup.
 
 ```
->: mkdir solr-conf/lib
+>: mkdir solr-conf/documents/lib
 >: cp plugins/solr-ontology-update-processor-0.2.jar solr-conf/documents/lib/
 ```
 
@@ -200,6 +200,7 @@ Restart the application again:
 >: cd ~/Projects/BioSolr/swat4ls_demo/tools
 >: java -jar swat4ls-webapp-1.0-SNAPSHOT.jar server webapp.yml
 ```
+You'll straight away notice something new - lots of additional checkboxes (you might need to reload your page).  These are present because our webapp has noticed that we have additional ontology fields in our data.
 
 Now let's go back to our earlier searches.  If you remember, we tried looking for `lung cancer` and we got 31 results.  We should be able to do the same search again, and get the same results.
 
@@ -228,3 +229,13 @@ Now you should see that we have 75 results; we're using relationships in the ont
 >       Has disease location lung.  
 
 If you look closely, you'll see that "lung" is not mentioned anywhere in our data, only the extra fields that have come from the ontology.  We'd actually have picked this result up by including parents (`lung disease`), but this is only because EFO nicely defines hierarchy.  If we were using a different ontology with a different hierarchy (maybe one which doesn't use hierarchy in the ways we'd like), we can use a relationship other than `is a` to find this result.
+
+Next, we tried searching for `schizophrenia`.  Let's try this again - yep, still 51 results.  You'll notice if we include parent terms, we still get 51 results - our order might shuffle around a bit though. 
+This isn't unexpected - most of our data about schizophrenia should be nicely mapped to a specific term and would include the text "schizophrenia" in the title or the annotation line.
+But last time we tried to search for other `mental disorders` and found no results at all.  Now, if we search including child labels, we got 150 results! This covers a wide range of disorders, like "schizophrenia", "bipolar disorder" and many more.  For example:
+
+> 1.    Cross-disorder genomewide analysis of schizophrenia, bipolar disorder, and depression.  
+>       Huang J - Am J Psychiatry  
+>       rs1001021 is associated with Schizophrenia, bipolar disorder and depression (combined)  
+>       Annotation bipolar disorder [http://www.ebi.ac.uk/efo/EFO_0000289]  
+>       Parent(s) mental or behavioural disorder  
