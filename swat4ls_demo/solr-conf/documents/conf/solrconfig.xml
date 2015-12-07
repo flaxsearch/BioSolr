@@ -381,10 +381,11 @@
           title first_author publication efo_labels
        </str>
        <str name="df">text</str>
-       <str name="mm">75%</str>
+       <!--<str name="mm">75%</str>-->
        <str name="q.alt">*:*</str>
        <str name="rows">10</str>
        <str name="fl">*,score</str>
+       <str name="mm">2&lt;-25%</str>
        
        <!-- Grouping -->
        <str name="group">true</str>
