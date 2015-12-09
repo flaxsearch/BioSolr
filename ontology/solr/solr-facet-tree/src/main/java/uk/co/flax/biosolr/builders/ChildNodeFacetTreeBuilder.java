@@ -210,13 +210,13 @@ public class ChildNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	 * @return a filter string.
 	 */
 	private Query buildFilterQuery(String field, Collection<String> values) {
-		BooleanQuery bf = new BooleanQuery(true);
-		
-		values.stream()
-			.map(v -> new TermQuery(new Term(field, v)))
-			.forEach(tq -> bf.add(tq, Occur.SHOULD));
+		BooleanQuery.Builder builder = new BooleanQuery.Builder().setDisableCoord(true);
 
-		return bf;
+		values.stream()
+				.map(v -> new TermQuery(new Term(field, v)))
+				.forEach(tq -> builder.add(tq, Occur.SHOULD));
+
+		return builder.build();
 	}
 
 	/**
