@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;
+import uk.co.flax.biosolr.ontology.core.ols.OLSHttpClient;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
@@ -84,12 +85,12 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
 			if (StringUtils.isNotBlank(olsPrefix)) {
 				if (StringUtils.isBlank(ontology)) {
 					// Build OLS terms ontology helper
-					helper = new OLSTermsOntologyHelper(olsPrefix, pageSize, tpoolSize,
-							new DefaultSolrThreadFactory("olsTermsOntologyHelper"));
+					helper = new OLSTermsOntologyHelper(olsPrefix, pageSize,
+                            new OLSHttpClient(tpoolSize, new DefaultSolrThreadFactory("olsTermsOntologyHelper")));
 				} else {
 					// Build OLS ontology helper
-					helper = new OLSOntologyHelper(olsPrefix, ontology, pageSize, tpoolSize,
-							new DefaultSolrThreadFactory("olsOntologyHelper"));
+					helper = new OLSOntologyHelper(olsPrefix, ontology, pageSize,
+                            new OLSHttpClient(tpoolSize, new DefaultSolrThreadFactory("olsOntologyHelper")));
 				}
 			}
         }

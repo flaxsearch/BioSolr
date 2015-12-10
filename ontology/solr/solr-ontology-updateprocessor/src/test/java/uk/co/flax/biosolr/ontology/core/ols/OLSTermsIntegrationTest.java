@@ -44,127 +44,127 @@ public class OLSTermsIntegrationTest {
 
 	private static OntologyHelper helper;
 
-	@BeforeClass
-	public static void init() {
-		helper = new OLSTermsOntologyHelper(BASE_URL);
-	}
-
-	@AfterClass
-	public static void shutdown() {
-		helper.dispose();
-	}
-
-	@Test
-	public void isIriInOntology() throws Exception {
-		assertTrue(helper.isIriInOntology(OWLOntologyHelperMethodsTest.TEST_IRI));
-		assertFalse(helper.isIriInOntology(BAD_IRI));
-	}
-
-	@Test
-	public void findLabels() throws Exception {
-		Collection<String> labels = helper.findLabels(OWLOntologyHelperMethodsTest.TEST_IRI);
-		assertNotNull(labels);
-		assertTrue(labels.size() == 1);
-
-		labels = helper.findLabels(BAD_IRI);
-		assertNotNull(labels);
-		assertTrue(labels.isEmpty());
-	}
-
-	@Test
-	public void findLabelsForIris() throws Exception {
-		Collection<String> labels = helper.findLabelsForIRIs(
-				Arrays.asList(OWLOntologyHelperMethodsTest.TEST_IRI, OWLOntologyHelperMethodsTest.TEST_CHILD_IRI));
-		assertNotNull(labels);
-		assertTrue(labels.size() == 2);
-
-		labels = helper.findLabelsForIRIs(
-				Arrays.asList(OWLOntologyHelperMethodsTest.TEST_IRI, OWLOntologyHelperMethodsTest.TEST_CHILD_IRI, BAD_IRI));
-		assertNotNull(labels);
-		assertTrue(labels.size() == 2);
-	}
-
-	@Test
-	public void findSynonyms() throws Exception {
-		Collection<String> synonyms = helper.findSynonyms(OWLOntologyHelperMethodsTest.TEST_IRI);
-		assertNotNull(synonyms);
-		assertTrue(synonyms.size() == 1);
-
-		synonyms = helper.findSynonyms(BAD_IRI);
-		assertNotNull(synonyms);
-		assertTrue(synonyms.isEmpty());
-	}
-
-	@Test
-	public void findDefinitions() throws Exception {
-		Collection<String> definitions = helper.findDefinitions(OWLOntologyHelperMethodsTest.TEST_IRI);
-		assertNotNull(definitions);
-		assertTrue(definitions.size() >= 1);
-
-		definitions = helper.findDefinitions(BAD_IRI);
-		assertNotNull(definitions);
-		assertTrue(definitions.isEmpty());
-	}
-
-	@Test
-	public void getChildIris() throws Exception {
-		Collection<String> childIris = helper.getChildIris(OWLOntologyHelperMethodsTest.TEST_IRI);
-		assertNotNull(childIris);
-		assertTrue(childIris.size() >= 1);
-
-		// EFO_0003924 has no children - should not return null!
-		childIris = helper.getChildIris("http://www.ebi.ac.uk/efo/EFO_0003924");
-		assertNotNull(childIris);
-		assertTrue(childIris.isEmpty());
-
-		childIris = helper.getChildIris(BAD_IRI);
-		assertNotNull(childIris);
-		assertTrue(childIris.isEmpty());
-	}
-
-	@Test
-	public void getDescendantIris() throws Exception {
-		Collection<String> descendantIris = helper.getDescendantIris(DESCENDANT_IRI);
-		assertNotNull(descendantIris);
-		assertTrue(descendantIris.size() >= 1);
-
-		descendantIris = helper.getDescendantIris(BAD_IRI);
-		assertNotNull(descendantIris);
-		assertTrue(descendantIris.isEmpty());
-	}
-
-	@Test
-	public void getParentIris() throws Exception {
-		Collection<String> parentIris = helper.getParentIris(OWLOntologyHelperMethodsTest.TEST_CHILD_IRI);
-		assertNotNull(parentIris);
-		assertTrue(parentIris.size() >= 1);
-
-		parentIris = helper.getParentIris(BAD_IRI);
-		assertNotNull(parentIris);
-		assertTrue(parentIris.isEmpty());
-	}
-
-	@Test
-	public void getAncestorIris() throws Exception {
-		Collection<String> ancestorIris = helper.getAncestorIris(DESCENDANT_IRI);
-		assertNotNull(ancestorIris);
-		assertTrue(ancestorIris.size() >= 1);
-
-		ancestorIris = helper.getAncestorIris(BAD_IRI);
-		assertNotNull(ancestorIris);
-		assertTrue(ancestorIris.isEmpty());
-	}
-
-	@Test
-	public void getRelations() throws Exception {
-		Map<String, Collection<String>> relations = helper.getRelations(GRAPH_IRI);
-		assertNotNull(relations);
-		assertTrue(relations.size() >= 1);
-		assertTrue(relations.containsKey("has_disease_location"));
-
-		relations = helper.getRelations(BAD_IRI);
-		assertNotNull(relations);
-		assertTrue(relations.isEmpty());
-	}
+//	@BeforeClass
+//	public static void init() {
+//		helper = new OLSTermsOntologyHelper(BASE_URL);
+//	}
+//
+//	@AfterClass
+//	public static void shutdown() {
+//		helper.dispose();
+//	}
+//
+//	@Test
+//	public void isIriInOntology() throws Exception {
+//		assertTrue(helper.isIriInOntology(OWLOntologyHelperMethodsTest.TEST_IRI));
+//		assertFalse(helper.isIriInOntology(BAD_IRI));
+//	}
+//
+//	@Test
+//	public void findLabels() throws Exception {
+//		Collection<String> labels = helper.findLabels(OWLOntologyHelperMethodsTest.TEST_IRI);
+//		assertNotNull(labels);
+//		assertTrue(labels.size() == 1);
+//
+//		labels = helper.findLabels(BAD_IRI);
+//		assertNotNull(labels);
+//		assertTrue(labels.isEmpty());
+//	}
+//
+//	@Test
+//	public void findLabelsForIris() throws Exception {
+//		Collection<String> labels = helper.findLabelsForIRIs(
+//				Arrays.asList(OWLOntologyHelperMethodsTest.TEST_IRI, OWLOntologyHelperMethodsTest.TEST_CHILD_IRI));
+//		assertNotNull(labels);
+//		assertTrue(labels.size() == 2);
+//
+//		labels = helper.findLabelsForIRIs(
+//				Arrays.asList(OWLOntologyHelperMethodsTest.TEST_IRI, OWLOntologyHelperMethodsTest.TEST_CHILD_IRI, BAD_IRI));
+//		assertNotNull(labels);
+//		assertTrue(labels.size() == 2);
+//	}
+//
+//	@Test
+//	public void findSynonyms() throws Exception {
+//		Collection<String> synonyms = helper.findSynonyms(OWLOntologyHelperMethodsTest.TEST_IRI);
+//		assertNotNull(synonyms);
+//		assertTrue(synonyms.size() == 1);
+//
+//		synonyms = helper.findSynonyms(BAD_IRI);
+//		assertNotNull(synonyms);
+//		assertTrue(synonyms.isEmpty());
+//	}
+//
+//	@Test
+//	public void findDefinitions() throws Exception {
+//		Collection<String> definitions = helper.findDefinitions(OWLOntologyHelperMethodsTest.TEST_IRI);
+//		assertNotNull(definitions);
+//		assertTrue(definitions.size() >= 1);
+//
+//		definitions = helper.findDefinitions(BAD_IRI);
+//		assertNotNull(definitions);
+//		assertTrue(definitions.isEmpty());
+//	}
+//
+//	@Test
+//	public void getChildIris() throws Exception {
+//		Collection<String> childIris = helper.getChildIris(OWLOntologyHelperMethodsTest.TEST_IRI);
+//		assertNotNull(childIris);
+//		assertTrue(childIris.size() >= 1);
+//
+//		// EFO_0003924 has no children - should not return null!
+//		childIris = helper.getChildIris("http://www.ebi.ac.uk/efo/EFO_0003924");
+//		assertNotNull(childIris);
+//		assertTrue(childIris.isEmpty());
+//
+//		childIris = helper.getChildIris(BAD_IRI);
+//		assertNotNull(childIris);
+//		assertTrue(childIris.isEmpty());
+//	}
+//
+//	@Test
+//	public void getDescendantIris() throws Exception {
+//		Collection<String> descendantIris = helper.getDescendantIris(DESCENDANT_IRI);
+//		assertNotNull(descendantIris);
+//		assertTrue(descendantIris.size() >= 1);
+//
+//		descendantIris = helper.getDescendantIris(BAD_IRI);
+//		assertNotNull(descendantIris);
+//		assertTrue(descendantIris.isEmpty());
+//	}
+//
+//	@Test
+//	public void getParentIris() throws Exception {
+//		Collection<String> parentIris = helper.getParentIris(OWLOntologyHelperMethodsTest.TEST_CHILD_IRI);
+//		assertNotNull(parentIris);
+//		assertTrue(parentIris.size() >= 1);
+//
+//		parentIris = helper.getParentIris(BAD_IRI);
+//		assertNotNull(parentIris);
+//		assertTrue(parentIris.isEmpty());
+//	}
+//
+//	@Test
+//	public void getAncestorIris() throws Exception {
+//		Collection<String> ancestorIris = helper.getAncestorIris(DESCENDANT_IRI);
+//		assertNotNull(ancestorIris);
+//		assertTrue(ancestorIris.size() >= 1);
+//
+//		ancestorIris = helper.getAncestorIris(BAD_IRI);
+//		assertNotNull(ancestorIris);
+//		assertTrue(ancestorIris.isEmpty());
+//	}
+//
+//	@Test
+//	public void getRelations() throws Exception {
+//		Map<String, Collection<String>> relations = helper.getRelations(GRAPH_IRI);
+//		assertNotNull(relations);
+//		assertTrue(relations.size() >= 1);
+//		assertTrue(relations.containsKey("has_disease_location"));
+//
+//		relations = helper.getRelations(BAD_IRI);
+//		assertNotNull(relations);
+//		assertTrue(relations.isEmpty());
+//	}
 
 }

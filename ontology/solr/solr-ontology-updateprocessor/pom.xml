@@ -16,6 +16,7 @@
 		<solr.version>5.3.1</solr.version>
 		<owlapi.version>3.5.2</owlapi.version>
 		<jackson.version>2.5.4</jackson.version>
+		<guava.version>18.0</guava.version>
 	</properties>
 
 	<build>
@@ -53,6 +54,12 @@
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<!-- Solr - not required in fat jar -->
 		<dependency>
 			<groupId>org.apache.solr</groupId>
@@ -130,6 +137,18 @@
 			<artifactId>solr-test-framework</artifactId>
 			<version>${solr.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mock-server</groupId>
+			<artifactId>mockserver-netty</artifactId>
+			<version>3.10.1</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>

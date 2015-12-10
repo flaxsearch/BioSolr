@@ -62,8 +62,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	private final String ontology;
 	private final int pageSize;
 
-	private final Client client;
-	private final ExecutorService executor;
+	protected final OLSHttpClient olsClient;
 
 	// Map caching the ontology terms after lookup
 	private final Map<String, OntologyTerm> terms = new HashMap<>();
@@ -77,27 +76,15 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private long lastCallTime;
 
-	public OLSOntologyHelper(String baseUrl, String ontology) {
-		this(baseUrl, ontology, PAGE_SIZE, THREADPOOL_SIZE, null);
+	public OLSOntologyHelper(String baseUrl, String ontology, OLSHttpClient olsClient) {
+		this(baseUrl, ontology, PAGE_SIZE, olsClient);
 	}
 
-	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, int threadPoolSize, ThreadFactory threadFactory) {
+	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, OLSHttpClient olsClient) {
 		this.baseUrl = buildBaseUrl(baseUrl, ontology);
 		this.ontology = ontology;
 		this.pageSize = pageSize;
-
-		// Initialise the HTTP client
-		this.client = ClientBuilder.newBuilder()
-				.register(ObjectMapperResolver.class)
-				.register(JacksonFeature.class)
-				.build();
-
-		// Initialise the concurrent executor
-		this.executor = Objects.isNull(threadFactory) ?
-				Executors.newFixedThreadPool(threadPoolSize) :
-				Executors.newFixedThreadPool(threadPoolSize, new DefaultSolrThreadFactory("olsOntologyHelper"));
-		LOGGER.trace("Initialising OLS ontology helper with threadpool size {}, results page size {}",
-				threadPoolSize, pageSize);
+		this.olsClient = olsClient;
 	}
 
 	private String buildBaseUrl(final String baseUrl, final String ontology) {
@@ -121,8 +108,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	@Override
 	public void dispose() {
 		LOGGER.info("Disposing of OLS ontology helper for {}", ontology);
-		executor.shutdown();
-		client.close();
+		olsClient.shutdown();
 	}
 
 	/**
@@ -163,53 +149,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * @throws OntologyHelperException if the lookup is interrupted.
 	 */
 	protected List<OntologyTerm> lookupTerms(final List<String> iris) throws OntologyHelperException {
-		List<Callable<OntologyTerm>> termsCalls = createTermsCalls(iris);
-		return executeCalls(termsCalls);
+		Collection<String> callUrls = createCallUrls(iris);
+		return olsClient.callOLS(callUrls, OntologyTerm.class);
 	}
 
-	/**
-	 * Asynchronously carry out a list of callable tasks, such as looking up
-	 * ontology terms, returning the objects deserialized from the returned
-	 * data.
-	 * @param calls the list of calls to make.
-	 * @param <T> the type of object to deserialize.
-	 * @return a list of deserialized objects.
-	 * @throws OntologyHelperException if the calls are interrupted while
-	 * being made.
-	 */
-	protected <T> List<T> executeCalls(final List<Callable<T>> calls) throws OntologyHelperException {
-		List<T> ret = new ArrayList<>(calls.size());
-
-		try {
-			List<Future<T>> holders = executor.invokeAll(calls);
-			holders.forEach(h -> {
-				try {
-					ret.add(h.get());
-				} catch (ExecutionException e) {
-					if (e.getCause() instanceof NotFoundException) {
-						NotFoundException nfe = (NotFoundException)e.getCause();
-						LOGGER.warn("Caught NotFoundException: {}", nfe.getResponse().toString());
-					} else {
-						LOGGER.error(e.getMessage(), e);
-					}
-				} catch (InterruptedException e) {
-					LOGGER.error(e.getMessage());
-				}
-			});
-		} catch (InterruptedException e) {
-			Thread.interrupted();
-			throw new OntologyHelperException(e);
-		}
-
-		return ret;
-	}
-
-	/**
-	 * Build a list of callable requests to look up IRI terms.
-	 * @param iris the IRIs to look up.
-	 * @return a list of Callable requests.
-	 */
-	private List<Callable<OntologyTerm>> createTermsCalls(List<String> iris) {
+	private Collection<String> createCallUrls(List<String> iris) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
@@ -221,24 +165,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 				LOGGER.error(e.getMessage());
 			}
 		}
-		return createCalls(urls, OntologyTerm.class);
-	}
-
-	/**
-	 * Build a list of calls, each returning the same object type.
-	 * @param urls the URLs to be called.
-	 * @param clazz the type of object returned by the call.
-	 * @param <T> placeholder for the clazz parameter.
-	 * @return a list of Callable requests.
-	 */
-	protected <T> List<Callable<T>> createCalls(List<String> urls, Class<T> clazz) {
-		List<Callable<T>> calls = new ArrayList<>(urls.size());
-
-		urls.forEach(url -> calls.add(() ->
-			client.target(url).request(MediaType.APPLICATION_JSON_TYPE).get(clazz)
-		));
-
-		return calls;
+		return urls;
 	}
 
 	@Override
@@ -414,12 +341,12 @@ public class OLSOntologyHelper implements OntologyHelper {
 	protected Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
 		Set<String> retList;
 
-		// Build call for first page
-		List<Callable<RelatedTermsResult>> calls = createCalls(buildPageUrls(baseUrl, 0, 1), RelatedTermsResult.class);
+		// Build URL for first page
+		List<String> urls = buildPageUrls(baseUrl, 0, 1);
 		// Sort returned calls by page number
 		SortedSet<RelatedTermsResult> results = new TreeSet<>(
 				(RelatedTermsResult r1, RelatedTermsResult r2) -> r1.getPage().compareTo(r2.getPage()));
-		results.addAll(executeCalls(calls));
+		results.addAll(olsClient.callOLS(urls, RelatedTermsResult.class));
 
 		if (results.size() == 0) {
 			retList = Collections.emptySet();
@@ -427,10 +354,8 @@ public class OLSOntologyHelper implements OntologyHelper {
 			Page page = results.first().getPage();
 			if (page.getTotalPages() > 1) {
 				// Get remaining pages
-				calls = createCalls(
-						buildPageUrls(baseUrl, page.getNumber() + 1, page.getTotalPages()),
-						RelatedTermsResult.class);
-				results.addAll(executeCalls(calls));
+				urls = buildPageUrls(baseUrl, page.getNumber() + 1, page.getTotalPages());
+				results.addAll(olsClient.callOLS(urls, RelatedTermsResult.class));
 			}
 
 			retList = new HashSet<>(page.getTotalSize());
@@ -489,8 +414,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		if (!graphs.containsKey(iri)) {
 			String graphUrl = getLinkUrl(terms.get(iri), TermLinkType.GRAPH);
 			if (graphUrl != null) {
-				List<Callable<Graph>> calls = createCalls(Collections.singletonList(graphUrl), Graph.class);
-				List<Graph> graphResults = executeCalls(calls);
+				List<Graph> graphResults = olsClient.callOLS(Collections.singletonList(graphUrl), Graph.class);
 				if (graphResults.size() > 0){
 					graphs.put(iri, graphResults.get(0));
 					cacheGraphLabels(graphResults.get(0));
