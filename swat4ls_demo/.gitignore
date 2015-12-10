@@ -4,3 +4,6 @@ solr-conf/documents/lib
 
 # Any local files
 *_local.*
+
+# idea files
+.idea*

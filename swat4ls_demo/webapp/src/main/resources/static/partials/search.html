@@ -31,11 +31,12 @@
 		<div class="col-md-9">
 			<strong>{{ result.title }}</strong><br />
 			{{result.firstAuthor}} - {{result.publication}}<br />
+			<i>{{result.snp}}</i> is associated with <i>{{result.diseaseTrait}}</i>
 			<div ng-show="result.efoLabels" class="row">
 				<div class="col-md-3"><strong>Annotation</strong></div>
 				<div class="col-md-9">
 				 <ul class="label-display">
-					 <li ng-repeat="label in result.efoLabels">{{ label }}</li>
+					 <li ng-repeat="label in result.efoLabels">{{ label }} [<a target="_blank" href="{{ result.efoUri }}">{{ result.efoUri }}</a>]</li>
 				 </ul>
 				</div>
 			</div>
