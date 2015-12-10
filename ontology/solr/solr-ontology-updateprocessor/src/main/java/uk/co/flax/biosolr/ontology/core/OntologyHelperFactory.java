@@ -22,6 +22,6 @@ public interface OntologyHelperFactory {
 	 * @throws OntologyHelperException if problems occur constructing the helper
 	 * - eg. the OWL file cannot be found, or similar.
 	 */
-	public OntologyHelper buildOntologyHelper() throws OntologyHelperException;
+	OntologyHelper buildOntologyHelper() throws OntologyHelperException;
 
 }

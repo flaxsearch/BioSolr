@@ -85,6 +85,7 @@ public class OLSHttpClientTest {
 
 		OLSHttpClient client = new OLSHttpClient(8, null);
 		Collection<OntologyTerm> terms = client.callOLS(Collections.singletonList(TEST_SERVER + badPath), OntologyTerm.class);
+		client.shutdown();
 
 		assertNotNull(terms);
 		assertTrue(terms.isEmpty());
@@ -101,6 +102,7 @@ public class OLSHttpClientTest {
 
 		OLSHttpClient client = new OLSHttpClient(8, null);
 		Collection<OntologyTerm> terms = client.callOLS(Collections.singletonList(TEST_SERVER + testPath), OntologyTerm.class);
+		client.shutdown();
 
 		assertNotNull(terms);
 		assertFalse(terms.isEmpty());
@@ -138,7 +140,7 @@ public class OLSHttpClientTest {
 	}
 
 	public static File getFile(String filepath) throws URISyntaxException {
-		URL fileUrl = OLSIntegrationTest.class.getClassLoader().getResource(filepath);
+		URL fileUrl = OLSHttpClientTest.class.getClassLoader().getResource(filepath);
 		if (fileUrl == null) {
 			throw new URISyntaxException(filepath, "Cannot build file URL");
 		}
