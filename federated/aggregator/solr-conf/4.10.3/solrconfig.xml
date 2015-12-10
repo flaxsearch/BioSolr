@@ -919,9 +919,9 @@
      </lst>
   </requestHandler>
 
-  <queryParser name="djoin" class="org.apache.solr.search.djoin.DJoinQParserPlugin" />
+  <queryParser name="djoin" class="org.apache.solr.search.federated.DJoinQParserPlugin" />
   
-  <searchComponent name="merge" class="org.apache.solr.search.djoin.MergeSearchComponent" />
+  <searchComponent name="merge" class="org.apache.solr.search.federated.MergeSearchComponent" />
   
   <requestHandler name="/federated" class="solr.SearchHandler">
     <lst name="defaults">
