@@ -125,12 +125,17 @@ Default: `annotationField_synonyms_t`.
 * **definitionField** - the field to use to store definitions. If left empty,
 definitions will not be indexed.
 Default: `annotationField_definition_t`.
-* **configurationFile** - the path to a properties-style file containing 
-additional, ontology-specific configuration, such as the property annotation to use
-for synonyms, definitions, etc. [See below](#additional-configuration-owl-files)
-for the format of this file, and
-the default values used when not defined. There is no default value for this
-configuration option.
+* **labelProperties** *[OWL file only]* - the label properties annotation(s). 
+There may be multiple definitions of this property. Defaults to the label 
+properties value shown [below](#additional-configuration-owl-files).
+* **synonymProperties** *[OWL file only]* - the synonym properties 
+annotation(s). There may be multiple definitions of this property. 
+Defaults to the synonym properties value shown 
+[below](#additional-configuration-owl-files).
+* **definitionProperties** *[OWL file only]* - the definition properties 
+annotation(s). There may be multiple definitions of this property. 
+Defaults to the definition properties value shown 
+[below](#additional-configuration-owl-files).
 
 
 ### Additional configuration (OWL files)
@@ -138,26 +143,25 @@ configuration option.
 The plugin attempts to use sensible defaults for the property annotations for 
 labels, synonyms and definitions. However, if the ontology being referenced uses
 different annotations for these properties, you will need to specify them in
-an external properties file, referenced by the `configurationFile` config
-option described above.
+the configuration, using the `labelProperties`, `synonymProperties` and
+`definitionProperties` options.
 
 The format is as follows (with the default values given):
 
 ```
-label_properties = http://www.w3.org/2000/01/rdf-schema#label
-definition_properties = http://purl.obolibrary.org/obo/IAO_0000115
-synonym_properties = http://www.geneontology.org/formats/oboInOwl#hasExactSynonym
-ignore_properties = 
+<str name="labelProperties">http://www.w3.org/2000/01/rdf-schema#label</str>
+<str name="definitionProperties">http://purl.obolibrary.org/obo/IAO_0000115</str>
+<str name="synonymProperties">http://www.geneontology.org/formats/oboInOwl#hasExactSynonym</str>
 ```
 
-If more than one property is required, these should be comma-separated:
+There may be more than one definition for each property. For example:
 
-    synonym_properties = http://www.ebi.ac.uk/efo/alternative_term, http://www.geneontology.org/formats/oboInOwl#hasExactSynonym
+    <str name="synonymProperties">http://www.ebi.ac.uk/efo/alternative_term</str>
+    <str name="synonymProperties">http://www.geneontology.org/formats/oboInOwl#hasExactSynonym</str>
 
-The `ignore_properties` definition indicates that any nodes found under this
-class should be ignored. This can be useful when indexing related nodes which may now
-be obsolete, for example.
+Alternatively, the properties may be comma-delimited:
 
+    <str name="synonymProperties">http://www.ebi.ac.uk/efo/alternative_term,http://www.geneontology.org/formats/oboInOwl#hasExactSynonym</str>
 
 ### Additional configuration (OLS)
  
@@ -170,5 +174,7 @@ in a single annotation field.
 When an ontology is not specified, the plugin will use the OLS field 
 `is_defining_ontology` to attempt to find the best version of a record to use.
 If no defining ontology can be found, it will usually default to the first
-instance of the record returned by the search. This may result in unexpected
-content in the related nodes fields (parents, children, other relations).
+instance of the record returned by the search for its label, synonym and 
+definitions. The parent, child and other relationship fields will be
+generated using *all* of the records, which can take a long time and result
+in a lot of data being indexed.

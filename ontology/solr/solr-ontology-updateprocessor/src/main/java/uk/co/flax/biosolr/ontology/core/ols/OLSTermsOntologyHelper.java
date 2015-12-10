@@ -25,8 +25,6 @@ import uk.co.flax.biosolr.ontology.core.ols.terms.TermLinkType;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 
 /**
@@ -45,12 +43,12 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	// Cache of terms with no defining ontology
 	private Map<String, Set<SingleTermResult>> nonDefinitiveTerms = new HashMap<>();
 
-	public OLSTermsOntologyHelper(String baseUrl) {
-		super(baseUrl, null);
+	public OLSTermsOntologyHelper(String baseUrl, OLSHttpClient olsClient) {
+		super(baseUrl, null, olsClient);
 	}
 
-	public OLSTermsOntologyHelper(String baseUrl, int pageSize, int threadpoolSize, ThreadFactory threadFactory) {
-		super(baseUrl, null, pageSize, threadpoolSize, threadFactory);
+	public OLSTermsOntologyHelper(String baseUrl, int pageSize, OLSHttpClient olsClient) {
+		super(baseUrl, null, pageSize, olsClient);
 	}
 
 	@Override
@@ -59,8 +57,8 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		Set<String> callIris = iris.stream()
 				.filter(i -> !nonDefinitiveTerms.containsKey(i))
 				.collect(Collectors.toSet());
-		List<Callable<SingleTermResult>> termsCalls = createTermsCalls(callIris, 0, 1);
-		List<SingleTermResult> callResults = executeCalls(termsCalls);
+		Collection<String> termsUrls = createTermsURLs(callIris, 0, 1);
+		List<SingleTermResult> callResults = olsClient.callOLS(termsUrls, SingleTermResult.class);
 		List<OntologyTerm> terms = new ArrayList<>(iris.size());
 
 		Map<String, Set<SingleTermResult>> lookupMap = new HashMap<>();
@@ -80,11 +78,11 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		});
 
 		if (!lookupMap.isEmpty()) {
-			List<Callable<SingleTermResult>> lookupCalls = new ArrayList<>(lookupMap.size());
+			List<String> lookupUrls = new ArrayList<>(lookupMap.size());
 			lookupMap.values().stream().flatMap(Set::stream)
-					.map(r -> createTermsCalls(Collections.singletonList(r.getIri()), 1, r.getPage().getTotalPages()))
-					.forEach(lookupCalls::addAll);
-			List<SingleTermResult> lookupResults = executeCalls(lookupCalls);
+					.map(r -> createTermsURLs(Collections.singletonList(r.getIri()), 1, r.getPage().getTotalPages()))
+					.forEach(lookupUrls::addAll);
+			List<SingleTermResult> lookupResults = olsClient.callOLS(lookupUrls, SingleTermResult.class);
 			lookupResults.stream()
 					.filter(SingleTermResult::hasTerms)
 					.forEach(r -> {
@@ -116,12 +114,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return terms;
 	}
 
-	/**
-	 * Build a list of callable requests to look up IRI terms.
-	 * @param iris the IRIs to look up.
-	 * @return a list of Callable requests.
-	 */
-	private List<Callable<SingleTermResult>> createTermsCalls(Collection<String> iris, int startPage, int endPage) {
+	private Collection<String> createTermsURLs(Collection<String> iris, int startPage, int endPage) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
 		for (final String iri : iris) {
@@ -133,7 +126,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 				LOGGER.error(e.getMessage());
 			}
 		}
-		return createCalls(urls, SingleTermResult.class);
+		return urls;
 	}
 
 	/**

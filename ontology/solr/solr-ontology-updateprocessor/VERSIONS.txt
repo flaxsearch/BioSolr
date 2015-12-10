@@ -11,3 +11,9 @@ Version 0.2
 -----------
 
 - Add support for adding ontology data from the EBI's Ontology Lookup Service beta site.
+
+
+Version 0.3
+-----------
+
+- Add support for reading ontology data from the OLS without knowing the ontology.

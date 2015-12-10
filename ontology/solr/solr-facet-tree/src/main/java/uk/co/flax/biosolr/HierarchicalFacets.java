@@ -50,7 +50,7 @@ import uk.co.flax.biosolr.pruning.PrunerFactory;
 /**
  * Facet generator to process and build one or more hierarchical facet
  * trees. This deals with the parameter processing and retrieving the
- * base facet values, before handing over to {@link FacetGenerator}
+ * base facet values, before handing over to {@link FacetTreeGenerator}
  * instances to actually build the facet tree.
  * 
  * @author mlp
@@ -94,14 +94,15 @@ public class HierarchicalFacets extends SimpleFacets {
 			
 			for (String fTree : facetTrees) {
 				try {
-					this.parseParams(FacetTreeParameters.LOCAL_PARAM_TYPE, fTree);
+					ParsedParams parsedParams = parseParams(FacetTreeParameters.LOCAL_PARAM_TYPE, fTree);
+					SolrParams localParams = parsedParams.localParams;
 					FacetTreeBuilder treeBuilder = treeBuilderFactory.constructFacetTreeBuilder(localParams);
 					final String localKey = localParams.get(QueryParsing.V);
 					
 					final FacetTreeGenerator generator = new FacetTreeGenerator(treeBuilder, 
 							localParams.get(FacetTreeParameters.COLLECTION_PARAM, null),
 							prunerFactory.constructPruner(localParams));
-					final NamedList<Integer> termCounts = getTermCounts(localKey);
+					final NamedList<Integer> termCounts = getTermCounts(localKey, parsedParams);
 					Callable<NamedList> callable = new Callable<NamedList>() {
 						@Override
 						public NamedList call() throws Exception {
