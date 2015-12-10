@@ -174,5 +174,7 @@ in a single annotation field.
 When an ontology is not specified, the plugin will use the OLS field 
 `is_defining_ontology` to attempt to find the best version of a record to use.
 If no defining ontology can be found, it will usually default to the first
-instance of the record returned by the search. This may result in unexpected
-content in the related nodes fields (parents, children, other relations).
+instance of the record returned by the search for its label, synonym and 
+definitions. The parent, child and other relationship fields will be
+generated using *all* of the records, which can take a long time and result
+in a lot of data being indexed.
