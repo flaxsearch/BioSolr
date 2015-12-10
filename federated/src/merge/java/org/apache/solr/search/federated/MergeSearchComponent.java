@@ -42,8 +42,6 @@ import org.apache.solr.search.federated.FilterDJoinQParserSearchComponent;
  */
 public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
   
-  public static final String SHARD_INFO_PARAM = "shardInfo";
-  
   // return whether to do a merge at all
   private boolean doMerge(ResponseBuilder rb) {
     SolrParams params = rb.req.getParams();
@@ -58,11 +56,6 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     return true;
   }
   
-  // whether to return shard info
-  private boolean wantsShards(ResponseBuilder rb) {
-    return rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
-  }
-  
   // need to ask distributed servers for source fields for all copy fields needed in the aggregator
   // also add in [shard] field if we want shard info
   @Override
@@ -72,10 +65,6 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     
     if (! doMerge(rb)) {
       return;
-    }
-    
-    if (wantsShards(rb)) {
-      sreq.params.add(CommonParams.FL, "[shard]");
     }
     
     ReturnFields rf = rb.rsp.getReturnFields();
@@ -118,18 +107,16 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     IndexSchema schema = rb.req.getCore().getLatestSchema();
     ReturnFields rf = rb.rsp.getReturnFields();
 
-    boolean wantsShards = rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
-
     SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
     for (SolrDocument parent : docs) {
       parent.remove(DuplicateDocumentList.MERGE_PARENT_FIELD);
 
-      Set shardList = wantsShards ? new HashSet() : null;
+      Set shardList = new HashSet();
       Float score = null;
       for (SolrDocument doc : parent.getChildDocuments()) {
         String shard = (String)doc.getFieldValue("[shard]");
         NamedList nl = null;
-        if (shardList != null) {
+        if (shard != null) {
           nl = new NamedList();
           nl.add("address", shard);
           shardList.add(nl);
@@ -144,19 +131,17 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
           }
           
           SchemaField field = schema.getFieldOrNull(fieldName);
-          if (field == null) {
-            // do nothing
-          } else if (field.getName().equals("score")) {
+          if (fieldName.equals("score")) {
             score = Math.max(score != null ? score : 0.0f, (Float)value);
             if (nl != null) {
               nl.add("score", score);
             }
-          } else {
+          } else if (field != null) {
             addConvertedFieldValue(shard, parent, value, field);          
           }
         }
       }
-      if (shardList != null) {
+      if (shardList.size() > 0) {
         parent.setField("[shard]", shardList);
       } else {
         parent.removeFields("[shard]");
