@@ -254,6 +254,7 @@
    <field name="ignore" type="string" indexed="true" stored="true" required="false" />
    <field name="required" type="string" indexed="true" stored="true" required="false" />
    <field name="singlevalued" type="string" indexed="true" stored="true" required="false" />
+   <field name="xyzzy" type="string" indexed="true" stored="true" required="false" />
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 
         field name or dynamic field, rather than reporting them as an error. 

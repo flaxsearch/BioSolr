@@ -33,24 +33,28 @@ import org.junit.Test;
  */
 public class TestMerge extends BaseTestCase {
   
-  private final static String[] FIELDS = new String[] { "id", "letter", "single", "text", "ignore", "required", "singlevalued", "default" };
+  private final static String[] FIELDS = new String[] {
+    "id", "letter", "single", "text",
+    "ignore", "required", "singlevalued",
+    "xyzzy", "default", "notanumber"
+  };
 
   private final static String[][] DOCUMENTS_1 = new String[][] {
-    { "1", "D", "x", "foo", "_", "_", "@" },
-    { "3", "Q", "z", "foo", "_", "_", "@" } };
+    { "1", "D", "x", "foo", "_", "_", "@", "plugh", null },
+    { "3", "Q", "z", "foo", "_", "_", "@", "plover", null } };
 
   private final static String[][] DOCUMENTS_2 = new String[][] {
-    { "1", "A", null, "foo,bar", "_", "_", "@" },
-    { "2", "B", "y", "foo", "_", "_", "@" },
-    { "3", "C", "z", "foo", "_", "_", "@" } };
+    { "1", "A", null, "foo,bar", "_", "_", "@", null, null },
+    { "2", "B", "y", "foo", "_", "_", "@", "fee", null },
+    { "3", "C", "z", "foo", "_", "_", "@", null, null } };
 
   private final static String[][] DOCUMENTS_3 = new String[][] {
-    { "1", "E", null, "bar,baz", "_", "_", "@" },
-    { "2", "B", "y", "foo", "_", "_", "@" },
-    { "3", "C", "z", "foo", "_", "_", "@" } };
+    { "1", "E", null, "bar,baz", "_", "_", "@", null, null },
+    { "2", "B", "y", "foo", "_", "_", "@", null, null },
+    { "3", "C", "z", "foo", "_", "_", "@", null, null } };
 
   private final static String[][] DOCUMENTS_4 = new String[][] {
-    { "1", "E", "w", "foo", null, null, "!", "xxx" } };
+    { "1", "E", "w", "foo", null, null, "!", null, "xxx", "NaN" } };
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -121,7 +125,7 @@ public class TestMerge extends BaseTestCase {
       ModifiableSolrParams params = new ModifiableSolrParams();
       params.add("q", "*:*");
       params.add("shards", "shard1/,shard4/");
-      params.add("fl", "*");
+      params.add("fl", "single");
 
       queryThrow(core, "merge", params);
     }
@@ -217,7 +221,7 @@ public class TestMerge extends BaseTestCase {
       ModifiableSolrParams params = new ModifiableSolrParams();
       params.add("q", "*:*");
       params.add("shards", "shard4/");
-      params.add("fl", "*");
+      params.add("fl", "required");
 
       queryThrow(core, "merge", params);
     }   
@@ -232,7 +236,7 @@ public class TestMerge extends BaseTestCase {
       ModifiableSolrParams params = new ModifiableSolrParams();
       params.add("q", "*:*");
       params.add("shards", "shard1/,shard2/,shard3/,shard4/");
-      params.add("fl", "*");
+      params.add("fl", "singlevalued");
 
       queryThrow(core, "merge", params);
     }   
@@ -326,6 +330,72 @@ public class TestMerge extends BaseTestCase {
       for (SolrDocument doc : docs) {
         assertNull(doc.getFieldValue("[shard]"));
       }
+    }   
+  }
+  
+  
+  /**
+   * A dynamic field defined in the aggregator schema should accept values.
+   */
+  @Test
+  public void testDynamicField() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "xyzzy");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("plugh", doc0.getFieldValue("xyzzy"));
+      
+      SolrDocument doc1 = docs.get(1);
+      assertEquals("fee", doc1.getFieldValue("xyzzy"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals("plover", doc2.getFieldValue("xyzzy"));
+    }   
+  }
+  
+  /**
+   * A dynamic copy field should be filled as normal.
+   */
+  @Test
+  public void testDynamicCopyField() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "copyx");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      SolrDocument doc0 = docs.get(0);
+      assertEquals("plugh", doc0.getFieldValue("copyx"));
+      
+      SolrDocument doc1 = docs.get(1);
+      assertEquals("fee", doc1.getFieldValue("copyx"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals("plover", doc2.getFieldValue("copyx"));
+    }   
+  }
+  
+  /**
+   * The merge should fail if a conversion error occurs.
+   */
+  @Test(expected=NumberFormatException.class)
+  public void testConversionError() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("shards", "shard4/");
+      params.add("fl", "number");
+
+      queryThrow(core, "merge", params);
     }   
   }
   

@@ -257,7 +257,12 @@
    <field name="singlevalued" type="string" indexed="true" stored="false" required="true" />
    <field name="default" type="string" indexed="true" stored="true" required="true" default="foo" />
    <field name="copy" type="string" indexed="true" stored="true" />
-   <field name="multicopy" type="string"  indexed="true" stored="true" multiValued="true" />
+   <field name="multicopy" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="copyx" type="string" indexed="true" stored="true" />
+   <field name="number" type="integer" indexed="true" stored="true" />
+   <field name="notanumber" type="string" indexed="true" stored="true" />
+
+   <dynamicField name="x*" type="string" indexed="true" stored="true" />
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 
         field name or dynamic field, rather than reporting them as an error. 
@@ -275,6 +280,8 @@
  <copyField source="single" dest="copy" />
  <copyField source="single" dest="multicopy" />
  <copyField source="letter" dest="multicopy" />
+ <copyField source="x*" dest="copyx" />
+ <copyField source="notanumber" dest="number" />
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
  <defaultSearchField>text</defaultSearchField>
