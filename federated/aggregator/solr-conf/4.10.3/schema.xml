@@ -121,7 +121,7 @@
 <field name="baz" type="string" stored="true" />
 <field name="letter" type="string" indexed="true" stored="true" multiValued="false" />
 
-<field name="value" type="djoin_int" multiValued="true" stored="true" />
+<field name="value" type="federatedInteger" multiValued="true" stored="true" />
 
 <field name="n" type="int" indexed="true" stored="true" multiValued="false" />
 
@@ -151,8 +151,8 @@
        standard package such as org.apache.solr.analysis
     -->
     
-    <!-- DJoin custom field type -->
-    <fieldType name="djoin_int" class="org.apache.solr.search.djoin.fieldtypes.ForgivingInteger" />
+    <!-- federated custom field type -->
+    <fieldType name="federatedInteger" class="org.apache.solr.search.federated.fieldtypes.ForgivingInteger" />
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim.
        It supports doc values but in that case the field needs to be
