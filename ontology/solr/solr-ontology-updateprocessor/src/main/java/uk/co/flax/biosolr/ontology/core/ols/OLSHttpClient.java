@@ -15,13 +15,10 @@
  */
 package uk.co.flax.biosolr.ontology.core.ols;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
-import uk.co.flax.biosolr.ontology.core.ols.graph.Graph;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
@@ -56,9 +53,8 @@ public class OLSHttpClient {
 		// Initialise the concurrent executor
 		this.executor = Objects.isNull(threadFactory) ?
 				Executors.newFixedThreadPool(threadPoolSize) :
-				Executors.newFixedThreadPool(threadPoolSize, new DefaultSolrThreadFactory("olsOntologyHelper"));
-		LOGGER.trace("Initialising OLS HTTP client with threadpool size {}",
-				threadPoolSize);
+				Executors.newFixedThreadPool(threadPoolSize, threadFactory);
+		LOGGER.trace("Initialising OLS HTTP client with threadpool size {}", threadPoolSize);
 	}
 
 	public void shutdown() {
