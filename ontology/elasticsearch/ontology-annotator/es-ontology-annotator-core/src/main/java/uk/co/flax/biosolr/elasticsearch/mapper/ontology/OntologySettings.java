@@ -17,9 +17,11 @@
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
 
 /**
  * Ontology settings from the ontology mapping configuration.
@@ -30,11 +32,18 @@ public class OntologySettings {
 	
 	static final String ONTOLOGY_SETTINGS_KEY = "ontology";
 
+	// OWL parameters
 	static final String ONTOLOGY_URI_PARAM = "ontologyURI";
 	static final String LABEL_URI_PARAM = "labelURI";
 	static final String SYNONYM_URI_PARAM = "synonymURI";
 	static final String DEFINITION_URI_PARAM = "definitionURI";
-	
+
+	// OLS parameters
+	static final String OLS_BASE_URL_PARAM = "olsBaseURL";
+	static final String OLS_ONTOLOGY_PARAM = "olsOntology";
+	static final String OLS_THREADPOOL_PARAM = "olsThreadpool";
+	static final String OLS_PAGESIZE_PARAM = "olsPageSize";
+
 	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 
@@ -46,11 +55,16 @@ public class OntologySettings {
 	private static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
 
 	private String ontologyUri;
-	private List<String> labelPropertyUris = Arrays.asList(LABEL_PROPERTY_URI);
-	private List<String> synonymPropertyUris = Arrays.asList(SYNONYM_PROPERTY_URI);
-	private List<String> definitionPropertyUris = Arrays.asList(DEFINITION_PROPERTY_URI);
+	private List<String> labelPropertyUris = Collections.singletonList(LABEL_PROPERTY_URI);
+	private List<String> synonymPropertyUris = Collections.singletonList(SYNONYM_PROPERTY_URI);
+	private List<String> definitionPropertyUris = Collections.singletonList(DEFINITION_PROPERTY_URI);
 	private boolean includeIndirect = true;
 	private boolean includeRelations = true;
+
+	private String olsBaseUrl;
+	private String olsOntology;
+	private int threadpoolSize = OLSOntologyHelper.THREADPOOL_SIZE;
+	private int pageSize = OLSOntologyHelper.PAGE_SIZE;
 
 	public String getOntologyUri() {
 		return ontologyUri;
@@ -100,4 +114,35 @@ public class OntologySettings {
 		this.includeRelations = includeRelations;
 	}
 
+	public String getOlsBaseUrl() {
+		return olsBaseUrl;
+	}
+
+	public void setOlsBaseUrl(String olsBaseUrl) {
+		this.olsBaseUrl = olsBaseUrl;
+	}
+
+	public String getOlsOntology() {
+		return olsOntology;
+	}
+
+	public void setOlsOntology(String olsOntology) {
+		this.olsOntology = olsOntology;
+	}
+
+	public int getThreadpoolSize() {
+		return threadpoolSize;
+	}
+
+	public void setThreadpoolSize(int threadpoolSize) {
+		this.threadpoolSize = threadpoolSize;
+	}
+
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
 }

@@ -4,7 +4,7 @@ package uk.co.flax.biosolr.ontology.core;
  * Interface defining the OntologyHelper factory class.
  *
  * <p>
- * An OntologyHelperFactory should be instantiated by
+ * An ElasticOntologyHelperFactory should be instantiated by
  * passing in whatever parameters are required to indicate
  * the type of OntologyHelper required.
  * </p>

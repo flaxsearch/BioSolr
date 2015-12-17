@@ -16,6 +16,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<owlapi.version>3.5.2</owlapi.version>
 		<randomizedtesting-runner.version>2.1.14</randomizedtesting-runner.version>
+		<jackson.version>2.5.4</jackson.version>
 	</properties>
 
 	<modules>
