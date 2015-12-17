@@ -283,7 +283,7 @@ public class TestMerge extends BaseTestCase {
   }
   
   /**
-   * When [shard] is in the field list, it should be returned (and correct!).
+   * When [shard] is in the field list, it should be returned (and correct!) (but no score).
    */
   @Test
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -292,8 +292,7 @@ public class TestMerge extends BaseTestCase {
       ModifiableSolrParams params = new ModifiableSolrParams();
       params.add("q", "*:*");
       params.add("sort", "letter asc");
-      params.add("fl", "*");
-      params.add("merge.shardInfo", "true");
+      params.add("fl", "*,[shard]");
 
       SolrDocumentList docs = queryDocs(core, "merge", params);
       assertEquals(3, docs.size());
@@ -306,17 +305,56 @@ public class TestMerge extends BaseTestCase {
 
       SolrDocument doc0 = docs.get(0);
       assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc0.getFieldValue("[shard]"));
+      assertNull(doc0.getFieldValue("score"));
       
       SolrDocument doc1 = docs.get(1);
       assertEquals(new HashSet<NamedList>(Arrays.asList(nls[1], nls[2])), doc1.getFieldValue("[shard]"));
+      assertNull(doc1.getFieldValue("score"));
       
       SolrDocument doc2 = docs.get(2);
       assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc2.getFieldValue("[shard]"));
+      assertNull(doc2.getFieldValue("score"));
     }   
   }
   
   /**
-   * When shardInfo is not requested, the [shard] field should not be returned.
+   * When [shard],score is in the field list, both should be returned (and correct!).
+   */
+  @Test
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void testWantsShardAndScore() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "*,[shard],score");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      NamedList[] nls = new NamedList[3];
+      for (int i = 0; i < nls.length; ++i) {
+        nls[i] = new NamedList();
+        nls[i].add("address", "shard" + (i + 1) + "/");
+        nls[i].add("score", 1.0f);
+      }
+
+      SolrDocument doc0 = docs.get(0);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc0.getFieldValue("[shard]"));
+      assertEquals(1.0f, doc0.getFieldValue("score"));
+      
+      SolrDocument doc1 = docs.get(1);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[1], nls[2])), doc1.getFieldValue("[shard]"));
+      assertEquals(1.0f, doc1.getFieldValue("score"));
+      
+      SolrDocument doc2 = docs.get(2);
+      assertEquals(new HashSet<NamedList>(Arrays.asList(nls[0], nls[1], nls[2])), doc2.getFieldValue("[shard]"));
+      assertEquals(1.0f, doc2.getFieldValue("score"));
+    }   
+  }
+  
+  /**
+   * When [shard] is not in the field list, the [shard] field should not be returned.
    */
   @Test
   public void testNotWantsShard() throws Exception {
@@ -331,6 +369,29 @@ public class TestMerge extends BaseTestCase {
       
       for (SolrDocument doc : docs) {
         assertNull(doc.getFieldValue("[shard]"));
+        assertNull(doc.getFieldValue("score"));
+      }
+    }   
+  }
+  
+  /**
+   * When [shard] is not in the field list, the [shard] field should not be returned, even
+   * if score is in the field list.
+   */
+  @Test
+  public void testNotWantsShardWithScore() throws Exception {
+    try (SolrCore core = h.getCoreContainer().getCore("merge")) {
+      ModifiableSolrParams params = new ModifiableSolrParams();
+      params.add("q", "*:*");
+      params.add("sort", "letter asc");
+      params.add("fl", "*,score");
+
+      SolrDocumentList docs = queryDocs(core, "merge", params);
+      assertEquals(3, docs.size());
+      
+      for (SolrDocument doc : docs) {
+        assertNull(doc.getFieldValue("[shard]"));
+        assertEquals(1.0f, doc.getFieldValue("score"));
       }
     }   
   }
