@@ -7,6 +7,3 @@ solr-conf/documents/lib
 
 # idea files
 .idea*
-
-# log files
-tools/logs
