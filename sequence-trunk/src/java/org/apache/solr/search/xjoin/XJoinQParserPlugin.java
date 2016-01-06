@@ -38,7 +38,6 @@ import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
-import org.apache.solr.search.Filter;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.QueryParsing;
@@ -66,40 +65,39 @@ public class XJoinQParserPlugin extends QParserPlugin {
   private static enum Method {
     termsFilter {
       @Override
-      Filter makeFilter(String fname, Iterator<BytesRef> it) {
+      Query makeQuery(String fname, Iterator<BytesRef> it) {
           BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
-        return new QueryWrapperFilter(new TermsQuery(fname, bytesRefs));
+        return new TermsQuery(fname, bytesRefs);
       }
     },
     booleanQuery {
       @Override
-      Filter makeFilter(String fname, Iterator<BytesRef> it) {
+      Query makeQuery(String fname, Iterator<BytesRef> it) {
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         bq.setDisableCoord(true);
         while (it.hasNext()) {
           bq.add(new TermQuery(new Term(fname, it.next())), BooleanClause.Occur.SHOULD);
         }
-        return new QueryWrapperFilter(bq.build());
+        return bq.build();
       }
     },
     automaton {
       @Override
       @SuppressWarnings("unchecked")
-      Filter makeFilter(String fname, Iterator<BytesRef> it) {
+      Query makeQuery(String fname, Iterator<BytesRef> it) {
         Automaton union = Automata.makeStringUnion(IteratorUtils.toList(it));
-        return new QueryWrapperFilter(new AutomatonQuery(new Term(fname), union));
+        return new AutomatonQuery(new Term(fname), union);
       }
     },
     docValuesTermsFilter {
       @Override
-      Filter makeFilter(String fname, Iterator<BytesRef> it) {
+      Query makeQuery(String fname, Iterator<BytesRef> it) {
         BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
-        return new QueryWrapperFilter(new DocValuesTermsQuery(fname, bytesRefs));
+        return new DocValuesTermsQuery(fname, bytesRefs);
       }
     };
 
-    //abstract Filter makeFilter(String fname, BytesRef... byteRefs);
-    abstract Filter makeFilter(String fname, Iterator<BytesRef> it);
+    abstract Query makeQuery(String fname, Iterator<BytesRef> it);
   }
   
   // transformer from Object to BytesRef (using the given FieldType)
@@ -157,7 +155,8 @@ public class XJoinQParserPlugin extends QParserPlugin {
       if (! bytesRefs.hasNext()) {
         return new BooleanQuery.Builder().build(); // matches nothing
       }
-      return new SolrConstantScoreQuery(method.makeFilter(joinField, bytesRefs));
+      Query query = method.makeQuery(joinField, bytesRefs);
+      return new SolrConstantScoreQuery(new QueryWrapperFilter(query));
     }
     
     @Override
