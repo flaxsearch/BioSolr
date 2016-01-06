@@ -4,7 +4,6 @@ import json
 import random
 import sys
 
-
 app = Flask(__name__)
 
 
@@ -13,16 +12,17 @@ def main():
   return json.dumps({ 'info': 'product offers API' })
 
 
-@app.route('/offers')
-def offers():
-  offer = lambda doc: { 'id': doc['id'], 'price': round(doc['price'] / 2, 2) }
-  products = [offer(doc) for doc in random.sample(app.docs, 64)]
+@app.route('/products')
+def products():
+  offer = lambda doc: { 'id': doc['id'], 'discountPct': random.randint(1, 80) }
+  return json.dumps([offer(doc) for doc in random.sample(app.docs, 64)])
 
+
+@app.route('/manufacturers')
+def manufacturer():
   manufacturers = set(doc['manufacturer'] for doc in app.docs if 'manufacturer' in doc)
-  deal = lambda m: { 'manufacturer': m, 'discount': random.randint(1, 10) * 5 }
-  discounts = [deal(m) for m in random.sample(manufacturers, 3)]
-
-  return json.dumps({ 'products': products, 'discounts': discounts })
+  deal = lambda m: { 'id': m, 'discountPct': random.randint(1, 10) * 5 }
+  return json.dumps([deal(m) for m in random.sample(manufacturers, 3)])
 
 
 if __name__ == "__main__":

@@ -45,7 +45,11 @@
        configuration.
     -->
   <dataDir>${solr.data.dir:}</dataDir>
-
+  
+  <!-- XJoin -->
+  <lib path="/Users/tomjon/flax/BioSolr/sequence-5.3/xjoin.jar" />
+  <lib path="/Users/tomjon/flax/BioSolr/sequence-5.3/blog/factories.jar" />
+  <lib path="/Users/tomjon/flax/BioSolr/sequence/lib/javax.json-1.0.4.jar" />
 
   <!-- The DirectoryFactory to use for indexes.
        
@@ -436,8 +440,7 @@
        <str name="echoParams">explicit</str>
        <int name="rows">10</int>
      </lst>
-
-    </requestHandler>
+  </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
@@ -573,6 +576,55 @@
     <arr name="components">
       <str>terms</str>
     </arr>
+  </requestHandler>
+  
+  <!-- XJoin components and request handler -->
+  <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin" />
+  
+  <valueSourceParser name="discount" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="attribute">discount</str>
+    <double name="defaultValue">0.0</double>
+  </valueSourceParser>
+
+  <searchComponent name="x_product_offers" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">uk.co.flax.examples.xjoin.OfferXJoinResultsFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="url">http://localhost:8000/products</str>
+    </lst>
+  </searchComponent>
+
+  <searchComponent name="x_manufacturer_offers" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">uk.co.flax.examples.xjoin.OfferXJoinResultsFactory</str>
+    <str name="joinField">manufacturer</str>
+    <lst name="external">
+      <str name="url">http://localhost:8000/manufacturers</str>
+    </lst>
+  </searchComponent>
+  
+  <requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
+      <lst name="defaults">
+        <str name="echoParams">all</str>
+        <str name="defType">edismax</str>
+        <str name="df">description</str>
+        <str name="fl">*</str>
+        
+        <bool name="x_product_offers">false</bool>
+        <str name="x_product_offers.results">count</str>
+        <str name="x_product_offers.fl">*</str>
+        
+        <bool name="x_manufacturer_offers">false</bool>
+        <str name="x_manufacturer_offers.results">count</str>
+        <str name="x_manufacturer_offers.fl">*</str>
+      </lst>
+      <arr name="first-components">
+        <str>x_product_offers</str>
+        <str>x_manufacturer_offers</str>
+      </arr>
+      <arr name="last-components">
+        <str>x_product_offers</str>
+        <str>x_manufacturer_offers</str>
+      </arr>
   </requestHandler>
 
   <!-- Legacy config for the admin interface -->
