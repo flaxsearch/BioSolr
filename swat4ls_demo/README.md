@@ -10,6 +10,10 @@ In this tutorial you will learn how to:
  * Install BioSolr plugins to ontology-enrich your Solr index
  * Configure BioSolr
  * Perform ontology-powered searches
+
+## Prerequisites
+
+ * Java 8 - both Solr and the example web application rely on Java 8 to run.
  
 ## Part One - Installing Solr
 

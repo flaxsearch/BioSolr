@@ -29,6 +29,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DocValuesTermsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
@@ -41,7 +42,6 @@ import org.apache.solr.schema.FieldType;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.QueryParsing;
-import org.apache.solr.search.QueryWrapperFilter;
 import org.apache.solr.search.SolrConstantScoreQuery;
 import org.apache.solr.search.SyntaxError;
 
@@ -65,9 +65,9 @@ public class XJoinQParserPlugin extends QParserPlugin {
   private static enum Method {
     termsFilter {
       @Override
+      @SuppressWarnings("unchecked")
       Query makeQuery(String fname, Iterator<BytesRef> it) {
-          BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
-        return new TermsQuery(fname, bytesRefs);
+        return new TermsQuery(fname, IteratorUtils.toList(it));
       }
     },
     booleanQuery {
@@ -92,8 +92,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
     docValuesTermsFilter {
       @Override
       Query makeQuery(String fname, Iterator<BytesRef> it) {
-        BytesRef[] bytesRefs = (BytesRef[])IteratorUtils.toArray(it, BytesRef.class);
-        return new DocValuesTermsQuery(fname, bytesRefs);
+        return new DocValuesTermsQuery(fname, (BytesRef[])IteratorUtils.toArray(it, BytesRef.class));
       }
     };
 

@@ -1,5 +1,22 @@
 package org.apache.solr.search.federated;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,8 +42,6 @@ import org.apache.solr.search.federated.FilterDJoinQParserSearchComponent;
  */
 public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
   
-  public static final String SHARD_INFO_PARAM = "shardInfo";
-  
   // return whether to do a merge at all
   private boolean doMerge(ResponseBuilder rb) {
     SolrParams params = rb.req.getParams();
@@ -41,11 +56,6 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     return true;
   }
   
-  // whether to return shard info
-  private boolean wantsShards(ResponseBuilder rb) {
-    return rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
-  }
-  
   // need to ask distributed servers for source fields for all copy fields needed in the aggregator
   // also add in [shard] field if we want shard info
   @Override
@@ -55,10 +65,6 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     
     if (! doMerge(rb)) {
       return;
-    }
-    
-    if (wantsShards(rb)) {
-      sreq.params.add(CommonParams.FL, "[shard]");
     }
     
     ReturnFields rf = rb.rsp.getReturnFields();
@@ -101,18 +107,16 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
     IndexSchema schema = rb.req.getCore().getLatestSchema();
     ReturnFields rf = rb.rsp.getReturnFields();
 
-    boolean wantsShards = rb.req.getParams().getBool(getName() + "." + SHARD_INFO_PARAM, false);
-
     SolrDocumentList docs = (SolrDocumentList)rb.rsp.getValues().get("response");
     for (SolrDocument parent : docs) {
       parent.remove(DuplicateDocumentList.MERGE_PARENT_FIELD);
 
-      Set shardList = wantsShards ? new HashSet() : null;
+      Set shardList = new HashSet();
       Float score = null;
       for (SolrDocument doc : parent.getChildDocuments()) {
         String shard = (String)doc.getFieldValue("[shard]");
         NamedList nl = null;
-        if (shardList != null) {
+        if (shard != null) {
           nl = new NamedList();
           nl.add("address", shard);
           shardList.add(nl);
@@ -127,19 +131,17 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
           }
           
           SchemaField field = schema.getFieldOrNull(fieldName);
-          if (field == null) {
-            // do nothing
-          } else if (field.getName().equals("score")) {
+          if (fieldName.equals("score")) {
             score = Math.max(score != null ? score : 0.0f, (Float)value);
             if (nl != null) {
               nl.add("score", score);
             }
-          } else {
+          } else if (field != null) {
             addConvertedFieldValue(shard, parent, value, field);          
           }
         }
       }
-      if (shardList != null) {
+      if (shardList.size() > 0) {
         parent.setField("[shard]", shardList);
       } else {
         parent.removeFields("[shard]");
@@ -180,7 +182,7 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
   }
   
   @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-	private void addConvertedFieldValue(String shard, SolrDocument superDoc, Object shardValue, SchemaField field) {
+  private void addConvertedFieldValue(String shard, SolrDocument superDoc, Object shardValue, SchemaField field) {
     Object mergeValue = superDoc.getFieldValue(field.getName());
 
     if (field.getType() instanceof MergeAbstractFieldType) {
@@ -196,40 +198,40 @@ public class MergeSearchComponent extends FilterDJoinQParserSearchComponent {
       return;
     }
     
-		Set newValues = new HashSet() {
-	    @Override
-	    public boolean add(Object value) {
-	      if (value == null) return false;
-	      return super.add(value);
-	    }
-		};
-		
-		if (shardValue instanceof List) {
-		  for (Object value : (List)shardValue) {
-	      convert(field, value, newValues);
-		  }
-		} else {
+    Set newValues = new HashSet() {
+      @Override
+      public boolean add(Object value) {
+        if (value == null) return false;
+        return super.add(value);
+      }
+    };
+    
+    if (shardValue instanceof List) {
+      for (Object value : (List)shardValue) {
+        convert(field, value, newValues);
+      }
+    } else {
       convert(field, shardValue, newValues);
-		}
-		if (newValues.size() == 0) {
-		  return;
-		}
+    }
+    if (newValues.size() == 0) {
+      return;
+    }
 
-		if (field.multiValued()) {
-			Set set = (Set)mergeValue;
-			if (set == null) {
-				set = new HashSet();
-				superDoc.setField(field.getName(), set);
-			}
-			set.addAll(newValues);
-		} else {
-		  newValues.add(mergeValue);
-		  if (newValues.size() > 1) {
+    if (field.multiValued()) {
+      Set set = (Set)mergeValue;
+      if (set == null) {
+        set = new HashSet();
+        superDoc.setField(field.getName(), set);
+      }
+      set.addAll(newValues);
+    } else {
+      newValues.add(mergeValue);
+      if (newValues.size() > 1) {
         throw new MergeException.FieldNotMultiValued(field);
-		  } else if (newValues.size() == 1) {
-		    superDoc.setField(field.getName(), newValues.iterator().next());
-		  }
-		}
-	}
+      } else if (newValues.size() == 1) {
+        superDoc.setField(field.getName(), newValues.iterator().next());
+      }
+    }
+  }
 
 }

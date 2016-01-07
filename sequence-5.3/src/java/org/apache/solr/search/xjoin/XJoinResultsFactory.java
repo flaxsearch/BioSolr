@@ -1,4 +1,4 @@
-package org.apache.solr.search.federated.fieldtypes;
+package org.apache.solr.search.xjoin;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,16 +17,25 @@ package org.apache.solr.search.federated.fieldtypes;
  * limitations under the License.
  */
 
-import org.apache.lucene.search.SortField;
-import org.apache.solr.schema.SchemaField;
-import org.apache.solr.schema.StrField;
-import org.apache.solr.search.Sorting;
+import java.io.IOException;
 
-public class FederatedString extends StrField {
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 
-  @Override
-  public SortField getSortField(SchemaField field, boolean reverse) {
-    return Sorting.getStringSortField(field.getName(), reverse, field.sortMissingLast(), field.sortMissingFirst());
-  }
+/**
+ * Interface for external process results factories.
+ */
+public interface XJoinResultsFactory<IdType> {
+  
+  /**
+   * Initialise the factory with the given parameters.
+   */
+  @SuppressWarnings("rawtypes")
+  public void init(NamedList args);
+
+  /**
+   * Get external process results based on the given parameters.
+   */
+  public XJoinResults<IdType> getResults(SolrParams params) throws IOException;
 
 }

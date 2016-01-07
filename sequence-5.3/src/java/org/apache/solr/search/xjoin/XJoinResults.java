@@ -1,4 +1,4 @@
-package org.apache.solr.search.federated.fieldtypes;
+package org.apache.solr.search.xjoin;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,16 +17,22 @@ package org.apache.solr.search.federated.fieldtypes;
  * limitations under the License.
  */
 
-import org.apache.lucene.search.SortField;
-import org.apache.solr.schema.SchemaField;
-import org.apache.solr.schema.StrField;
-import org.apache.solr.search.Sorting;
-
-public class FederatedString extends StrField {
-
-  @Override
-  public SortField getSortField(SchemaField field, boolean reverse) {
-    return Sorting.getStringSortField(field.getName(), reverse, field.sortMissingLast(), field.sortMissingFirst());
-  }
+/**
+ * Interface for external process results.
+ */
+public interface XJoinResults<IdType> {
+  
+  /**
+   * Get the external process result with given join id string.
+   * 
+   * Note: you might need to convert the argument to the correct type.
+   */
+  Object getResult(String joinIdStr);
+  
+  /**
+   * Get an ordered (ascending) iterable of external process join ids (null is
+   * not a valid id).
+   */
+  Iterable<IdType> getJoinIds();
 
 }

@@ -1,4 +1,4 @@
-package org.apache.solr.search.federated.fieldtypes;
+package org.apache.solr.search.xjoin;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,16 +17,29 @@ package org.apache.solr.search.federated.fieldtypes;
  * limitations under the License.
  */
 
-import org.apache.lucene.search.SortField;
-import org.apache.solr.schema.SchemaField;
-import org.apache.solr.schema.StrField;
-import org.apache.solr.search.Sorting;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-public class FederatedString extends StrField {
+import org.apache.solr.search.xjoin.NameConverter;
+import org.junit.Test;
 
-  @Override
-  public SortField getSortField(SchemaField field, boolean reverse) {
-    return Sorting.getStringSortField(field.getName(), reverse, field.sortMissingLast(), field.sortMissingFirst());
+public class TestNameConverter {
+
+  @Test
+  public void fieldToMethod() {
+    assertEquals("getFooBar", NameConverter.getMethodName("foo_bar"));
+    assertEquals("getAProperty", NameConverter.getMethodName("a_property"));
   }
-
+  
+  @Test
+  public void methodToField() {
+    assertEquals("foo_bar", NameConverter.getFieldName("isFooBar"));
+    assertEquals("a_property", NameConverter.getFieldName("getAProperty"));
+  }
+  
+  @Test
+  public void nulls() {
+    assertNull(NameConverter.getFieldName("doSomething"));
+  }
+  
 }
