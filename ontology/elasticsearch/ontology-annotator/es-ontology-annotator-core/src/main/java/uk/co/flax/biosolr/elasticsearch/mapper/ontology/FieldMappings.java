@@ -42,7 +42,7 @@ public enum FieldMappings {
 	
 	private final String fieldName;
 	
-	private FieldMappings(String field) {
+	FieldMappings(String field) {
 		this.fieldName = field;
 	}
 	

@@ -18,17 +18,19 @@ package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.collect.Maps;
-import org.elasticsearch.common.hppc.ObjectObjectOpenHashMap;
-import org.elasticsearch.common.hppc.cursors.ObjectObjectCursor;
+import org.elasticsearch.common.collect.UpdateInPlaceMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.netty.util.internal.ConcurrentHashMap;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.*;
+import org.elasticsearch.index.settings.IndexSettings;
 import org.elasticsearch.threadpool.ThreadPool;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
@@ -83,28 +85,7 @@ public class OntologyMapper implements Mapper {
 
 			context.path().remove(); // remove name
 
-			return new OntologyMapper(name, context, ontologySettings, fieldMappers, threadPool);
-		}
-
-		static ObjectObjectOpenHashMap<String, FieldMapper<String>> buildDynamicMappers(BuilderContext context, String relatedField) {
-			ObjectObjectOpenHashMap<String, FieldMapper<String>> dynamicMappers = new ObjectObjectOpenHashMap<>();
-
-			FieldMapper<String> uriMapper = MapperBuilders.stringField(relatedField + DYNAMIC_URI_FIELD_SUFFIX)
-					.store(true)
-					.index(true)
-					.tokenized(false)
-					.build(context);
-			FieldMapper<String> labelMapper = MapperBuilders.stringField(relatedField + DYNAMIC_LABEL_FIELD_SUFFIX)
-					.store(true)
-					.index(true)
-					.tokenized(true)
-					.build(context);
-
-			dynamicMappers.put(uriMapper.name(), uriMapper);
-			dynamicMappers.put(labelMapper.name(), labelMapper);
-			logger.debug("Add dynamic mappers for {}, {}", uriMapper.name(), labelMapper.name());
-
-			return dynamicMappers;
+			return new OntologyMapper(name, ontologySettings, fieldMappers, threadPool, context.indexSettings());
 		}
 
 	}
@@ -153,37 +134,39 @@ public class OntologyMapper implements Mapper {
 
 			for (Entry<String, Object> entry : ontSettingsNode.entrySet()) {
 				String key = entry.getKey();
-				switch (key) {
-					case OntologySettings.ONTOLOGY_URI_PARAM:
-						settings.setOntologyUri(entry.getValue().toString());
-						break;
-					case OntologySettings.LABEL_URI_PARAM:
-						settings.setLabelPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.SYNONYM_URI_PARAM:
-						settings.setSynonymPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.DEFINITION_URI_PARAM:
-						settings.setDefinitionPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.INCLUDE_INDIRECT_PARAM:
-						settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
-						break;
-					case OntologySettings.INCLUDE_RELATIONS_PARAM:
-						settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
-						break;
-					case OntologySettings.OLS_BASE_URL_PARAM:
-						settings.setOlsBaseUrl(entry.getValue().toString());
-						break;
-					case OntologySettings.OLS_ONTOLOGY_PARAM:
-						settings.setOlsOntology(entry.getValue().toString());
-						break;
-					case OntologySettings.OLS_THREADPOOL_PARAM:
-						settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
-						break;
-					case OntologySettings.OLS_PAGESIZE_PARAM:
-						settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
-						break;
+				if (entry.getValue() != null) {
+					switch (key) {
+						case OntologySettings.ONTOLOGY_URI_PARAM:
+							settings.setOntologyUri(entry.getValue().toString());
+							break;
+						case OntologySettings.LABEL_URI_PARAM:
+							settings.setLabelPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.SYNONYM_URI_PARAM:
+							settings.setSynonymPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.DEFINITION_URI_PARAM:
+							settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.INCLUDE_INDIRECT_PARAM:
+							settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.INCLUDE_RELATIONS_PARAM:
+							settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_BASE_URL_PARAM:
+							settings.setOlsBaseUrl(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_ONTOLOGY_PARAM:
+							settings.setOlsOntology(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_THREADPOOL_PARAM:
+							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_PAGESIZE_PARAM:
+							settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+					}
 				}
 			}
 
@@ -208,24 +191,24 @@ public class OntologyMapper implements Mapper {
 
 	}
 
+	private final Object mutex = new Object();
 
 	private final String name;
 	private final OntologySettings ontologySettings;
-	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> fieldMappers = ImmutableOpenMap.of();
-	private volatile ObjectObjectOpenHashMap<String, FieldMapper<String>> dynamicFieldMappers = new ObjectObjectOpenHashMap<>();
+	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> predefinedFields = ImmutableOpenMap.of();
+	private final UpdateInPlaceMap<String, FieldMapper<String>> mappers;
 	private final ThreadPool threadPool;
-	private final BuilderContext builderContext;
 
 	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
 
-	public OntologyMapper(String name, BuilderContext context, OntologySettings oSettings,
-						  Map<FieldMappings, FieldMapper<String>> fieldMappers,
-						  ThreadPool threadPool) {
+	public OntologyMapper(String name, OntologySettings oSettings,
+			Map<FieldMappings, FieldMapper<String>> fieldMappers,
+			ThreadPool threadPool, @Nullable @IndexSettings Settings settings) {
 		this.name = name;
 		this.ontologySettings = oSettings;
-		this.fieldMappers = ImmutableOpenMap.builder(this.fieldMappers).putAll(fieldMappers).build();
+		this.predefinedFields = ImmutableOpenMap.builder(predefinedFields).putAll(fieldMappers).build();
+		this.mappers = UpdateInPlaceMap.of(MapperService.getFieldMappersCollectionSwitch(settings));
 		this.threadPool = threadPool;
-		this.builderContext = context;
 	}
 
 
@@ -245,12 +228,8 @@ public class OntologyMapper implements Mapper {
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
 
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.toXContent(builder, params);
-		}
-
-		for (ObjectObjectCursor<String, FieldMapper<String>> cursor : dynamicFieldMappers) {
-			cursor.value.toXContent(builder, params);
+		for (FieldMapper<String> mapper : mappers.values()) {
+			mapper.toXContent(builder, params);
 		}
 
 		builder.endObject();  // name
@@ -281,41 +260,30 @@ public class OntologyMapper implements Mapper {
 			if (data == null) {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
-				// We add the data as an external value, then use mapper.parse() to
-				// add the field to the record. We don't need to explicitly add the
-				// field - the mapper handles that.
-				context.externalValue(iri);
-				fieldMappers.get(FieldMappings.URI).parse(context);
+				addFieldData(context, predefinedFields.get(FieldMappings.URI), Collections.singletonList(iri));
 
 				// Look up the label(s)
-				Collection<String> labels = data.getLabels();
-				for (String label : labels) {
-					context.externalValue(label);
-					fieldMappers.get(FieldMappings.LABEL).parse(context);
-				}
+				addFieldData(context, predefinedFields.get(FieldMappings.LABEL), data.getLabels());
 
 				// Look up the synonyms
-				for (String synonym : data.getSynonyms()) {
-					context.externalValue(synonym);
-					fieldMappers.get(FieldMappings.SYNONYMS).parse(context);
-				}
+				addFieldData(context, predefinedFields.get(FieldMappings.SYNONYMS), data.getLabels());
 
 				// Add the child details
 				addRelatedNodesWithLabels(data.getChildIris(), data.getChildLabels(), context,
-						fieldMappers.get(FieldMappings.CHILD_URI), fieldMappers.get(FieldMappings.CHILD_LABEL));
+						predefinedFields.get(FieldMappings.CHILD_URI), predefinedFields.get(FieldMappings.CHILD_LABEL));
 
 				// Add the parent details
 				addRelatedNodesWithLabels(data.getParentIris(), data.getParentLabels(), context,
-						fieldMappers.get(FieldMappings.PARENT_URI), fieldMappers.get(FieldMappings.PARENT_LABEL));
+						predefinedFields.get(FieldMappings.PARENT_URI), predefinedFields.get(FieldMappings.PARENT_LABEL));
 
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
 					addRelatedNodesWithLabels(data.getDescendantIris(), data.getDescendantLabels(), context,
-							fieldMappers.get(FieldMappings.DESCENDANT_URI), fieldMappers.get(FieldMappings.DESCENDANT_LABEL));
+							predefinedFields.get(FieldMappings.DESCENDANT_URI), predefinedFields.get(FieldMappings.DESCENDANT_LABEL));
 
 					// Add the ancestor details
 					addRelatedNodesWithLabels(data.getAncestorIris(), data.getAncestorLabels(), context,
-							fieldMappers.get(FieldMappings.ANCESTOR_URI), fieldMappers.get(FieldMappings.ANCESTOR_LABEL));
+							predefinedFields.get(FieldMappings.ANCESTOR_URI), predefinedFields.get(FieldMappings.ANCESTOR_LABEL));
 				}
 
 				if (ontologySettings.isIncludeRelations()) {
@@ -327,31 +295,27 @@ public class OntologyMapper implements Mapper {
 						String uriMapperName = sanRelation + DYNAMIC_URI_FIELD_SUFFIX;
 						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 
-						if (!dynamicFieldMappers.containsKey(uriMapperName)) {
-							builderContext.path().add(name);
-							dynamicFieldMappers.putAll(Builder.buildDynamicMappers(builderContext, sanRelation));
-							builderContext.path().remove();
-						}
-
-						FieldMapper<String> uriMapper = dynamicFieldMappers.get(uriMapperName);
-						FieldMapper<String> labelMapper = dynamicFieldMappers.get(labelMapperName);
+						FieldMapper<String> uriMapper = mappers.get(uriMapperName);
+						FieldMapper<String> labelMapper = mappers.get(labelMapperName);
 
 						if (uriMapper == null) {
-							logger.warn("No mapper found for dynamic field {} - ignoring", relation);
-							continue;
+							context.path().add(name);
+							BuilderContext builderContext = new BuilderContext(context.indexSettings(), context.path());
+							uriMapper = MapperBuilders.stringField(uriMapperName)
+									.store(true)
+									.index(true)
+									.tokenized(false)
+									.build(builderContext);
+							labelMapper = MapperBuilders.stringField(labelMapperName)
+									.store(true)
+									.index(true)
+									.tokenized(true)
+									.build(builderContext);
+							context.path().remove();
 						}
 
-						// Add the URI fields
-						for (String relIri : relations.get(relation)) {
-							context.externalValue(relIri);
-							uriMapper.parse(context);
-						}
-
-						// Add the labels
-						for (String label : helper.findLabelsForIRIs(relations.get(relation))) {
-							context.externalValue(label);
-							labelMapper.parse(context);
-						}
+						addFieldData(context, uriMapper, relations.get(relation));
+						addFieldData(context, labelMapper, helper.findLabelsForIRIs(relations.get(relation)));
 					}
 				}
 			}
@@ -377,17 +341,51 @@ public class OntologyMapper implements Mapper {
 		return data;
 	}
 
+	private void addFieldData(ParseContext context, FieldMapper<String> mapper, Collection<String> data) throws IOException {
+		if (data != null && !data.isEmpty()) {
+			if (mappers.get(mapper.name()) == null) {
+				// New mapper
+				context.setWithinNewMapper();
+				try {
+					parseData(context, mapper, data);
+
+					FieldMapperListener.Aggregator newFields = new FieldMapperListener.Aggregator();
+					ObjectMapperListener.Aggregator newObjects = new ObjectMapperListener.Aggregator();
+					mapper.traverse(newFields);
+					mapper.traverse(newObjects);
+					// callback on adding those fields!
+					context.docMapper().addFieldMappers(newFields.mappers);
+					context.docMapper().addObjectMappers(newObjects.mappers);
+
+					context.setMappingsModified();
+
+					synchronized (mutex) {
+						UpdateInPlaceMap<String, FieldMapper<String>>.Mutator mappingMutator = this.mappers.mutator();
+						mappingMutator.put(mapper.name(), mapper);
+						mappingMutator.close();
+					}
+				} finally {
+					context.clearWithinNewMapper();
+				}
+			} else {
+				// Mapper already added
+				parseData(context, mapper, data);
+			}
+		}
+	}
+
+	private void parseData(ParseContext context, FieldMapper<String> mapper, Collection<String> values) throws IOException {
+		for (String value : values) {
+			context.externalValue(value);
+			mapper.parse(context);
+		}
+	}
+
 	private void addRelatedNodesWithLabels(Collection<String> iris, Collection<String> labels, ParseContext context,
-										   FieldMapper<String> iriMapper, FieldMapper<String> labelMapper) throws IOException {
+			FieldMapper<String> iriMapper, FieldMapper<String> labelMapper) throws IOException {
 		if (!iris.isEmpty()) {
-			for (String iri : iris) {
-				context.externalValue(iri);
-				iriMapper.parse(context);
-			}
-			for (String label : labels) {
-				context.externalValue(label);
-				labelMapper.parse(context);
-			}
+			addFieldData(context, iriMapper, iris);
+			addFieldData(context, labelMapper, labels);
 		}
 	}
 
@@ -397,11 +395,8 @@ public class OntologyMapper implements Mapper {
 
 	@Override
 	public void traverse(FieldMapperListener fieldMapperListener) {
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.traverse(fieldMapperListener);
-		}
-		for (ObjectObjectCursor<String, FieldMapper<String>> cursor : dynamicFieldMappers) {
-			cursor.value.traverse(fieldMapperListener);
+		for (FieldMapper<String> mapper : mappers.values()) {
+			mapper.traverse(fieldMapperListener);
 		}
 	}
 
@@ -411,8 +406,8 @@ public class OntologyMapper implements Mapper {
 
 	@Override
 	public void close() {
-		for (ObjectObjectCursor<FieldMappings, FieldMapper<String>> cursor : fieldMappers) {
-			cursor.value.close();
+		for (FieldMapper<String> mapper : mappers.values()) {
+			mapper.close();
 		}
 //		disposeHelper();
 	}
@@ -448,7 +443,6 @@ public class OntologyMapper implements Mapper {
 
 		return key;
 	}
-
 
 	private static final class OntologyCheckRunnable implements Runnable {
 

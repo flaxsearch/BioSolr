@@ -19,9 +19,15 @@ package uk.co.flax.biosolr.elasticsearch;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoFailures;
 import static org.hamcrest.Matchers.equalTo;
 
+import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequestBuilder;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.IndicesAdminClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -90,7 +96,15 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		String id = response.getId();
 		flush();
-		
+
+		IndicesAdminClient iaClient = client().admin().indices();
+		GetMappingsResponse mappings = iaClient.getMappings(
+				new GetMappingsRequestBuilder(iaClient, INDEX_NAME).addTypes(DOC_TYPE_NAME).request())
+				.actionGet();
+		assertNotNull(mappings);
+		MappingMetaData meta = mappings.getMappings().get(INDEX_NAME).get(DOC_TYPE_NAME);
+		assertNotNull(meta);
+
 		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id);
 		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
 		assertNoFailures(searchResponse);
@@ -113,7 +127,10 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertThat(hits.getHits()[0].field("annotation.ancestor_uris").getValues().size(), equalTo(1));
 
 		query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
-		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
+				.setFetchSource(true)
+				.addFields("annotation.uri", "annotation.label")
+				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
@@ -123,11 +140,11 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_CHILD_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
 		response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		flush();
-		
+
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("*") 
+				.addFields("*")
 				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
@@ -135,6 +152,13 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_uris"));
 		assertThat(hits.getHits()[0].field("annotation.participates_in_rel_uris").getValues().get(0), equalTo(TEST_IRI));
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_labels").getValues().get(0));
+
+		mappings = iaClient.getMappings(
+				new GetMappingsRequestBuilder(iaClient, INDEX_NAME).addTypes(DOC_TYPE_NAME).request())
+				.actionGet();
+		assertNotNull(mappings);
+		meta = mappings.getMappings().get(INDEX_NAME).get(DOC_TYPE_NAME);
+		assertNotNull(meta);
 	}
 
 }
