@@ -9,7 +9,7 @@
 	</parent>
 	
 	<artifactId>es-ontology-annotator-core</artifactId>
-	<name>ElasticSearch Ontology Annotater Core</name>
+	<name>ElasticSearch Ontology Annotator Core</name>
 	<description>Core classes for the ES ontology annotater module.</description>
 	
 	<dependencies>

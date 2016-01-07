@@ -6,7 +6,7 @@
 	<artifactId>es-ontology-annotator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>ElasticSearch ontology annotater</name>
+	<name>ElasticSearch Ontology Annotator</name>
 	<description>Modules to enrich documents with ontology data.</description>
 	<packaging>pom</packaging>
 
