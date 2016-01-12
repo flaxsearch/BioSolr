@@ -585,6 +585,11 @@
     <str name="attribute">discount</str>
     <double name="defaultValue">0.0</double>
   </valueSourceParser>
+  
+  <valueSourceParser name="weight" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="attribute">weight</str>
+    <double name="defaultValue">0.0</double>
+  </valueSourceParser>
 
   <searchComponent name="x_product_offers" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
     <str name="factoryClass">uk.co.flax.examples.xjoin.OfferXJoinResultsFactory</str>
@@ -599,6 +604,14 @@
     <str name="joinField">manufacturer</str>
     <lst name="external">
       <str name="url">http://localhost:8000/manufacturers</str>
+    </lst>
+  </searchComponent>
+
+  <searchComponent name="x_click" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">uk.co.flax.examples.xjoin.ClickXJoinResultsFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="url">http://localhost:8001/ids</str>
     </lst>
   </searchComponent>
   
@@ -616,14 +629,20 @@
         <bool name="x_manufacturer_offers">false</bool>
         <str name="x_manufacturer_offers.results">count</str>
         <str name="x_manufacturer_offers.fl">*</str>
+        
+        <bool name="x_click">false</bool>
+        <str name="x_click.results">count</str>
+        <str name="x_click.fl">*</str>
       </lst>
       <arr name="first-components">
         <str>x_product_offers</str>
         <str>x_manufacturer_offers</str>
+        <str>x_click</str>
       </arr>
       <arr name="last-components">
         <str>x_product_offers</str>
         <str>x_manufacturer_offers</str>
+        <str>x_click</str>
       </arr>
   </requestHandler>
 

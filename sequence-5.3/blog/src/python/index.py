@@ -20,16 +20,17 @@ class UTF8Recoder:
 
 
 def read(path):
-  with open(path) as f:
-    reader = csv.DictReader(UTF8Recoder(f, 'iso-8859-1'))
+  with open(path, encoding='iso-8859-1') as f:
+    #reader = csv.DictReader(UTF8Recoder(f, 'iso-8859-1'))
+    reader = csv.DictReader(f)
     for doc in reader:
-      doc = dict((k, v.strip() if k != 'price' else float(v.split()[0])) for k, v in doc.iteritems())
-      doc = dict((k, v) for k, v in doc.iteritems() if v)
+      doc = dict((k, v.strip() if k != 'price' else float(v.split()[0])) for k, v in doc.items())
+      doc = dict((k, v) for k, v in doc.items() if v)
       yield doc
 
 
 def index(docs):
-  print "Sending {0} documents to SOLR".format(len(docs))
+  print("Sending {0} documents to SOLR".format(len(docs)))
   r = requests.post(sys.argv[1], data=json.dumps(docs), headers={ 'content-type': 'application/json' })
   if r.status_code != 200:
     raise IOError("bad batch")
@@ -37,7 +38,7 @@ def index(docs):
 
 if __name__ == "__main__":
   if len(sys.argv) < 4:
-    print "Usage: {0} <solr update URL> <csv file> <batch size>".format(sys.argv[0])
+    print("Usage: {0} <solr update URL> <csv file> <batch size>".format(sys.argv[0]))
     sys.exit(1)
 
   docs = []

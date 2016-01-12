@@ -36,18 +36,18 @@ def teardown_db(exception):
 def main():
   return 'click-through API'
 
-@app.route('/click/<id>', methods=["PUT"])
+@app.route('/click/<path:id>', methods=["PUT"])
 def click(id):
   # validate request
   if 'q' not in request.args:
     return 'Missing q parameter', 400
   q = request.args['q']
   try:
-    w = float(request.args.get('w', DEFAULT_WEIGHT))
+    w = float(request.args.get('weight', DEFAULT_WEIGHT))
   except ValueError:
     return 'Could not parse weight', 400
 
-  # do the DB insert
+  # do the DB update
   db = get_db()
   try:
     c = db.cursor()
@@ -59,15 +59,19 @@ def click(id):
 
 @app.route('/ids')
 def ids():
+  # validate request
   if 'q' not in request.args:
     return 'Missing q parameter', 400
+  q = request.args['q']
+  
+  # do the DB lookup
   try:
     c = get_db().cursor()
-    c.execute("SELECT id, SUM(weight) FROM click WHERE q MATCH ? GROUP BY id", (request.args['q'], ))
-    return json.dumps([ x for x in c ])
+    c.execute("SELECT id, SUM(weight) FROM click WHERE q MATCH ? GROUP BY id", (q, ))
+    return json.dumps([{ 'id': id, 'weight': w } for id, w in c])
   finally:
     c.close()
 
 
 if __name__ == "__main__":
-  app.run(port=5001, debug=True)
+  app.run(port=8001, debug=True)
