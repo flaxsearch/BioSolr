@@ -132,7 +132,6 @@ public class OntologyMapper implements Mapper {
 			for (Entry<String, Object> entry : ontSettingsNode.entrySet()) {
 				String key = entry.getKey();
 				if (entry.getValue() != null) {
-					logger.debug("Parsing setting :: {} = {}", key, entry.getValue());
 					switch (key) {
 						case OntologySettings.ONTOLOGY_URI_PARAM:
 							settings.setOntologyUri(entry.getValue().toString());
@@ -372,6 +371,7 @@ public class OntologyMapper implements Mapper {
 				// Mapper already added
 				parseData(context, mapper, data);
 			}
+
 		}
 	}
 
@@ -420,7 +420,7 @@ public class OntologyMapper implements Mapper {
 
 		if (helper == null) {
 			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
-			OntologyCheckRunnable checker = new OntologyCheckRunnable(settings.getOntologyUri());
+			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey);
 			threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
 			helpers.put(helperKey, helper);
 			helper.updateLastCallTime();
@@ -448,21 +448,21 @@ public class OntologyMapper implements Mapper {
 
 	private static final class OntologyCheckRunnable implements Runnable {
 
-		final String ontologyUri;
+		final String threadKey;
 
-		public OntologyCheckRunnable(String ontologyUri) {
-			this.ontologyUri = ontologyUri;
+		public OntologyCheckRunnable(String threadKey) {
+			this.threadKey = threadKey;
 		}
 
 		@Override
 		public void run() {
-			OntologyHelper helper = helpers.get(ontologyUri);
+			OntologyHelper helper = helpers.get(threadKey);
 			if (helper != null) {
 				// Check if the last call time was longer ago than the maximum
 				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
 					// Assume helper is out of use - dispose of it to allow memory to be freed
 					helper.dispose();
-					helpers.remove(ontologyUri);
+					helpers.remove(threadKey);
 				}
 			}
 		}
