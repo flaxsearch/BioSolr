@@ -218,12 +218,16 @@ public class OntologyMapper implements Mapper {
 		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
 
 		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
-		builder.field(OntologySettings.OLS_BASE_URL_PARAM, ontologySettings.getOlsBaseUrl());
-		builder.field(OntologySettings.OLS_ONTOLOGY_PARAM, ontologySettings.getOlsOntology());
-		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
-		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
-		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
-		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		if (StringUtils.isNotBlank(ontologySettings.getOntologyUri())) {
+			builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
+			builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
+			builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
+			builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		}
+		if (StringUtils.isNotBlank(ontologySettings.getOlsBaseUrl())) {
+			builder.field(OntologySettings.OLS_BASE_URL_PARAM, ontologySettings.getOlsBaseUrl());
+			builder.field(OntologySettings.OLS_ONTOLOGY_PARAM, ontologySettings.getOlsOntology());
+		}
 		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
@@ -343,7 +347,7 @@ public class OntologyMapper implements Mapper {
 
 	private void addFieldData(ParseContext context, FieldMapper<String> mapper, Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.name()) == null) {
+			if (mappers.get(mapper.name()) == null && !context.isWithinNewMapper()) {
 				// New mapper
 				context.setWithinNewMapper();
 				try {

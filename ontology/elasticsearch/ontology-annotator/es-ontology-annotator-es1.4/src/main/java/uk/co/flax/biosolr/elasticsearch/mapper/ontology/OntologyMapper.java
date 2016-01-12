@@ -51,7 +51,6 @@ public class OntologyMapper implements Mapper {
 
 	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 	
-	public static final String RELATION_SUFFIX = "_rel";
 	public static final String DYNAMIC_URI_FIELD_SUFFIX = "_rel_uris";
 	public static final String DYNAMIC_LABEL_FIELD_SUFFIX = "_rel_labels";
 
@@ -103,9 +102,9 @@ public class OntologyMapper implements Mapper {
 		/**
 		 * Parse the mapping definition for the ontology type.
 		 *
-		 * @param name
+		 * @param name the field name
 		 * @param node the JSON node holding the mapping definitions.
-		 * @param parserContext
+		 * @param parserContext the parser context object.
 		 * @return a Builder for an OntologyMapper.
 		 */
 		@SuppressWarnings("unchecked")
@@ -122,8 +121,9 @@ public class OntologyMapper implements Mapper {
 
 			if (ontologySettings == null) {
 				throw new MapperParsingException("No ontology settings supplied");
-			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())) {
-				throw new MapperParsingException("Ontology URI is required");
+			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())
+					&& StringUtils.isBlank(ontologySettings.getOlsBaseUrl())) {
+				throw new MapperParsingException("No ontology URI or OLS details supplied");
 			}
 			
 			return new OntologyMapper.Builder(name, ontologySettings, threadPool);
@@ -134,18 +134,39 @@ public class OntologyMapper implements Mapper {
 
 			for (Entry<String, Object> entry : ontSettingsNode.entrySet()) {
 				String key = entry.getKey();
-				if (key.equals(OntologySettings.ONTOLOGY_URI_PARAM)) {
-					settings.setOntologyUri(entry.getValue().toString());
-				} else if (key.equals(OntologySettings.LABEL_URI_PARAM)) {
-					settings.setLabelPropertyUris(extractList(entry.getValue()));
-				} else if (key.equals(OntologySettings.SYNONYM_URI_PARAM)) {
-					settings.setSynonymPropertyUris(extractList(entry.getValue()));
-				} else if (key.equals(OntologySettings.DEFINITION_URI_PARAM)) {
-					settings.setDefinitionPropertyUris(extractList(entry.getValue()));
-				} else if (key.equals(OntologySettings.INCLUDE_INDIRECT_PARAM)) {
-					settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
-				} else if (key.equals(OntologySettings.INCLUDE_RELATIONS_PARAM)) {
-					settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+				if (entry.getValue() != null) {
+					switch (key) {
+						case OntologySettings.ONTOLOGY_URI_PARAM:
+							settings.setOntologyUri(entry.getValue().toString());
+							break;
+						case OntologySettings.LABEL_URI_PARAM:
+							settings.setLabelPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.SYNONYM_URI_PARAM:
+							settings.setSynonymPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.DEFINITION_URI_PARAM:
+							settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.INCLUDE_INDIRECT_PARAM:
+							settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.INCLUDE_RELATIONS_PARAM:
+							settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_BASE_URL_PARAM:
+							settings.setOlsBaseUrl(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_ONTOLOGY_PARAM:
+							settings.setOlsOntology(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_THREADPOOL_PARAM:
+							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_PAGESIZE_PARAM:
+							settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+					}
 				}
 			}
 
@@ -157,7 +178,7 @@ public class OntologyMapper implements Mapper {
 			List<String> ret = null;
 
 			if (value instanceof String) {
-				ret = Arrays.asList((String) value);
+				ret = Collections.singletonList((String) value);
 			} else if (value instanceof List) {
 				ret = new ArrayList<>(((List)value).size());
 				for (Object v : (List)value) {
@@ -198,10 +219,16 @@ public class OntologyMapper implements Mapper {
 		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
 
 		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
-		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
-		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
-		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
-		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		if (StringUtils.isNotBlank(ontologySettings.getOntologyUri())) {
+			builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
+			builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
+			builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
+			builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		}
+		if (StringUtils.isNotBlank(ontologySettings.getOlsBaseUrl())) {
+			builder.field(OntologySettings.OLS_BASE_URL_PARAM, ontologySettings.getOlsBaseUrl());
+			builder.field(OntologySettings.OLS_ONTOLOGY_PARAM, ontologySettings.getOlsOntology());
+		}
 		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
@@ -321,7 +348,7 @@ public class OntologyMapper implements Mapper {
 
 	private void addFieldData(ParseContext context, FieldMapper<String> mapper, Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.name()) == null) {
+			if (mappers.get(mapper.name()) == null && !context.isWithinNewMapper()) {
 				// New mapper
 				context.setWithinNewMapper();
 				try {

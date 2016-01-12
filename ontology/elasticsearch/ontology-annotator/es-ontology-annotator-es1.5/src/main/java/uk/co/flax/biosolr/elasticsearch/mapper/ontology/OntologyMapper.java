@@ -118,8 +118,9 @@ public class OntologyMapper implements Mapper {
 
 			if (ontologySettings == null) {
 				throw new MapperParsingException("No ontology settings supplied");
-			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())) {
-				throw new MapperParsingException("Ontology URI is required");
+			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())
+					&& StringUtils.isBlank(ontologySettings.getOlsBaseUrl())) {
+				throw new MapperParsingException("No ontology URI or OLS details supplied");
 			}
 			
 			return new OntologyMapper.Builder(name, ontologySettings, threadPool);
@@ -130,25 +131,40 @@ public class OntologyMapper implements Mapper {
 
 			for (Entry<String, Object> entry : ontSettingsNode.entrySet()) {
 				String key = entry.getKey();
-				switch (key) {
-					case OntologySettings.ONTOLOGY_URI_PARAM:
-						settings.setOntologyUri(entry.getValue().toString());
-						break;
-					case OntologySettings.LABEL_URI_PARAM:
-						settings.setLabelPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.SYNONYM_URI_PARAM:
-						settings.setSynonymPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.DEFINITION_URI_PARAM:
-						settings.setDefinitionPropertyUris(extractList(entry.getValue()));
-						break;
-					case OntologySettings.INCLUDE_INDIRECT_PARAM:
-						settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
-						break;
-					case OntologySettings.INCLUDE_RELATIONS_PARAM:
-						settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
-						break;
+				if (entry.getValue() != null) {
+					logger.debug("Parsing setting :: {} = {}", key, entry.getValue());
+					switch (key) {
+						case OntologySettings.ONTOLOGY_URI_PARAM:
+							settings.setOntologyUri(entry.getValue().toString());
+							break;
+						case OntologySettings.LABEL_URI_PARAM:
+							settings.setLabelPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.SYNONYM_URI_PARAM:
+							settings.setSynonymPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.DEFINITION_URI_PARAM:
+							settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.INCLUDE_INDIRECT_PARAM:
+							settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.INCLUDE_RELATIONS_PARAM:
+							settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_BASE_URL_PARAM:
+							settings.setOlsBaseUrl(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_ONTOLOGY_PARAM:
+							settings.setOlsOntology(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_PAGESIZE_PARAM:
+							settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_THREADPOOL_PARAM:
+							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+					}
 				}
 			}
 
@@ -201,10 +217,16 @@ public class OntologyMapper implements Mapper {
 		builder.field("type", RegisterOntologyType.ONTOLOGY_TYPE);
 
 		builder.startObject(OntologySettings.ONTOLOGY_SETTINGS_KEY);
-		builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
-		builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
-		builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
-		builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		if (StringUtils.isNotBlank(ontologySettings.getOntologyUri())) {
+			builder.field(OntologySettings.ONTOLOGY_URI_PARAM, ontologySettings.getOntologyUri());
+			builder.field(OntologySettings.LABEL_URI_PARAM, ontologySettings.getLabelPropertyUris());
+			builder.field(OntologySettings.DEFINITION_URI_PARAM, ontologySettings.getDefinitionPropertyUris());
+			builder.field(OntologySettings.SYNONYM_URI_PARAM, ontologySettings.getSynonymPropertyUris());
+		}
+		if (StringUtils.isNotBlank(ontologySettings.getOlsBaseUrl())) {
+			builder.field(OntologySettings.OLS_BASE_URL_PARAM, ontologySettings.getOlsBaseUrl());
+			builder.field(OntologySettings.OLS_ONTOLOGY_PARAM, ontologySettings.getOlsOntology());
+		}
 		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
