@@ -17,6 +17,8 @@
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.collect.CopyOnWriteHashMap;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -230,9 +232,18 @@ public class OntologyMapper implements Mapper {
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
 
-		for (FieldMapper<String> mapper : mappers.values()) {
+		Mapper[] sortedMappers = mappers.values().toArray(new Mapper[mappers.size()]);
+		Arrays.sort(sortedMappers, new Comparator<Mapper>() {
+			@Override
+			public int compare(Mapper o1, Mapper o2) {
+				return o1.name().compareTo(o2.name());
+			}
+		});
+		builder.startObject("fields");
+		for (Mapper mapper : sortedMappers) {
 			mapper.toXContent(builder, params);
 		}
+		builder.endObject();
 
 		builder.endObject();  // name
 
@@ -297,8 +308,8 @@ public class OntologyMapper implements Mapper {
 						String uriMapperName = sanRelation + DYNAMIC_URI_FIELD_SUFFIX;
 						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 
-						FieldMapper<String> uriMapper = mappers.get(uriMapperName);
-						FieldMapper<String> labelMapper = mappers.get(labelMapperName);
+						FieldMapper<String> uriMapper = mappers.get(name() +"." + uriMapperName);
+						FieldMapper<String> labelMapper = mappers.get(name() + "." + labelMapperName);
 
 						if (uriMapper == null) {
 							context.path().add(name);
@@ -362,7 +373,7 @@ public class OntologyMapper implements Mapper {
 					context.setMappingsModified();
 
 					synchronized (mutex) {
-						mappers = mappers.copyAndPut(mapper.name(), mapper);
+						mappers = mappers.copyAndPut(mapper.names().indexName(), mapper);
 					}
 				} finally {
 					context.clearWithinNewMapper();
@@ -392,6 +403,7 @@ public class OntologyMapper implements Mapper {
 
 	@Override
 	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
+		logger.debug("Merging...");
 	}
 
 	@Override

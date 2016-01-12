@@ -110,7 +110,10 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertThat(hits.getHits()[0].field("annotation.ancestor_uris").getValues().size(), equalTo(1));
 
 		query = QueryBuilders.matchQuery(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName(), "experimental");
-		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
+				.setFetchSource(true)
+				.addFields("annotation.uri", "annotation.label")
+				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
@@ -124,7 +127,7 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("*") 
+				.addFields("annotation.participates_in_rel_uris", "annotation.participates_in_rel_labels")
 				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
