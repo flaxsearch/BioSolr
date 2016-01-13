@@ -27,7 +27,7 @@ public class NameConverter {
   /**
    * Given a method name, generate a field name if it's a getXxx or isXxx method.
    * (Otherwise, return null.) The name is lower cased and _ seperated, so e.g.
-   * getFooBar => foo_bar.
+   * getFooBar becomes foo_bar.
    */
   public static String getFieldName(String methodName) {
     int i;
@@ -55,7 +55,7 @@ public class NameConverter {
   
   /**
    * Given a field name, generate a method name. The name is CamelCased, so
-   * e.g. foo_bar => getFooBar.
+   * e.g. foo_bar becomes getFooBar.
    */
   public static String getMethodName(String fieldName) {
     StringBuilder methodName = new StringBuilder("get");
