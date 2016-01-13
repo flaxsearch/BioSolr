@@ -17,10 +17,16 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
 
   private String url;
   
+  private String idField;
+  
+  private String discountField;
+  
 	@Override
 	@SuppressWarnings("rawtypes")
 	public void init(NamedList args) {
 	  url = (String)args.get("url");
+	  idField = (String)args.get("idField");
+	  discountField = (String)args.get("discountField");
 	}
 
 	/**
@@ -50,7 +56,7 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
     public Iterable<String> getJoinIds() {
       List<String> ids = new ArrayList<>();
       for (JsonValue offer : offers) {
-        ids.add(((JsonObject)offer).getString("id"));
+        ids.add(((JsonObject)offer).getString(idField));
       }
       return ids;
     }
@@ -58,7 +64,7 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
     @Override
     public Object getResult(String joinIdStr) {
       for (JsonValue offer : offers) {
-        String id = ((JsonObject)offer).getString("id");
+        String id = ((JsonObject)offer).getString(idField);
         if (id.equals(joinIdStr)) {
           return new Offer(offer);
         }
@@ -77,7 +83,7 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
 	  }
     
     public double getDiscount() {
-      return ((JsonObject)offer).getInt("discountPct") * 0.01d;
+      return ((JsonObject)offer).getInt(discountField) * 0.01d;
     }
     
 	}

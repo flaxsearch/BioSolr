@@ -18,10 +18,14 @@ def products():
 @app.route('/manufacturers')
 def manufacturer():
   manufacturers = set(doc['manufacturer'] for doc in app.docs if 'manufacturer' in doc)
-  deal = lambda m: { 'id': m, 'discountPct': random.randint(1, 10) * 5 }
+  deal = lambda m: { 'manufacturer': m, 'discountPct': random.randint(1, 10) * 5 }
   return json.dumps([deal(m) for m in random.sample(manufacturers, 3)])
 
 
 if __name__ == "__main__":
+  if len(sys.argv) < 2:
+    print("Usage: {0} <csv file>".format(sys.argv[0]))
+    sys.exit(1)
+
   app.docs = list(read(sys.argv[1]))
   app.run(port=8000, debug=True)

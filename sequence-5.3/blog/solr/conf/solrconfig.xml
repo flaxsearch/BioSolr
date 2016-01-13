@@ -596,6 +596,8 @@
     <str name="joinField">id</str>
     <lst name="external">
       <str name="url">http://localhost:8000/products</str>
+      <str name="field">id</str>
+      <str name="discountField">discountPct</str>
     </lst>
   </searchComponent>
 
@@ -604,6 +606,8 @@
     <str name="joinField">manufacturer</str>
     <lst name="external">
       <str name="url">http://localhost:8000/manufacturers</str>
+      <str name="field">manufacturer</str>
+      <str name="discountField">discountPct</str>
     </lst>
   </searchComponent>
 
