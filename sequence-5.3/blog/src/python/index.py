@@ -5,23 +5,24 @@ import requests
 import codecs
 
 
-class UTF8Recoder:
-  """
-  Iterator that reads an encoded stream and reencodes the input to UTF-8
-  """
-  def __init__(self, f, encoding):
-    self.reader = codecs.getreader(encoding)(f)
-
-  def __iter__(self):
-    return self
-
-  def next(self):
-    return self.reader.next().encode("utf-8")
+# class UTF8Recoder:
+#   """
+#   Iterator that reads an encoded stream and reencodes the input to UTF-8
+#   """
+#   def __init__(self, f, encoding):
+#     self.reader = codecs.getreader(encoding)(f)
+#
+#   def __iter__(self):
+#     return self
+#
+#   def next(self):
+#     return self.reader.next().encode("utf-8")
 
 
 def read(path):
+  # with open(path) as f:
   with open(path, encoding='iso-8859-1') as f:
-    #reader = csv.DictReader(UTF8Recoder(f, 'iso-8859-1'))
+    # reader = csv.DictReader(UTF8Recoder(f, 'iso-8859-1'))
     reader = csv.DictReader(f)
     for doc in reader:
       doc = dict((k, v.strip() if k != 'price' else float(v.split()[0])) for k, v in doc.items())
