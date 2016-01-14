@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015 Lemur Consulting Ltd.
- * <p/>
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,26 @@ package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.FieldType;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.CopyOnWriteHashMap;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.netty.util.internal.ConcurrentHashMap;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.index.analysis.NamedAnalyzer;
+import org.elasticsearch.index.codec.docvaluesformat.DocValuesFormatProvider;
+import org.elasticsearch.index.codec.postingsformat.PostingsFormatProvider;
+import org.elasticsearch.index.fielddata.FieldDataType;
 import org.elasticsearch.index.mapper.*;
+import org.elasticsearch.index.mapper.core.AbstractFieldMapper;
+import org.elasticsearch.index.similarity.SimilarityProvider;
 import org.elasticsearch.threadpool.ThreadPool;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
@@ -40,35 +48,73 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static org.elasticsearch.index.mapper.core.TypeParsers.parseMultiField;
+
 /**
  * Mapper class to expand ontology details from an ontology
  * annotation field value.
  *
  * @author mlp
  */
-public class OntologyMapper implements Mapper {
+public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 
 	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
-	
+
 	public static final String DYNAMIC_URI_FIELD_SUFFIX = "_rel_uris";
 	public static final String DYNAMIC_LABEL_FIELD_SUFFIX = "_rel_labels";
 
-    private static final ESLogger logger = ESLoggerFactory.getLogger(OntologyMapper.class.getName());
+	private static final ESLogger logger = ESLoggerFactory.getLogger(OntologyMapper.class.getName());
+
+	public static class Defaults extends AbstractFieldMapper.Defaults {
+		public static final FieldType LABEL_FIELD_TYPE = new FieldType(AbstractFieldMapper.Defaults.FIELD_TYPE);
+		public static final FieldType URI_FIELD_TYPE = new FieldType(AbstractFieldMapper.Defaults.FIELD_TYPE);
+
+		public static final FieldType FIELD_TYPE = AbstractFieldMapper.Defaults.FIELD_TYPE;
+
+		static {
+			LABEL_FIELD_TYPE.setStored(true);
+			LABEL_FIELD_TYPE.setTokenized(true);
+			LABEL_FIELD_TYPE.freeze();
+
+			URI_FIELD_TYPE.setStored(true);
+			URI_FIELD_TYPE.setTokenized(false);
+			URI_FIELD_TYPE.freeze();
+
+			FIELD_TYPE.freeze();
+		}
+
+		public static final Boolean NULL_VALUE = null;
+	}
 
 
-	public static class Builder extends Mapper.Builder<Builder, OntologyMapper> {
+	public static class Builder extends AbstractFieldMapper.Builder<Builder, OntologyMapper> {
 
-		private final OntologySettings ontologySettings;
+		private ContentPath.Type pathType = Defaults.PATH_TYPE;
+
+		private OntologySettings ontologySettings;
 		private final ThreadPool threadPool;
 
+		public Builder(String name, ThreadPool threadPool) {
+			super(name, Defaults.FIELD_TYPE);
+			this.threadPool = threadPool;
+		}
+
 		public Builder(String name, OntologySettings ontSettings, ThreadPool threadPool) {
-			super(name);
+			super(name, Defaults.FIELD_TYPE);
 			this.ontologySettings = ontSettings;
 			this.threadPool = threadPool;
 		}
 
+		public Builder ontologySettings(OntologySettings settings) {
+			this.ontologySettings = settings;
+			return this;
+		}
+
 		@Override
 		public OntologyMapper build(BuilderContext context) {
+			ContentPath.Type origPathType = context.path().pathType();
+			context.path().pathType(pathType);
+
 			Map<FieldMappings, FieldMapper<String>> fieldMappers = Maps.newHashMap();
 
 			context.path().add(name);
@@ -81,12 +127,17 @@ public class OntologyMapper implements Mapper {
 						.build(context);
 				fieldMappers.put(mapping, mapper);
 			}
-			
-			context.path().remove(); // remove name
 
-			return new OntologyMapper(name, ontologySettings, fieldMappers, threadPool);
+			context.path().remove(); // remove name
+			context.path().pathType(origPathType);
+
+			return new OntologyMapper(buildNames(context), fieldType, docValues, indexAnalyzer, searchAnalyzer,
+					postingsProvider, docValuesProvider,
+					similarity, fieldDataSettings, context.indexSettings(), origPathType,
+					null, // multifields
+					ontologySettings, fieldMappers, threadPool);
 		}
-		
+
 	}
 
 
@@ -112,9 +163,13 @@ public class OntologyMapper implements Mapper {
 				throws MapperParsingException {
 			OntologySettings ontologySettings = null;
 
+			Builder builder = new Builder(name, threadPool);
+
 			for (Entry<String, Object> entry : node.entrySet()) {
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
 					ontologySettings = parseOntologySettings((Map<String, Object>) entry.getValue());
+				} else {
+					parseMultiField(builder, name, parserContext, entry.getKey(), entry.getValue());
 				}
 			}
 
@@ -123,9 +178,11 @@ public class OntologyMapper implements Mapper {
 			} else if (StringUtils.isBlank(ontologySettings.getOntologyUri())
 					&& StringUtils.isBlank(ontologySettings.getOlsBaseUrl())) {
 				throw new MapperParsingException("No ontology URI or OLS details supplied");
+			} else {
+				builder = builder.ontologySettings(ontologySettings);
 			}
-			
-			return new OntologyMapper.Builder(name, ontologySettings, threadPool);
+
+			return builder;
 		}
 
 		private OntologySettings parseOntologySettings(Map<String, Object> ontSettingsNode) {
@@ -179,8 +236,8 @@ public class OntologyMapper implements Mapper {
 			if (value instanceof String) {
 				ret = Collections.singletonList((String) value);
 			} else if (value instanceof List) {
-				ret = new ArrayList<>(((List)value).size());
-				for (Object v : (List)value) {
+				ret = new ArrayList<>(((List) value).size());
+				for (Object v : (List) value) {
 					ret.add(v.toString());
 				}
 			}
@@ -193,7 +250,6 @@ public class OntologyMapper implements Mapper {
 
 	private final Object mutex = new Object();
 
-	private final String name;
 	private final OntologySettings ontologySettings;
 	private volatile ImmutableOpenMap<FieldMappings, FieldMapper<String>> predefinedFields = ImmutableOpenMap.of();
 	private volatile CopyOnWriteHashMap<String, FieldMapper<String>> mappers;
@@ -201,16 +257,47 @@ public class OntologyMapper implements Mapper {
 
 	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
 
-	public OntologyMapper(String name, OntologySettings oSettings,
+	public OntologyMapper(FieldMapper.Names names, FieldType fieldType, Boolean docValues,
+			NamedAnalyzer indexAnalyzer, NamedAnalyzer searchAnalyzer,
+			PostingsFormatProvider postingsFormat, DocValuesFormatProvider docValuesFormat,
+			SimilarityProvider similarity, @Nullable Settings fieldDataSettings, Settings indexSettings,
+			ContentPath.Type pathType, MultiFields multiFields, OntologySettings oSettings,
 			Map<FieldMappings, FieldMapper<String>> fieldMappers,
 			ThreadPool threadPool) {
-		this.name = name;
+		super(names, 1f, fieldType, docValues, null, indexAnalyzer, postingsFormat, docValuesFormat, similarity, null, fieldDataSettings, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
 		this.predefinedFields = ImmutableOpenMap.builder(predefinedFields).putAll(fieldMappers).build();
 		this.mappers = new CopyOnWriteHashMap<>();
 		this.threadPool = threadPool;
 	}
 
+	@Override
+	public String contentType() {
+		return RegisterOntologyType.ONTOLOGY_TYPE;
+	}
+
+	@Override
+	public FieldType defaultFieldType() {
+		return Defaults.FIELD_TYPE;
+	}
+
+	@Override
+	public FieldDataType defaultFieldDataType() {
+		return new FieldDataType(RegisterOntologyType.ONTOLOGY_TYPE);
+	}
+
+	@Override
+	protected void parseCreateField(ParseContext context, List<Field> fields) throws IOException {
+		throw new UnsupportedOperationException("Parsing is implemented in parse(), this method should NEVER be called");
+	}
+
+	@Override
+	public OntologyData value(Object value) {
+		if (value instanceof OntologyData) {
+			return (OntologyData) value;
+		}
+		return null;
+	}
 
 	@Override
 	public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
@@ -251,22 +338,22 @@ public class OntologyMapper implements Mapper {
 	}
 
 	@Override
-	public String name() {
-		return name;
-	}
-
-	@Override
 	public void parse(ParseContext context) throws IOException {
 		String iri;
 		XContentParser parser = context.parser();
-        XContentParser.Token token = parser.currentToken();
-        if (token == XContentParser.Token.VALUE_STRING) {
-            iri = parser.text();
-        } else {
-        	throw new MapperParsingException(name() + " does not contain String value");
-        }
+		XContentParser.Token token = parser.currentToken();
 
-        try {
+		ContentPath.Type origPathType = context.path().pathType();
+		context.path().pathType(ContentPath.Type.FULL);
+		context.path().add(names.name());
+
+		if (token == XContentParser.Token.VALUE_STRING) {
+			iri = parser.text();
+		} else {
+			throw new MapperParsingException(name() + " does not contain String value");
+		}
+
+		try {
 			OntologyHelper helper = getHelper(ontologySettings, threadPool);
 
 			OntologyData data = findOntologyData(helper, iri);
@@ -308,11 +395,10 @@ public class OntologyMapper implements Mapper {
 						String uriMapperName = sanRelation + DYNAMIC_URI_FIELD_SUFFIX;
 						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 
-						FieldMapper<String> uriMapper = mappers.get(name() +"." + uriMapperName);
+						FieldMapper<String> uriMapper = mappers.get(name() + "." + uriMapperName);
 						FieldMapper<String> labelMapper = mappers.get(name() + "." + labelMapperName);
 
 						if (uriMapper == null) {
-							context.path().add(name);
 							BuilderContext builderContext = new BuilderContext(context.indexSettings(), context.path());
 							uriMapper = MapperBuilders.stringField(uriMapperName)
 									.store(true)
@@ -324,7 +410,6 @@ public class OntologyMapper implements Mapper {
 									.index(true)
 									.tokenized(true)
 									.build(builderContext);
-							context.path().remove();
 						}
 
 						addFieldData(context, uriMapper, relations.get(relation));
@@ -336,6 +421,9 @@ public class OntologyMapper implements Mapper {
 			helper.updateLastCallTime();
 		} catch (OntologyHelperException e) {
 			throw new ElasticsearchException("Could not initialise ontology helper", e);
+		} finally {
+			context.path().remove();
+			context.path().pathType(origPathType);
 		}
 	}
 
@@ -388,9 +476,16 @@ public class OntologyMapper implements Mapper {
 
 	private void parseData(ParseContext context, FieldMapper<String> mapper, Collection<String> values) throws IOException {
 		for (String value : values) {
-			ParseContext evc = context.createExternalValueContext(value);
-			mapper.parse(evc);
+			Field field = new Field(mapper.names().indexName(), value,
+					isUriField(mapper.name()) ? Defaults.URI_FIELD_TYPE : Defaults.LABEL_FIELD_TYPE);
+			context.doc().add(field);
+//			ParseContext evc = context.createExternalValueContext(value);
+//			mapper.parse(evc);
 		}
+	}
+
+	private boolean isUriField(String fieldName) {
+		return fieldName.endsWith("uri") || fieldName.endsWith("uris");
 	}
 
 	private void addRelatedNodesWithLabels(Collection<String> iris, Collection<String> labels, ParseContext context,
@@ -403,7 +498,7 @@ public class OntologyMapper implements Mapper {
 
 	@Override
 	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
-		logger.debug("Merging...");
+		super.merge(mergeWith, mergeContext);
 	}
 
 	@Override
