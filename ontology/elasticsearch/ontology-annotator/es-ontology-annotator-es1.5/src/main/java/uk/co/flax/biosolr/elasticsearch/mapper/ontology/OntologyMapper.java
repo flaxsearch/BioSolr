@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015 Lemur Consulting Ltd.
- * <p>
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -60,6 +60,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 
 	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 
+	public static final String ONTOLOGY_PROPERTIES = "ontology_properties";
+
 	public static final String DYNAMIC_URI_FIELD_SUFFIX = "_rel_uris";
 	public static final String DYNAMIC_LABEL_FIELD_SUFFIX = "_rel_labels";
 
@@ -69,7 +71,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		public static final FieldType LABEL_FIELD_TYPE = new FieldType(AbstractFieldMapper.Defaults.FIELD_TYPE);
 		public static final FieldType URI_FIELD_TYPE = new FieldType(AbstractFieldMapper.Defaults.FIELD_TYPE);
 
-		public static final FieldType FIELD_TYPE = AbstractFieldMapper.Defaults.FIELD_TYPE;
+		public static final FieldType FIELD_TYPE = new FieldType(AbstractFieldMapper.Defaults.FIELD_TYPE);
 
 		static {
 			LABEL_FIELD_TYPE.setStored(true);
@@ -80,6 +82,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			URI_FIELD_TYPE.setTokenized(false);
 			URI_FIELD_TYPE.freeze();
 
+			FIELD_TYPE.setStored(true);
 			FIELD_TYPE.freeze();
 		}
 
@@ -134,7 +137,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			return new OntologyMapper(buildNames(context), fieldType, docValues, indexAnalyzer, searchAnalyzer,
 					postingsProvider, docValuesProvider,
 					similarity, fieldDataSettings, context.indexSettings(), origPathType,
-					null, // multifields
+					new MultiFields.Builder().build(this, context),
 					ontologySettings, fieldMappers, threadPool);
 		}
 
@@ -152,8 +155,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		/**
 		 * Parse the mapping definition for the ontology type.
 		 *
-		 * @param name the field name
-		 * @param node the JSON node holding the mapping definitions.
+		 * @param name          the field name
+		 * @param node          the JSON node holding the mapping definitions.
 		 * @param parserContext the parser context object.
 		 * @return a Builder for an OntologyMapper.
 		 */
@@ -168,8 +171,6 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			for (Entry<String, Object> entry : node.entrySet()) {
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
 					ontologySettings = parseOntologySettings((Map<String, Object>) entry.getValue());
-				} else {
-					parseMultiField(builder, name, parserContext, entry.getKey(), entry.getValue());
 				}
 			}
 
@@ -264,7 +265,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			ContentPath.Type pathType, MultiFields multiFields, OntologySettings oSettings,
 			Map<FieldMappings, FieldMapper<String>> fieldMappers,
 			ThreadPool threadPool) {
-		super(names, 1f, fieldType, docValues, null, indexAnalyzer, postingsFormat, docValuesFormat, similarity, null, fieldDataSettings, indexSettings, multiFields, null);
+		super(names, 1f, fieldType, docValues, null, indexAnalyzer, postingsFormat, docValuesFormat, similarity, null,
+				fieldDataSettings, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
 		this.predefinedFields = ImmutableOpenMap.builder(predefinedFields).putAll(fieldMappers).build();
 		this.mappers = new CopyOnWriteHashMap<>();
@@ -288,7 +290,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 
 	@Override
 	protected void parseCreateField(ParseContext context, List<Field> fields) throws IOException {
-		throw new UnsupportedOperationException("Parsing is implemented in parse(), this method should NEVER be called");
+		throw new UnsupportedOperationException(
+				"Parsing is implemented in parse(), this method should NEVER be called");
 	}
 
 	@Override
@@ -326,11 +329,11 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 				return o1.name().compareTo(o2.name());
 			}
 		});
-		builder.startObject("fields");
+		builder.startObject(ONTOLOGY_PROPERTIES);
 		for (Mapper mapper : sortedMappers) {
 			mapper.toXContent(builder, params);
 		}
-		builder.endObject();
+		builder.endObject();  // ontology_properties
 
 		builder.endObject();  // name
 
@@ -374,16 +377,19 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 
 				// Add the parent details
 				addRelatedNodesWithLabels(data.getParentIris(), data.getParentLabels(), context,
-						predefinedFields.get(FieldMappings.PARENT_URI), predefinedFields.get(FieldMappings.PARENT_LABEL));
+						predefinedFields.get(FieldMappings.PARENT_URI),
+						predefinedFields.get(FieldMappings.PARENT_LABEL));
 
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
 					addRelatedNodesWithLabels(data.getDescendantIris(), data.getDescendantLabels(), context,
-							predefinedFields.get(FieldMappings.DESCENDANT_URI), predefinedFields.get(FieldMappings.DESCENDANT_LABEL));
+							predefinedFields.get(FieldMappings.DESCENDANT_URI),
+							predefinedFields.get(FieldMappings.DESCENDANT_LABEL));
 
 					// Add the ancestor details
 					addRelatedNodesWithLabels(data.getAncestorIris(), data.getAncestorLabels(), context,
-							predefinedFields.get(FieldMappings.ANCESTOR_URI), predefinedFields.get(FieldMappings.ANCESTOR_LABEL));
+							predefinedFields.get(FieldMappings.ANCESTOR_URI),
+							predefinedFields.get(FieldMappings.ANCESTOR_LABEL));
 				}
 
 				if (ontologySettings.isIncludeRelations()) {
@@ -395,8 +401,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 						String uriMapperName = sanRelation + DYNAMIC_URI_FIELD_SUFFIX;
 						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 
-						FieldMapper<String> uriMapper = mappers.get(name() + "." + uriMapperName);
-						FieldMapper<String> labelMapper = mappers.get(name() + "." + labelMapperName);
+						FieldMapper<String> uriMapper = mappers.get(names.name() + "." + uriMapperName);
+						FieldMapper<String> labelMapper = mappers.get(names.name() + "." + labelMapperName);
 
 						if (uriMapper == null) {
 							BuilderContext builderContext = new BuilderContext(context.indexSettings(), context.path());
@@ -442,9 +448,10 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		return data;
 	}
 
-	private void addFieldData(ParseContext context, FieldMapper<String> mapper, Collection<String> data) throws IOException {
+	private void addFieldData(ParseContext context, FieldMapper<String> mapper,
+			Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.name()) == null && !context.isWithinNewMapper()) {
+			if (mappers.get(mapper.name()) == null) {
 				// New mapper
 				context.setWithinNewMapper();
 				try {
@@ -474,13 +481,12 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		}
 	}
 
-	private void parseData(ParseContext context, FieldMapper<String> mapper, Collection<String> values) throws IOException {
+	private void parseData(ParseContext context, FieldMapper<String> mapper,
+			Collection<String> values) throws IOException {
 		for (String value : values) {
 			Field field = new Field(mapper.names().indexName(), value,
 					isUriField(mapper.name()) ? Defaults.URI_FIELD_TYPE : Defaults.LABEL_FIELD_TYPE);
 			context.doc().add(field);
-//			ParseContext evc = context.createExternalValueContext(value);
-//			mapper.parse(evc);
 		}
 	}
 
@@ -521,7 +527,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	}
 
 
-	public static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OntologyHelperException {
+	public static OntologyHelper getHelper(OntologySettings settings,
+			ThreadPool threadPool) throws OntologyHelperException {
 		String helperKey = buildHelperKey(settings);
 		OntologyHelper helper = helpers.get(helperKey);
 

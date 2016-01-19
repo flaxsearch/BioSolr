@@ -25,6 +25,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.plugins.PluginsService;
+import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.Before;
@@ -83,13 +84,20 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 				.actionGet();
 
 		// Add the root record
-		XContentBuilder source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
+		XContentBuilder source = XContentFactory.jsonBuilder().startObject()
+				.field(ANNOTATION_FIELD, TEST_IRI)
+				.field("name", randomRealisticUnicodeOfLength(12))
+				.endObject();
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		String id = response.getId();
 		flush();
 		
 		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id);
-		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
+		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
+				.setFetchSource(true)
+				.addFields("annotation.uri", "annotation.label")
+				.setQuery(query)
+				.get();
 		assertNoFailures(searchResponse);
 		SearchHits hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
@@ -120,21 +128,27 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertThat(hits.getHits()[0].field(ANNOTATION_FIELD + "." + FieldMappings.LABEL.getFieldName()).getValues().size(), equalTo(2));
 
 		// Add the child record
-		source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_CHILD_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
+		source = XContentFactory.jsonBuilder().startObject()
+				.field(ANNOTATION_FIELD, TEST_CHILD_IRI)
+				.field("name", randomRealisticUnicodeOfLength(12))
+				.endObject();
 		response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		flush();
 		
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("annotation.participates_in_rel_uris", "annotation.participates_in_rel_labels")
-				.setQuery(query).get();
+				.addFields("name", "annotation", "*")
+				.setQuery(query)
+				.get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
 		assertThat(hits.getTotalHits(), equalTo(1L));
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_uris"));
 		assertThat(hits.getHits()[0].field("annotation.participates_in_rel_uris").getValues().get(0), equalTo(TEST_IRI));
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_labels").getValues().get(0));
+		SearchHitField fld = hits.getHits()[0].field("annotation");
+		assertNotNull(fld);
 	}
 
 }
