@@ -47,6 +47,7 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * Mapper class to expand ontology details from an ontology
@@ -248,6 +249,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	private final ThreadPool threadPool;
 
 	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
+	private static Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(FieldMapper.Names names, FieldType fieldType, Boolean docValues,
 			NamedAnalyzer indexAnalyzer, NamedAnalyzer searchAnalyzer,
@@ -525,7 +527,24 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		for (FieldMapper<String> mapper : mappers.values()) {
 			mapper.close();
 		}
-//		disposeHelper();
+		disposeHelper();
+	}
+
+	private void disposeHelper() {
+		String helperKey = buildHelperKey(ontologySettings);
+		if (helpers.containsKey(helperKey)) {
+			helpers.get(helperKey).dispose();
+			helpers.remove(helperKey);
+		}
+		if (checkers.containsKey(helperKey)) {
+			checkers.get(helperKey).cancel(false);
+			checkers.remove(helperKey);
+		}
+	}
+
+	@Override
+	public boolean isGenerated() {
+		return true;
 	}
 
 
@@ -537,8 +556,9 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		if (helper == null) {
 			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
 			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey);
-			threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
 			helpers.put(helperKey, helper);
+			checkers.put(helperKey, checkFuture);
 			helper.updateLastCallTime();
 		}
 
@@ -565,6 +585,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	private static final class OntologyCheckRunnable implements Runnable {
 
 		final String threadKey;
+		private boolean done;
 
 		public OntologyCheckRunnable(String threadKey) {
 			this.threadKey = threadKey;
@@ -580,7 +601,13 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 					helper.dispose();
 					helpers.remove(threadKey);
 				}
+			} else {
+				done = true;
 			}
+		}
+
+		public boolean isDone() {
+			return done;
 		}
 
 	}
