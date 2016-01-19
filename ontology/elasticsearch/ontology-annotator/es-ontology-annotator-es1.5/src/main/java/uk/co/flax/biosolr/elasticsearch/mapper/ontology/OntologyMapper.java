@@ -339,15 +339,15 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		XContentParser parser = context.parser();
 		XContentParser.Token token = parser.currentToken();
 
-		ContentPath.Type origPathType = context.path().pathType();
-		context.path().pathType(ContentPath.Type.FULL);
-		context.path().add(names.name());
-
 		if (token == XContentParser.Token.VALUE_STRING) {
 			iri = parser.text();
 		} else {
 			throw new MapperParsingException(name() + " does not contain String value");
 		}
+
+		ContentPath.Type origPathType = context.path().pathType();
+		context.path().pathType(ContentPath.Type.FULL);
+		context.path().add(names.name());
 
 		try {
 			OntologyHelper helper = getHelper(ontologySettings, threadPool);
