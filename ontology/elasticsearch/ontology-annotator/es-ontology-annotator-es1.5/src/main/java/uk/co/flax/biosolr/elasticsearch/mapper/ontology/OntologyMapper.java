@@ -451,7 +451,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	private void addFieldData(ParseContext context, FieldMapper<String> mapper,
 			Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.name()) == null) {
+			if (mappers.get(mapper.names().indexName()) == null) {
 				// New mapper
 				context.setWithinNewMapper();
 				try {
@@ -505,6 +505,15 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	@Override
 	public void merge(Mapper mergeWith, MergeContext mergeContext) throws MergeMappingException {
 		super.merge(mergeWith, mergeContext);
+		if (!this.getClass().equals(mergeWith.getClass())) {
+			return;
+		}
+		OntologySettings mergeSettings = ((OntologyMapper) mergeWith).ontologySettings;
+		if (mergeSettings.getOntologyUri() != null && !mergeSettings.getOntologyUri().equals(ontologySettings.getOntologyUri())) {
+			mergeContext.addConflict("mapper [" + names.fullName() + "] has different ontology URI");
+		} else if (mergeSettings.getOlsBaseUrl() != null && !mergeSettings.getOlsBaseUrl().equals(ontologySettings.getOlsBaseUrl())) {
+			mergeContext.addConflict("mapper [" + names.fullName() + "] has different OLS base URL");
+		}
 	}
 
 	@Override
