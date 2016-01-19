@@ -15,7 +15,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<owlapi.version>3.5.2</owlapi.version>
-		<randomizedtesting-runner.version>2.1.14</randomizedtesting-runner.version>
+		<randomizedtesting-runner.version>2.1.16</randomizedtesting-runner.version>
 		<jackson.version>2.5.4</jackson.version>
 	</properties>
 
@@ -24,6 +24,7 @@
 		<module>es-ontology-annotator-es1.3</module>
 		<module>es-ontology-annotator-es1.4</module>
 		<module>es-ontology-annotator-es1.5</module>
+		<module>es-ontology-annotator-es2.0</module>
 	</modules>
 
 	<build>
@@ -31,7 +32,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.3</version>
 				<!-- compile for Java 1.8 -->
 				<configuration>
 					<source>1.8</source>
@@ -49,6 +50,12 @@
 			<artifactId>randomizedtesting-runner</artifactId>
 			<version>${randomizedtesting-runner.version}</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -61,6 +68,12 @@
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
