@@ -37,6 +37,7 @@ import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
@@ -51,7 +52,7 @@ import static org.elasticsearch.index.mapper.core.TypeParsers.parseField;
  *
  * @author mlp
  */
-public class OntologyMapper extends FieldMapper {
+public class OntologyMapper extends FieldMapper implements Closeable {
 
 	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -89,6 +90,7 @@ public class OntologyMapper extends FieldMapper {
 		private ContentPath.Type pathType = Defaults.PATH_TYPE;
 
 		private OntologySettings ontologySettings;
+		private Map<String, StringFieldMapper.Builder> propertyBuilders;
 		private final ThreadPool threadPool;
 
 		public Builder(String name, ThreadPool threadPool) {
@@ -102,23 +104,37 @@ public class OntologyMapper extends FieldMapper {
 			return this;
 		}
 
+		public Builder propertyBuilders(Map<String, StringFieldMapper.Builder> props) {
+			this.propertyBuilders = props;
+			return this;
+		}
+
 		@Override
 		public OntologyMapper build(Mapper.BuilderContext context) {
 			ContentPath.Type origPathType = context.path().pathType();
 			context.path().pathType(pathType);
 
-			Map<FieldMappings, StringFieldMapper> fieldMappers = new HashMap<>();
+			Map<String, StringFieldMapper> fieldMappers = new HashMap<>();
 
 			context.path().add(name);
 
+			if (propertyBuilders != null) {
+				for (String property : propertyBuilders.keySet()) {
+					StringFieldMapper sfm = propertyBuilders.get(property).build(context);
+					fieldMappers.put(sfm.fieldType().names().indexName(), sfm);
+				}
+			}
+
 			// Initialise field mappers for the pre-defined fields
 			for (FieldMappings mapping : FieldMappings.values()) {
-				StringFieldMapper mapper = MapperBuilders.stringField(mapping.getFieldName())
-						.store(true)
-						.index(true)
-						.tokenized(!mapping.isUriField())
-						.build(context);
-				fieldMappers.put(mapping, mapper);
+				if (!fieldMappers.containsKey(mapping.getFieldName())) {
+					StringFieldMapper mapper = MapperBuilders.stringField(mapping.getFieldName())
+							.store(true)
+							.index(true)
+							.tokenized(!mapping.isUriField())
+							.build(context);
+					fieldMappers.put(mapper.fieldType().names().indexName(), mapper);
+				}
 			}
 
 			context.path().remove(); // remove name
@@ -165,6 +181,8 @@ public class OntologyMapper extends FieldMapper {
 					ontologySettings = parseOntologySettings((Map<String, Object>) entry.getValue());
 					iterator.remove();
 				} else if (entry.getKey().equals(ONTOLOGY_PROPERTIES)) {
+					Map<String, StringFieldMapper.Builder> builders = parseProperties((Map<String, Object>) entry.getValue(), parserContext);
+					builder.propertyBuilders(builders);
 					iterator.remove();
 				}
 			}
@@ -252,13 +270,25 @@ public class OntologyMapper extends FieldMapper {
 			return ret;
 		}
 
+		private Map<String, StringFieldMapper.Builder> parseProperties(Map<String, Object> propertiesNode, ParserContext parserContext) {
+			Map<String, StringFieldMapper.Builder> propertyMap = new HashMap<>();
+			for (Iterator<Map.Entry<String, Object>> iterator = propertiesNode.entrySet().iterator(); iterator.hasNext();) {
+				Entry<String, Object> entry = iterator.next();
+				String name = entry.getKey();
+
+				Mapper.Builder builder = new StringFieldMapper.TypeParser().parse(entry.getKey(), (Map<String, Object>)entry.getValue(), parserContext);
+				propertyMap.put(name, (StringFieldMapper.Builder)builder);
+			}
+			return propertyMap;
+		}
+
 	}
 
 
 	private final Object mutex = new Object();
 
 	private final OntologySettings ontologySettings;
-	private volatile ImmutableOpenMap<FieldMappings, StringFieldMapper> predefinedMappers = ImmutableOpenMap.of();
+	private volatile ImmutableOpenMap<String, StringFieldMapper> predefinedMappers = ImmutableOpenMap.of();
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
 	private final ThreadPool threadPool;
 
@@ -266,7 +296,7 @@ public class OntologyMapper extends FieldMapper {
 	private static Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(String simpleName, MappedFieldType fieldType, MappedFieldType defaultFieldType, Settings indexSettings, MultiFields multiFields, OntologySettings oSettings,
-			Map<FieldMappings, StringFieldMapper> fieldMappers,
+			Map<String, StringFieldMapper> fieldMappers,
 			ThreadPool threadPool) {
 		super(simpleName, fieldType, defaultFieldType, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
@@ -274,7 +304,7 @@ public class OntologyMapper extends FieldMapper {
 		// mappers for additional relations are created as required.
 		this.predefinedMappers = ImmutableOpenMap.builder(predefinedMappers).putAll(fieldMappers).build();
 		// Mappers are added to mappers map as they are used/created
-		this.mappers = new CopyOnWriteHashMap<>();
+		this.mappers = CopyOnWriteHashMap.copyOf(fieldMappers);
 		this.threadPool = threadPool;
 	}
 
@@ -309,18 +339,20 @@ public class OntologyMapper extends FieldMapper {
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
 		builder.endObject();
 
-		Mapper[] sortedMappers = mappers.values().toArray(new Mapper[mappers.size()]);
-		Arrays.sort(sortedMappers, new Comparator<Mapper>() {
-			@Override
-			public int compare(Mapper o1, Mapper o2) {
-				return o1.name().compareTo(o2.name());
+		if (!mappers.isEmpty()) {
+			Mapper[] sortedMappers = mappers.values().toArray(new Mapper[mappers.size()]);
+			Arrays.sort(sortedMappers, new Comparator<Mapper>() {
+				@Override
+				public int compare(Mapper o1, Mapper o2) {
+					return o1.name().compareTo(o2.name());
+				}
+			});
+			builder.startObject(ONTOLOGY_PROPERTIES);
+			for (Mapper mapper : sortedMappers) {
+				mapper.toXContent(builder, params);
 			}
-		});
-		builder.startObject(ONTOLOGY_PROPERTIES);
-		for (Mapper mapper : sortedMappers) {
-			mapper.toXContent(builder, params);
+			builder.endObject();  // ontology_properties
 		}
-		builder.endObject();  // ontology_properties
 
 		builder.endObject();  // name
 
@@ -343,6 +375,8 @@ public class OntologyMapper extends FieldMapper {
 		context.path().pathType(ContentPath.Type.FULL);
 		context.path().add(simpleName());
 
+		boolean modified = false;
+
 		try {
 			OntologyHelper helper = getHelper(ontologySettings, threadPool);
 
@@ -350,30 +384,32 @@ public class OntologyMapper extends FieldMapper {
 			if (data == null) {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
-				addFieldData(context, predefinedMappers.get(FieldMappings.URI), Collections.singletonList(iri));
+				String path = context.path().fullPathAsText("fuck");
+
+				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
 
 				// Look up the label(s)
-				addFieldData(context, predefinedMappers.get(FieldMappings.LABEL), data.getLabels());
+				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
 
 				// Look up the synonyms
-				addFieldData(context, predefinedMappers.get(FieldMappings.SYNONYMS), data.getLabels());
+				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.SYNONYMS, context), data.getLabels());
 
 				// Add the child details
-				addRelatedNodesWithLabels(context, data.getChildIris(), predefinedMappers.get(FieldMappings.CHILD_URI), data.getChildLabels(),
-						predefinedMappers.get(FieldMappings.CHILD_LABEL));
+				modified |= addRelatedNodesWithLabels(context, data.getChildIris(), getPredefinedMapper(FieldMappings.CHILD_URI, context), data.getChildLabels(),
+						getPredefinedMapper(FieldMappings.CHILD_LABEL, context));
 
 				// Add the parent details
-				addRelatedNodesWithLabels(context, data.getParentIris(), predefinedMappers.get(FieldMappings.PARENT_URI), data.getParentLabels(),
-						predefinedMappers.get(FieldMappings.PARENT_LABEL));
+				modified |= addRelatedNodesWithLabels(context, data.getParentIris(), getPredefinedMapper(FieldMappings.PARENT_URI, context), data.getParentLabels(),
+						getPredefinedMapper(FieldMappings.PARENT_LABEL, context));
 
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
-					addRelatedNodesWithLabels(context, data.getDescendantIris(), predefinedMappers.get(FieldMappings.DESCENDANT_URI), data.getDescendantLabels(),
-							predefinedMappers.get(FieldMappings.DESCENDANT_LABEL));
+					modified |= addRelatedNodesWithLabels(context, data.getDescendantIris(), getPredefinedMapper(FieldMappings.DESCENDANT_URI, context), data.getDescendantLabels(),
+							getPredefinedMapper(FieldMappings.DESCENDANT_LABEL, context));
 
 					// Add the ancestor details
-					addRelatedNodesWithLabels(context, data.getAncestorIris(), predefinedMappers.get(FieldMappings.ANCESTOR_URI), data.getAncestorLabels(),
-							predefinedMappers.get(FieldMappings.ANCESTOR_LABEL));
+					modified |= addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
+							getPredefinedMapper(FieldMappings.ANCESTOR_LABEL, context));
 				}
 
 				if (ontologySettings.isIncludeRelations()) {
@@ -387,8 +423,8 @@ public class OntologyMapper extends FieldMapper {
 						String labelMapperName = sanRelation + DYNAMIC_LABEL_FIELD_SUFFIX;
 
 						// Get the mapper for the relation
-						StringFieldMapper uriMapper = mappers.get(simpleName() + "." + uriMapperName);
-						StringFieldMapper labelMapper = mappers.get(simpleName() + "." + labelMapperName);
+						StringFieldMapper uriMapper = mappers.get(context.path().fullPathAsText(uriMapperName));
+						StringFieldMapper labelMapper = mappers.get(context.path().fullPathAsText(labelMapperName));
 
 						if (uriMapper == null) {
 							// No mappers created yet - build new ones for URI and label
@@ -405,7 +441,7 @@ public class OntologyMapper extends FieldMapper {
 									.build(builderContext);
 						}
 
-						addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
+						modified |= addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
 				}
@@ -419,7 +455,12 @@ public class OntologyMapper extends FieldMapper {
 			context.path().pathType(origPathType);
 		}
 
-		return null;
+		return modified ? this : null;
+	}
+
+	private StringFieldMapper getPredefinedMapper(FieldMappings mapping, ParseContext context) {
+		String mappingName = context.path().fullPathAsText(mapping.getFieldName());
+		return mappers.get(mappingName);
 	}
 
 	private OntologyData findOntologyData(OntologyHelper helper, String iri) {
@@ -437,68 +478,83 @@ public class OntologyMapper extends FieldMapper {
 		return data;
 	}
 
-	private void addFieldData(ParseContext context, StringFieldMapper mapper,
-			Collection<String> data) throws IOException {
+	private boolean addFieldData(ParseContext context, StringFieldMapper mapper, Collection<String> data) throws IOException {
+		boolean modified = false;
 		if (data != null && !data.isEmpty()) {
 			if (mappers.get(mapper.fieldType().names().indexName()) == null) {
 				// New mapper
 				parseData(context, mapper, data);
 
-
-
-//				FieldMapperListener.Aggregator newFields = new FieldMapperListener.Aggregator();
-//				ObjectMapperListener.Aggregator newObjects = new ObjectMapperListener.Aggregator();
-//				mapper.traverse(newFields);
-//				mapper.traverse(newObjects);
-//				// callback on adding those fields!
-//				context.docMapper().addFieldMappers(newFields.mappers);
-//				context.docMapper().addObjectMappers(newObjects.mappers);
-//
-//				context.setMappingsModified();
-
 				synchronized (mutex) {
 					mappers = mappers.copyAndPut(mapper.fieldType().names().indexName(), mapper);
+					modified = true;
 				}
 			} else {
 				// Mapper already added
 				parseData(context, mapper, data);
 			}
-
 		}
+
+		return modified;
 	}
 
 	private void parseData(ParseContext context, StringFieldMapper mapper,
 			Collection<String> values) throws IOException {
 		for (String value : values) {
-			Field field = new Field(mapper.simpleName(), value,
-					isUriField(mapper.name()) ? Defaults.URI_FIELD_TYPE : Defaults.LABEL_FIELD_TYPE);
-			context.doc().add(field);
+			ParseContext evc = context.createExternalValueContext(value);
+			mapper.parse(evc);
 		}
 	}
 
-	private boolean isUriField(String fieldName) {
-		return fieldName.endsWith("uri") || fieldName.endsWith("uris");
-	}
-
-	private void addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
+	private boolean addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
 			Collection<String> labels, StringFieldMapper labelMapper) throws IOException {
+		boolean modified = false;
 		if (!iris.isEmpty()) {
-			addFieldData(context, iriMapper, iris);
-			addFieldData(context, labelMapper, labels);
+			modified |= addFieldData(context, iriMapper, iris);
+			modified |= addFieldData(context, labelMapper, labels);
 		}
+		return modified;
 	}
 
 	@Override
-	public void merge(Mapper mergeWith, MergeResult mergeContext) throws MergeMappingException {
-		super.merge(mergeWith, mergeContext);
+	public void merge(Mapper mergeWith, MergeResult mergeResult) throws MergeMappingException {
+		super.merge(mergeWith, mergeResult);
 		if (!this.getClass().equals(mergeWith.getClass())) {
 			return;
 		}
-		OntologySettings mergeSettings = ((OntologyMapper) mergeWith).ontologySettings;
+
+		OntologyMapper oMergeWith = (OntologyMapper)mergeWith;
+		OntologySettings mergeSettings = oMergeWith.ontologySettings;
 		if (mergeSettings.getOntologyUri() != null && !mergeSettings.getOntologyUri().equals(ontologySettings.getOntologyUri())) {
-			mergeContext.addConflict("mapper [" + fieldType().names().fullName() + "] has different ontology URI");
+			mergeResult.addConflict("mapper [" + fieldType().names().fullName() + "] has different ontology URI");
 		} else if (mergeSettings.getOlsBaseUrl() != null && !mergeSettings.getOlsBaseUrl().equals(ontologySettings.getOlsBaseUrl())) {
-			mergeContext.addConflict("mapper [" + fieldType().names().fullName() + "] has different OLS base URL");
+			mergeResult.addConflict("mapper [" + fieldType().names().fullName() + "] has different OLS base URL");
+		}
+
+		// Not sure if the below is necessary or not...
+		if (!mergeResult.simulate() && !mergeResult.hasConflicts()) {
+			// Merge the mappers
+			List<FieldMapper> newFieldMappers = null;
+			Map<String, StringFieldMapper> newMapperMap = null;
+
+			for (Entry<String, StringFieldMapper> entry : oMergeWith.mappers.entrySet()) {
+				StringFieldMapper mergeIntoMapper = mappers.get(entry.getKey());
+				if (mergeIntoMapper == null) {
+					if (newFieldMappers == null) {
+						newFieldMappers = new ArrayList<>(oMergeWith.mappers.size());
+						newMapperMap = new HashMap<>();
+					}
+					newFieldMappers.add(entry.getValue());
+					newMapperMap.put(entry.getKey(), entry.getValue());
+				} else {
+					mergeIntoMapper.merge(entry.getValue(), mergeResult);
+				}
+			}
+
+			if (newFieldMappers != null) {
+				mergeResult.addFieldMappers(newFieldMappers);
+				mappers = mappers.copyAndPutAll(newMapperMap);
+			}
 		}
 	}
 
@@ -506,6 +562,11 @@ public class OntologyMapper extends FieldMapper {
 	public Iterator<Mapper> iterator() {
 		List<Mapper> extras = new ArrayList<>(mappers.values());
 		return Iterators.concat(super.iterator(), extras.iterator());
+	}
+
+	@Override
+	public void close() {
+		disposeHelper();
 	}
 
 	private void disposeHelper() {

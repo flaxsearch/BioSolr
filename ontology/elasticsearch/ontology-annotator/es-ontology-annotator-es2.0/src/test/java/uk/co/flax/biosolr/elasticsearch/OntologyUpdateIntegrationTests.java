@@ -14,6 +14,10 @@ package uk.co.flax.biosolr.elasticsearch; /**
  * limitations under the License.
  */
 
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsAction;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequestBuilder;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -83,10 +87,14 @@ public class OntologyUpdateIntegrationTests extends ESIntegTestCase {
 		String id = response.getId();
 		flush();
 
+		GetMappingsResponse mappingsResponse = client().admin().indices().getMappings(
+				new GetMappingsRequestBuilder(client(), GetMappingsAction.INSTANCE, INDEX_NAME).setTypes(DOC_TYPE_NAME).request())
+				.actionGet();
+
 		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id);
 		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("annotation.uri", "annotation.label")
+				.addFields("annotation.uri", "annotation.label", "annotation.*")
 				.setQuery(query)
 				.get();
 		assertNoFailures(searchResponse);
@@ -125,7 +133,9 @@ public class OntologyUpdateIntegrationTests extends ESIntegTestCase {
 				.endObject();
 		response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		flush();
-		
+
+		mappingsResponse = client().admin().indices().getMappings(new GetMappingsRequest()).actionGet();
+
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
