@@ -13,41 +13,45 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.xjoin.XJoinResults;
 import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
-public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
+public class OfferXJoinResultsFactory
+implements XJoinResultsFactory<String> {
 
   private String url;
-  
-  private String idField;
-  
+  private String field;
   private String discountField;
   
-	@Override
-	@SuppressWarnings("rawtypes")
-	public void init(NamedList args) {
-	  url = (String)args.get("url");
-	  idField = (String)args.get("idField");
-	  discountField = (String)args.get("discountField");
-	}
+  @Override
+  @SuppressWarnings("rawtypes")
+  public void init(NamedList args) {
+    url = (String)args.get("url");
+    field = (String)args.get("field");
+    discountField = (String)args.get("discountField");
+  }
 
-	/**
-	 * Use 'offers' REST API to fetch current offer data. 
-	 */
-	@Override
-	public XJoinResults<String> getResults(SolrParams params) throws IOException {
-	  try (HttpConnection http = new HttpConnection(url)) {
-	    JsonArray offers = (JsonArray)http.getJson();
-	    return new OfferResults(offers);
-	  }
-	}
-	  
-	public class OfferResults implements XJoinResults<String> {
+  /**
+   * Use 'offers' REST API to fetch current offer data. 
+   */
+  @Override
+  public XJoinResults<String> getResults(SolrParams params)
+  throws IOException {
+    try (HttpConnection http = new HttpConnection(url)) {
+      JsonArray offers = (JsonArray)http.getJson();
+      return new OfferResults(offers);
+    }
+  }
+   
+  /**
+   * Results of the external search - methods like getXXX() are used
+   * to expose the property XXX in the SOLR results.
+   */
+  public class OfferResults implements XJoinResults<String> {
 
-	  private JsonArray offers;
-	  
-	  public OfferResults(JsonArray offers) {
-	    this.offers = offers;
-	  }
-	  
+    private JsonArray offers;
+    
+    public OfferResults(JsonArray offers) {
+      this.offers = offers;
+    }
+    
     public int getCount() {
       return offers.size();
     }
@@ -56,7 +60,7 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
     public Iterable<String> getJoinIds() {
       List<String> ids = new ArrayList<>();
       for (JsonValue offer : offers) {
-        ids.add(((JsonObject)offer).getString(idField));
+        ids.add(((JsonObject)offer).getString(field));
       }
       return ids;
     }
@@ -64,7 +68,7 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
     @Override
     public Object getResult(String joinIdStr) {
       for (JsonValue offer : offers) {
-        String id = ((JsonObject)offer).getString(idField);
+        String id = ((JsonObject)offer).getString(field);
         if (id.equals(joinIdStr)) {
           return new Offer(offer);
         }
@@ -73,19 +77,24 @@ public class OfferXJoinResultsFactory implements XJoinResultsFactory<String> {
     }
       
   }
-	
-	public class Offer {
-	  
-	  private JsonValue offer;
-	  
-	  public Offer(JsonValue offer) {
-	    this.offer = offer;
-	  }
+  
+  /**
+   * A discount offer - methods like getXXX() are used to expose
+   * properties that can be joined with each SOLR result via the join
+   * id field.
+   */
+  public class Offer {
+    
+    private JsonValue offer;
+    
+    public Offer(JsonValue offer) {
+      this.offer = offer;
+    }
     
     public double getDiscount() {
       return ((JsonObject)offer).getInt(discountField) * 0.01d;
     }
     
-	}
+  }
 
 }

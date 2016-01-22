@@ -46,8 +46,11 @@
     -->
   <dataDir>${solr.data.dir:}</dataDir>
   
-  <!-- XJoin -->
-  <lib path="/Users/tomjon/flax/BioSolr/sequence-5.3/xjoin.jar" />
+  <!-- XJoin contrib -->
+  <lib dir="${solr.install.dir:../../../..}/contrib/xjoin/lib" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-xjoin-\d.*\.jar" />
+
+  <!-- XJoin user code -->
   <lib path="/Users/tomjon/flax/BioSolr/sequence-5.3/blog/factories.jar" />
   <lib path="/Users/tomjon/flax/BioSolr/sequence/lib/javax.json-1.0.4.jar" />
 
@@ -621,7 +624,7 @@
   
   <requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
       <lst name="defaults">
-        <str name="echoParams">all</str>
+        <str name="echoParams">none</str>
         <str name="defType">edismax</str>
         <str name="df">description</str>
         <str name="fl">*</str>

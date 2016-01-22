@@ -2,51 +2,29 @@ import sys
 import csv
 import json
 import requests
-import codecs
 
-
-# class UTF8Recoder:
-#   """
-#   Iterator that reads an encoded stream and reencodes the input to UTF-8
-#   """
-#   def __init__(self, f, encoding):
-#     self.reader = codecs.getreader(encoding)(f)
-#
-#   def __iter__(self):
-#     return self
-#
-#   def next(self):
-#     return self.reader.next().encode("utf-8")
-
+def value(k, v):
+    return k, v.strip() if k != 'price' else float(v.split()[0])
 
 def read(path):
-  # with open(path) as f:
-  with open(path, encoding='iso-8859-1') as f:
-    # reader = csv.DictReader(UTF8Recoder(f, 'iso-8859-1'))
-    reader = csv.DictReader(f)
-    for doc in reader:
-      doc = dict((k, v.strip() if k != 'price' else float(v.split()[0])) for k, v in doc.items())
-      doc = dict((k, v) for k, v in doc.items() if v)
-      yield doc
+    with open(path, encoding='iso-8859-1') as f:
+        reader = csv.DictReader(f)
+        for doc in reader:
+            yield dict(value(k, v) for k, v in doc.items()
+                       if len(v.strip()) > 0)
 
-
-def index(docs):
-  print("Sending {0} documents to SOLR".format(len(docs)))
-  r = requests.post(sys.argv[1], data=json.dumps(docs), headers={ 'content-type': 'application/json' })
-  if r.status_code != 200:
-    raise IOError("bad batch")
-
+def index(url, docs):
+    print("Sending {0} documents to {1}".format(len(docs), url))
+    data = json.dumps(docs)
+    headers = { 'content-type': 'application/json' }
+    r = requests.post(url, data=data, headers=headers)
+    if r.status_code != 200:
+      raise IOError("Bad SOLR update")
 
 if __name__ == "__main__":
-  if len(sys.argv) < 4:
-    print("Usage: {0} <solr update URL> <csv file> <batch size>".format(sys.argv[0]))
-    sys.exit(1)
+    if len(sys.argv) < 3:
+        print("Usage: {0} <solr update URL> <csv file>".format(sys.argv[0]))
+        sys.exit(1)
 
-  docs = []
-  for doc in read(sys.argv[2]):
-    docs.append(doc)
-    if len(docs) == int(sys.argv[3]):
-      index(docs)
-      docs = []
-  index(docs)
-
+    docs = list(read(sys.argv[2]))
+    index(sys.argv[1], docs)

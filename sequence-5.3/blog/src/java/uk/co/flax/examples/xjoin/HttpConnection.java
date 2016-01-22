@@ -10,7 +10,6 @@ import javax.json.JsonReader;
 import javax.json.JsonStructure;
 
 public class HttpConnection implements AutoCloseable {
-
   private HttpURLConnection http;
   
   public HttpConnection(String url) throws IOException {
@@ -30,5 +29,4 @@ public class HttpConnection implements AutoCloseable {
   public void close() {
     http.disconnect();
   }
-
 }
