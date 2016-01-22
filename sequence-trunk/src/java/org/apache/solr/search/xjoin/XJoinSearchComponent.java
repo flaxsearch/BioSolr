@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.lucene.index.StoredDocument;
+import org.apache.lucene.document.Document;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -143,7 +143,7 @@ public class XJoinSearchComponent extends SearchComponent {
     
     List<String> joinIds = new ArrayList<>();
     for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
-      StoredDocument doc = rb.req.getSearcher().doc(it.next(), joinFields);
+      Document doc = rb.req.getSearcher().doc(it.next(), joinFields);
       for (String joinId : doc.getValues(joinField)) {
         if (! joinIds.contains(joinId)) {
           joinIds.add(joinId);
@@ -151,11 +151,14 @@ public class XJoinSearchComponent extends SearchComponent {
       }
     }
     
+    List externalList = new ArrayList();
+    general.add("external", externalList);
+    
     for (String joinId : joinIds) {
       Object object = results.getResult(joinId);
       if (object == null) continue;
       NamedList external = new NamedList<>();
-      general.add("external", external);
+      externalList.add(external);
       external.add("joinId", joinId);
       if (object instanceof Iterable) {
         for (Object item : (Iterable)object) {

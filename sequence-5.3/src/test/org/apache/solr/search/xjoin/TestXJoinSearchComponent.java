@@ -120,7 +120,7 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     params.add("xjoin4", "true");
     NamedList results = test(params, "xjoin4");
     NamedList xjoin = (NamedList)results.get("xjoin4");
-    List<NamedList> list = xjoin.getAll("external");
+    List<NamedList> list = (List)xjoin.get("external");
     assertEquals(5, list.size());
     assertEquals(list.get(0).get("joinId"), "alpha");
     assertEquals(list.get(1).get("joinId"), "beta");
