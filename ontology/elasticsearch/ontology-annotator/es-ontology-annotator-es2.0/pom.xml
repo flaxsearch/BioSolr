@@ -67,6 +67,7 @@
                     <artifactId>junit</artifactId>
                 </exclusion>
             </exclusions>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>

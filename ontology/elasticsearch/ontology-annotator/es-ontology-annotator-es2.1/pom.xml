@@ -68,6 +68,7 @@
                     <artifactId>junit</artifactId>
                 </exclusion>
             </exclusions>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
@@ -89,6 +90,7 @@
             <artifactId>jna</artifactId>
             <version>4.1.0</version>
             <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

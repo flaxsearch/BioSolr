@@ -17,6 +17,8 @@
 		<owlapi.version>3.5.2</owlapi.version>
 		<randomizedtesting-runner.version>2.1.16</randomizedtesting-runner.version>
 		<jackson.version>2.5.4</jackson.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<modules>
@@ -36,8 +38,8 @@
 				<version>3.3</version>
 				<!-- compile for Java 1.8 -->
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
