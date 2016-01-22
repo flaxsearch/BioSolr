@@ -88,7 +88,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 	public static class Builder extends FieldMapper.Builder<Builder, OntologyMapper> {
 
-		private ContentPath.Type pathType = Defaults.PATH_TYPE;
+		private final ContentPath.Type pathType = Defaults.PATH_TYPE;
 
 		private OntologySettings ontologySettings;
 		private Map<String, StringFieldMapper.Builder> propertyBuilders;
@@ -183,7 +183,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 					iterator.remove();
 				} else if (entry.getKey().equals(ONTOLOGY_PROPERTIES)) {
 					Map<String, StringFieldMapper.Builder> builders = parseProperties((Map<String, Object>) entry.getValue(), parserContext);
-					builder.propertyBuilders(builders);
+					builder = builder.propertyBuilders(builders);
 					iterator.remove();
 				}
 			}
@@ -277,6 +277,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 				Entry<String, Object> entry = iterator.next();
 				String name = entry.getKey();
 
+				@SuppressWarnings("unchecked")
 				Mapper.Builder builder = new StringFieldMapper.TypeParser().parse(entry.getKey(), (Map<String, Object>)entry.getValue(), parserContext);
 				propertyMap.put(name, (StringFieldMapper.Builder)builder);
 			}
@@ -293,8 +294,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
 	private final ThreadPool threadPool;
 
-	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
-	private static Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
+	private static final Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
+	private static final Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(String simpleName, MappedFieldType fieldType, MappedFieldType defaultFieldType,
 			Settings indexSettings, MultiFields multiFields, OntologySettings oSettings,
@@ -386,9 +387,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			if (data == null) {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
-				String path = context.path().fullPathAsText("fuck");
-
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
+				// Add the IRI
+				modified = addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
 
 				// Look up the label(s)
 				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
@@ -512,7 +512,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			Collection<String> labels, StringFieldMapper labelMapper) throws IOException {
 		boolean modified = false;
 		if (!iris.isEmpty()) {
-			modified |= addFieldData(context, iriMapper, iris);
+			modified = addFieldData(context, iriMapper, iris);
 			modified |= addFieldData(context, labelMapper, labels);
 		}
 		return modified;

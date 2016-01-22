@@ -43,13 +43,12 @@ import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoFa
 import static org.hamcrest.Matchers.equalTo;
 
 /**
- * JavaDoc for uk.co.flax.biosolr.elasticsearch.OntologyUpdateIntegrationTests.
+ * Integration tests for the OntologyMapper.
  *
  * @author mlp
  */
 public class OntologyUpdateIntegrationTests extends ESIntegTestCase {
 
-	public static final String ROOT_IRI = "http://www.w3.org/2002/07/owl#Thing";
 	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 	public static final String TEST_CHILD_IRI = "http://www.ifomis.org/bfo/1.1/snap#MaterialEntity";
 
