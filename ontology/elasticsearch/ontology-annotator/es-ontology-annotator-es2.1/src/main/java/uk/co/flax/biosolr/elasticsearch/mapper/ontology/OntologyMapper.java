@@ -53,8 +53,6 @@ import static org.elasticsearch.index.mapper.core.TypeParsers.parseField;
  */
 public class OntologyMapper extends FieldMapper implements Closeable {
 
-	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
-
 	public static final String CONTENT_TYPE = "ontology";
 
 	public static final String ONTOLOGY_PROPERTIES = "properties";
@@ -127,12 +125,13 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			}
 
 			// Initialise field mappers for the pre-defined fields
-			for (FieldMappings mapping : FieldMappings.values()) {
-				if (!fieldMappers.containsKey(mapping.getFieldName())) {
+			for (FieldMappings mapping : ontologySettings.getFieldMappings()) {
+				if (!fieldMappers.containsKey(context.path().fullPathAsText(mapping.getFieldName()))) {
 					StringFieldMapper mapper = MapperBuilders.stringField(mapping.getFieldName())
 							.store(true)
 							.index(true)
 							.tokenized(!mapping.isUriField())
+							.includeInAll(true)
 							.build(context);
 					fieldMappers.put(mapper.fieldType().names().indexName(), mapper);
 				}
@@ -248,6 +247,9 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
 							iterator.remove();
 							break;
+						case OntologySettings.THREAD_CHECK_MS_PARAM:
+							settings.setThreadCheckMs(Long.parseLong(entry.getValue().toString()));
+							iterator.remove();
 					}
 				}
 			}
@@ -388,29 +390,29 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
 				// Add the IRI
-				modified = addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
+				addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
 
 				// Look up the label(s)
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
+				addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
 
 				// Look up the synonyms
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.SYNONYMS, context), data.getLabels());
+				addFieldData(context, getPredefinedMapper(FieldMappings.SYNONYMS, context), data.getLabels());
 
 				// Add the child details
-				modified |= addRelatedNodesWithLabels(context, data.getChildIris(), getPredefinedMapper(FieldMappings.CHILD_URI, context), data.getChildLabels(),
+				addRelatedNodesWithLabels(context, data.getChildIris(), getPredefinedMapper(FieldMappings.CHILD_URI, context), data.getChildLabels(),
 						getPredefinedMapper(FieldMappings.CHILD_LABEL, context));
 
 				// Add the parent details
-				modified |= addRelatedNodesWithLabels(context, data.getParentIris(), getPredefinedMapper(FieldMappings.PARENT_URI, context), data.getParentLabels(),
+				addRelatedNodesWithLabels(context, data.getParentIris(), getPredefinedMapper(FieldMappings.PARENT_URI, context), data.getParentLabels(),
 						getPredefinedMapper(FieldMappings.PARENT_LABEL, context));
 
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
-					modified |= addRelatedNodesWithLabels(context, data.getDescendantIris(), getPredefinedMapper(FieldMappings.DESCENDANT_URI, context), data.getDescendantLabels(),
+					addRelatedNodesWithLabels(context, data.getDescendantIris(), getPredefinedMapper(FieldMappings.DESCENDANT_URI, context), data.getDescendantLabels(),
 							getPredefinedMapper(FieldMappings.DESCENDANT_LABEL, context));
 
 					// Add the ancestor details
-					modified |= addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
+					addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
 							getPredefinedMapper(FieldMappings.ANCESTOR_LABEL, context));
 				}
 
@@ -435,15 +437,23 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 									.store(true)
 									.index(true)
 									.tokenized(false)
+									.includeInAll(true)
 									.build(builderContext);
 							labelMapper = MapperBuilders.stringField(labelMapperName)
 									.store(true)
 									.index(true)
 									.tokenized(true)
+									.includeInAll(true)
 									.build(builderContext);
+
+							synchronized (mutex) {
+								mappers = mappers.copyAndPut(uriMapper.fieldType().names().indexName(), uriMapper);
+								mappers = mappers.copyAndPut(labelMapper.fieldType().names().indexName(), labelMapper);
+							}
+							modified = true;
 						}
 
-						modified |= addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
+						addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
 				}
@@ -480,42 +490,21 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 		return data;
 	}
 
-	private boolean addFieldData(ParseContext context, StringFieldMapper mapper, Collection<String> data) throws IOException {
-		boolean modified = false;
+	private void addFieldData(ParseContext context, StringFieldMapper mapper, Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.fieldType().names().indexName()) == null) {
-				// New mapper
-				parseData(context, mapper, data);
-
-				synchronized (mutex) {
-					mappers = mappers.copyAndPut(mapper.fieldType().names().indexName(), mapper);
-					modified = true;
-				}
-			} else {
-				// Mapper already added
-				parseData(context, mapper, data);
+			for (String value : data) {
+				ParseContext evc = context.createExternalValueContext(value);
+				mapper.parse(evc);
 			}
 		}
-
-		return modified;
 	}
 
-	private void parseData(ParseContext context, StringFieldMapper mapper,
-			Collection<String> values) throws IOException {
-		for (String value : values) {
-			ParseContext evc = context.createExternalValueContext(value);
-			mapper.parse(evc);
-		}
-	}
-
-	private boolean addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
+	private void addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
 			Collection<String> labels, StringFieldMapper labelMapper) throws IOException {
-		boolean modified = false;
 		if (!iris.isEmpty()) {
-			modified = addFieldData(context, iriMapper, iris);
-			modified |= addFieldData(context, labelMapper, labels);
+			addFieldData(context, iriMapper, iris);
+			addFieldData(context, labelMapper, labels);
 		}
-		return modified;
 	}
 
 	@Override
@@ -595,8 +584,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 		if (helper == null) {
 			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
-			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey);
-			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey, settings.getThreadCheckMs());
+			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(settings.getThreadCheckMs()));
 			helpers.put(helperKey, helper);
 			checkers.put(helperKey, checkFuture);
 			helper.updateLastCallTime();
@@ -625,9 +614,11 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	private static final class OntologyCheckRunnable implements Runnable {
 
 		final String threadKey;
+		final long deleteCheckMs;
 
-		public OntologyCheckRunnable(String threadKey) {
+		public OntologyCheckRunnable(String threadKey, long deleteCheckMs) {
 			this.threadKey = threadKey;
+			this.deleteCheckMs = deleteCheckMs;
 		}
 
 		@Override
@@ -635,7 +626,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			OntologyHelper helper = helpers.get(threadKey);
 			if (helper != null) {
 				// Check if the last call time was longer ago than the maximum
-				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
+				if (System.currentTimeMillis() - deleteCheckMs > helper.getLastCallTime()) {
 					// Assume helper is out of use - dispose of it to allow memory to be freed
 					helper.dispose();
 					helpers.remove(threadKey);

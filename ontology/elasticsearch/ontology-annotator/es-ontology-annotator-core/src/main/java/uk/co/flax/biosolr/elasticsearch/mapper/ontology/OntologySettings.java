@@ -29,7 +29,9 @@ import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
  * @author mlp
  */
 public class OntologySettings {
-	
+
+	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
+
 	static final String ONTOLOGY_SETTINGS_KEY = "ontology";
 
 	// OWL parameters
@@ -46,6 +48,8 @@ public class OntologySettings {
 
 	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
+
+	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
 	/*
 	 * Default property annotation values.
@@ -65,6 +69,8 @@ public class OntologySettings {
 	private String olsOntology;
 	private int threadpoolSize = OLSOntologyHelper.THREADPOOL_SIZE;
 	private int pageSize = OLSOntologyHelper.PAGE_SIZE;
+
+	private long threadCheckMs = DELETE_CHECK_DELAY_MS;
 
 	public String getOntologyUri() {
 		return ontologyUri;
@@ -145,4 +151,30 @@ public class OntologySettings {
 	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
 	}
+
+	public long getThreadCheckMs() {
+		return threadCheckMs;
+	}
+
+	public void setThreadCheckMs(long threadCheckMs) {
+		this.threadCheckMs = threadCheckMs;
+	}
+
+	/**
+	 * Get a list of the default field mappings appropriate for this ontology mapper. This
+	 * will exclude the ancestor and descendant mappings if includeIndirect is <code>false</code>.
+	 * @return the list of field mappings.
+	 */
+	public List<FieldMappings> getFieldMappings() {
+		// Assume we need all the mappings
+		List<FieldMappings> mappingList = Arrays.asList(FieldMappings.values());
+		if (!includeIndirect) {
+			// Don't need indirect mappings - remove them
+			mappingList.removeAll(
+					Arrays.asList(FieldMappings.ANCESTOR_LABEL, FieldMappings.ANCESTOR_URI,
+							FieldMappings.DESCENDANT_LABEL, FieldMappings.DESCENDANT_URI));
+		}
+		return mappingList;
+	}
+
 }

@@ -17,7 +17,11 @@
             <outputDirectory>/</outputDirectory>
             <useProjectArtifact>true</useProjectArtifact>
             <useTransitiveFiltering>true</useTransitiveFiltering>
-            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <excludes>
+                <exclude>com.google.guava:guava</exclude>
+                <exclude>com.fasterxml.jackson.core:jackson-core</exclude>
+            </excludes>
          </dependencySet>
     </dependencySets>
 </assembly>
