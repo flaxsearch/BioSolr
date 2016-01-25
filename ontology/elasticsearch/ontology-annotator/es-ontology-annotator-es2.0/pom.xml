@@ -14,10 +14,11 @@
     <description>ElasticSearch 2.0 version of the ElasticSearch Ontology Annotator</description>
 
     <properties>
-        <elasticsearch.version>2.0.1</elasticsearch.version>
+        <elasticsearch.version>2.0.2</elasticsearch.version>
         <lucene.version>5.2.1</lucene.version>
 
         <elasticsearch.assembly.descriptor>${project.basedir}/src/main/assemblies/plugin-assembly.xml</elasticsearch.assembly.descriptor>
+        <elasticsearch.plugin.name>ontology-annotator</elasticsearch.plugin.name>
         <elasticsearch.plugin.site>false</elasticsearch.plugin.site>
         <elasticsearch.plugin.classname>uk.co.flax.biosolr.elasticsearch.OntologyUpdatePlugin</elasticsearch.plugin.classname>
         <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>
