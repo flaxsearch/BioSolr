@@ -16,6 +16,7 @@
 
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -167,14 +168,16 @@ public class OntologySettings {
 	 */
 	public List<FieldMappings> getFieldMappings() {
 		// Assume we need all the mappings
-		List<FieldMappings> mappingList = Arrays.asList(FieldMappings.values());
-		if (!includeIndirect) {
-			// Don't need indirect mappings - remove them
-			mappingList.removeAll(
-					Arrays.asList(FieldMappings.ANCESTOR_LABEL, FieldMappings.ANCESTOR_URI,
-							FieldMappings.DESCENDANT_LABEL, FieldMappings.DESCENDANT_URI));
+		List<FieldMappings> mappingsList = new ArrayList<>(FieldMappings.values().length);
+
+		for (FieldMappings fm : FieldMappings.values()) {
+			if (!includeIndirect && fm.isIndirect()) {
+				continue;
+			}
+			mappingsList.add(fm);
 		}
-		return mappingList;
+
+		return mappingsList;
 	}
 
 }

@@ -34,20 +34,30 @@ public enum FieldMappings {
 	CHILD_LABEL("child_labels"),
 	PARENT_URI("parent_uris"),
 	PARENT_LABEL("parent_labels"),
-	DESCENDANT_URI("descendant_uris"),
-	DESCENDANT_LABEL("descendant_labels"),
-	ANCESTOR_URI("ancestor_uris"),
-	ANCESTOR_LABEL("ancestor_labels")
+	DESCENDANT_URI("descendant_uris", true),
+	DESCENDANT_LABEL("descendant_labels", true),
+	ANCESTOR_URI("ancestor_uris", true),
+	ANCESTOR_LABEL("ancestor_labels", true)
 	;
 	
 	private final String fieldName;
+	private final boolean indirect;
 	
 	FieldMappings(String field) {
-		this.fieldName = field;
+		this(field, false);
 	}
-	
+
+	FieldMappings(String field, boolean indirect) {
+		this.fieldName = field;
+		this.indirect = indirect;
+	}
+
 	public String getFieldName() {
 		return fieldName;
+	}
+
+	public boolean isIndirect() {
+		return indirect;
 	}
 	
 	public boolean isUriField() {
