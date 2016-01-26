@@ -5,7 +5,7 @@ annotations by adding further data from the ontology where available.
 It adds a new field type for the ontology annotation which is then
 expanded with additional data.
 
-There are currently three versions of the module:
+There are currently five versions of the module:
 
 - **es-ontology-annotator-es1.3** - this version should work with 
 ElasticSearch versions prior to 1.4, although it has not been
@@ -17,22 +17,62 @@ ElasticSearch versions 1.4.x.
 - **es-ontology-annotator-es1.5** - this version works with
 ElasticSearch versions 1.5.x - 1.7.x.
 
+- **es-ontology-annotator-es2.0** - this version works with
+ElasticSearch versions 2.0.x
+
+- **es-ontology-annotator-es2.1** - this version works with
+ElasticSearch versions 2.1.x
+
 
 ## Installation
 
-To build the plugin, use maven:
+To build the versions of the plugin, use maven:
 
     mvn clean package
 
 This will create a zip file for each version of the module, containing the 
 full plugin. Once this is complete,
 it needs to be added to your local ElasticSearch instance. The easiest way to
-do this is using ElasticSearch's own plugin manager. In the ElasticSearch
-install directory, use the following command:
+do this is using ElasticSearch's own plugin manager, although usage of this
+varies between ElasticSearch 1.x and 2.x. 
 
-    bin/plugin -u file:///path/to/plugin.zip -i ontology-update
+
+### Installing to ElasticSearch 1.x
+
+In the ElasticSearch install directory, use the following command:
+
+    bin/plugin -u file:///path/to/plugin.zip -i ontology-annotator
 
 Use the plugin version most appropriate to your version of ElasticSearch.
+
+To re-install the plugin, you will first need to remove the previous
+version, using the following command:
+
+    bin/plugin -r ontology-annotator
+    
+    
+### Installing to ElasticSearch 2.x
+
+In the ElasticSearch install directory, use the following command:
+
+    bin/plugin install file:///path/to/plugin.zip
+    
+Use the plugin version most appropriate to your version of ElasticSearch.
+
+To re-install the plugin, you will first need to remove the previous
+version, using the following command:
+
+    bin/plugin remove ontology-annotator
+    
+The plugin manager for ElasticSearch 2.x does strict checks between the
+version of the ElasticSearch library used to build the plugin, and that
+currently in use on your system - for example, the plugin may be built
+using the ElasticSearch 2.1.1 libraries, but you may be running 2.1.2.
+To work around this, open the `pom.xml` file in the ElasticSearch module
+directory (ie. `es-ontology-annotator-es2.1/pom.xml`) and change the
+`elasticsearch.version` property to that which matches your version of
+ElasticSearch. Re-build the plugin, and try installing again. If the
+plugin won't build with the altered version, please file an issue.
     
 
 ## Usage
@@ -132,3 +172,63 @@ a lot of data being indexed.
 
 The `includeIndirect` and `includeRelations` properties have the same
 function as when using an ontology file - see above for further details.
+
+
+## Searching ontology data
+
+The plugin adds subfields to your nominated ontology field, but these are not
+added to the document's `_source` field. This means that they won't appear by
+default when searching the data.
+
+To carry out a search returning the new ontology annotation fields, they need
+to be added to the field list, either individually, or by returning all of
+the fields for each record.
+
+    GET biosolr/documents/_search
+    {
+      "fields": "*",
+      "_source": true,
+      "query": {
+        "match_all": {}
+      }
+    }
+    
+The above query will return the `_source` and all of the fields added to the
+returned documents:
+
+    "_source": {
+      "study": 23633212,
+      "title": "Genome-wide association of single-nucleotide polymorphisms ...",
+      ...
+    },
+    "fields": {
+      "annotation.uri": [
+        "http://www.ebi.ac.uk/efo/EFO_0005245"
+      ],
+      "annotation.label": [
+        "body weight loss"
+      ],
+      ...
+    }
+
+**NOTE**: To do the same search in ElasticSearch 2.0, you need to specify
+all of the _source subfields as well:
+
+    GET biosolr/documents/_search
+    {
+      "_source": [ "*" ],
+      "fields": [ "*" ],
+      "query": {
+        "match_all": {}
+      }
+    }
+
+The full mapping, including the new fields that have been added for the
+ontology annotations, is available using the _mapping endpoint:
+
+    GET biosolr/documents/_mapping
+
+The output from the mapping list can be used to get a list of fields.
+Dynamically generated fields, for additional relationships, will always
+have the suffixes `_rel_labels` (for label fields) and `_rel_uris` (for
+URI fields).
