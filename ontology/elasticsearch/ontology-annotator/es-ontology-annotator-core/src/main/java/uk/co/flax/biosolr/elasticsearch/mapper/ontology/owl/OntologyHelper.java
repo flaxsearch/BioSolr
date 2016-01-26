@@ -52,7 +52,7 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.OntologySettings;
+import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
 
 /**
  * Helper class for loading an ontology and making its properties easily
@@ -81,10 +81,8 @@ public class OntologyHelper {
 	private long lastCallTime;
 
 	/**
-	 * Construct a new ontology helper instance with a string representing the
-	 * ontology URI.
+	 * Construct a new ontology helper instance for a given configuration.
 	 * 
-	 * @param ontologyUriString the URI.
 	 * @param config the ontology configuration, containing the property URIs
 	 * for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read for

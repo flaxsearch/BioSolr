@@ -23,8 +23,7 @@ import java.net.URI;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.OntologySettings;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.owl.OntologyHelper;
+import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
 
 /**
  * Unit tests for the OntologyHelper class, focussing on the constructors.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
+package uk.co.flax.biosolr.elasticsearch.mapper.ontology.config;
 
 import java.util.*;
 
@@ -24,6 +24,23 @@ import java.util.*;
  * @author mlp
  */
 public class OntologySettingsBuilder {
+
+	// OWL parameters
+	static final String ONTOLOGY_URI_PARAM = "ontologyURI";
+	static final String LABEL_URI_PARAM = "labelURI";
+	static final String SYNONYM_URI_PARAM = "synonymURI";
+	static final String DEFINITION_URI_PARAM = "definitionURI";
+
+	// OLS parameters
+	static final String OLS_BASE_URL_PARAM = "olsBaseURL";
+	static final String OLS_ONTOLOGY_PARAM = "olsOntology";
+	static final String OLS_THREADPOOL_PARAM = "olsThreadpool";
+	static final String OLS_PAGESIZE_PARAM = "olsPageSize";
+
+	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
+	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
+
+	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
 	private Map<String, Object> settingsNode;
 
@@ -44,47 +61,47 @@ public class OntologySettingsBuilder {
 			String key = entry.getKey();
 			if (entry.getValue() != null) {
 				switch (key) {
-					case OntologySettings.ONTOLOGY_URI_PARAM:
+					case ONTOLOGY_URI_PARAM:
 						settings.setOntologyUri(entry.getValue().toString());
 						iterator.remove();
 						break;
-					case OntologySettings.LABEL_URI_PARAM:
+					case LABEL_URI_PARAM:
 						settings.setLabelPropertyUris(extractList(entry.getValue()));
 						iterator.remove();
 						break;
-					case OntologySettings.SYNONYM_URI_PARAM:
+					case SYNONYM_URI_PARAM:
 						settings.setSynonymPropertyUris(extractList(entry.getValue()));
 						iterator.remove();
 						break;
-					case OntologySettings.DEFINITION_URI_PARAM:
+					case DEFINITION_URI_PARAM:
 						settings.setDefinitionPropertyUris(extractList(entry.getValue()));
 						iterator.remove();
 						break;
-					case OntologySettings.INCLUDE_INDIRECT_PARAM:
+					case INCLUDE_INDIRECT_PARAM:
 						settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
 						iterator.remove();
 						break;
-					case OntologySettings.INCLUDE_RELATIONS_PARAM:
+					case INCLUDE_RELATIONS_PARAM:
 						settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
 						iterator.remove();
 						break;
-					case OntologySettings.OLS_BASE_URL_PARAM:
+					case OLS_BASE_URL_PARAM:
 						settings.setOlsBaseUrl(entry.getValue().toString());
 						iterator.remove();
 						break;
-					case OntologySettings.OLS_ONTOLOGY_PARAM:
+					case OLS_ONTOLOGY_PARAM:
 						settings.setOlsOntology(entry.getValue().toString());
 						iterator.remove();
 						break;
-					case OntologySettings.OLS_PAGESIZE_PARAM:
+					case OLS_PAGESIZE_PARAM:
 						settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
 						iterator.remove();
 						break;
-					case OntologySettings.OLS_THREADPOOL_PARAM:
+					case OLS_THREADPOOL_PARAM:
 						settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
 						iterator.remove();
 						break;
-					case OntologySettings.THREAD_CHECK_MS_PARAM:
+					case THREAD_CHECK_MS_PARAM:
 						settings.setThreadCheckMs(Long.parseLong(entry.getValue().toString()));
 						iterator.remove();
 				}
