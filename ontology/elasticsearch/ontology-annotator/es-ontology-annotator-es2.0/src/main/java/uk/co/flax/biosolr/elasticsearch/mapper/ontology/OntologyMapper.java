@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Field;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.collect.CopyOnWriteHashMap;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
@@ -87,7 +86,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 	public static class Builder extends FieldMapper.Builder<Builder, OntologyMapper> {
 
-		private ContentPath.Type pathType = Defaults.PATH_TYPE;
+		private final ContentPath.Type pathType = Defaults.PATH_TYPE;
 
 		private OntologySettings ontologySettings;
 		private Map<String, StringFieldMapper.Builder> propertyBuilders;
@@ -110,7 +109,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 		}
 
 		@Override
-		public OntologyMapper build(Mapper.BuilderContext context) {
+		public OntologyMapper build(BuilderContext context) {
 			ContentPath.Type origPathType = context.path().pathType();
 			context.path().pathType(pathType);
 
@@ -126,8 +125,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			}
 
 			// Initialise field mappers for the pre-defined fields
-			for (FieldMappings mapping : FieldMappings.values()) {
-				if (!fieldMappers.containsKey(mapping.getFieldName())) {
+			for (FieldMappings mapping : ontologySettings.getFieldMappings()) {
+				if (!fieldMappers.containsKey(context.path().fullPathAsText(mapping.getFieldName()))) {
 					StringFieldMapper mapper = MapperBuilders.stringField(mapping.getFieldName())
 							.store(true)
 							.index(true)
@@ -175,7 +174,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			Builder builder = new Builder(name, threadPool);
 			parseField(builder, name, node, parserContext);
 
-			for (Iterator<Map.Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext();) {
+			for (Iterator<Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext();) {
 				Entry<String, Object> entry = iterator.next();
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
 					ontologySettings = new OntologySettingsBuilder()
@@ -184,7 +183,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 					iterator.remove();
 				} else if (entry.getKey().equals(ONTOLOGY_PROPERTIES)) {
 					Map<String, StringFieldMapper.Builder> builders = parseProperties((Map<String, Object>) entry.getValue(), parserContext);
-					builder.propertyBuilders(builders);
+					builder = builder.propertyBuilders(builders);
 					iterator.remove();
 				}
 			}
@@ -203,10 +202,11 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 		private Map<String, StringFieldMapper.Builder> parseProperties(Map<String, Object> propertiesNode, ParserContext parserContext) {
 			Map<String, StringFieldMapper.Builder> propertyMap = new HashMap<>();
-			for (Iterator<Map.Entry<String, Object>> iterator = propertiesNode.entrySet().iterator(); iterator.hasNext();) {
+			for (Iterator<Entry<String, Object>> iterator = propertiesNode.entrySet().iterator(); iterator.hasNext();) {
 				Entry<String, Object> entry = iterator.next();
 				String name = entry.getKey();
 
+				@SuppressWarnings("unchecked")
 				Mapper.Builder builder = new StringFieldMapper.TypeParser().parse(entry.getKey(), (Map<String, Object>)entry.getValue(), parserContext);
 				propertyMap.put(name, (StringFieldMapper.Builder)builder);
 			}
@@ -219,7 +219,6 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	private final Object mutex = new Object();
 
 	private final OntologySettings ontologySettings;
-	private volatile ImmutableOpenMap<String, StringFieldMapper> predefinedMappers = ImmutableOpenMap.of();
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
 	private final ThreadPool threadPool;
 
@@ -231,10 +230,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			ThreadPool threadPool) {
 		super(simpleName, fieldType, defaultFieldType, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
-		// Predefined mappers are already defined, not dynamic;
-		// mappers for additional relations are created as required.
-		this.predefinedMappers = ImmutableOpenMap.builder(predefinedMappers).putAll(fieldMappers).build();
-		// Mappers are added to mappers map as they are used/created
+		// Dynamic mappers are added to mappers map as they are used/created
 		this.mappers = CopyOnWriteHashMap.copyOf(fieldMappers);
 		this.threadPool = threadPool;
 	}
@@ -315,31 +311,30 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			if (data == null) {
 				logger.debug("Cannot find OWL class for IRI {}", iri);
 			} else {
-				String path = context.path().fullPathAsText("fuck");
-
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
+				// Add the IRI
+				addFieldData(context, getPredefinedMapper(FieldMappings.URI, context), Collections.singletonList(iri));
 
 				// Look up the label(s)
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
+				addFieldData(context, getPredefinedMapper(FieldMappings.LABEL, context), data.getLabels());
 
 				// Look up the synonyms
-				modified |= addFieldData(context, getPredefinedMapper(FieldMappings.SYNONYMS, context), data.getLabels());
+				addFieldData(context, getPredefinedMapper(FieldMappings.SYNONYMS, context), data.getLabels());
 
 				// Add the child details
-				modified |= addRelatedNodesWithLabels(context, data.getChildIris(), getPredefinedMapper(FieldMappings.CHILD_URI, context), data.getChildLabels(),
+				addRelatedNodesWithLabels(context, data.getChildIris(), getPredefinedMapper(FieldMappings.CHILD_URI, context), data.getChildLabels(),
 						getPredefinedMapper(FieldMappings.CHILD_LABEL, context));
 
 				// Add the parent details
-				modified |= addRelatedNodesWithLabels(context, data.getParentIris(), getPredefinedMapper(FieldMappings.PARENT_URI, context), data.getParentLabels(),
+				addRelatedNodesWithLabels(context, data.getParentIris(), getPredefinedMapper(FieldMappings.PARENT_URI, context), data.getParentLabels(),
 						getPredefinedMapper(FieldMappings.PARENT_LABEL, context));
 
 				if (ontologySettings.isIncludeIndirect()) {
 					// Add the descendant details
-					modified |= addRelatedNodesWithLabels(context, data.getDescendantIris(), getPredefinedMapper(FieldMappings.DESCENDANT_URI, context), data.getDescendantLabels(),
+					addRelatedNodesWithLabels(context, data.getDescendantIris(), getPredefinedMapper(FieldMappings.DESCENDANT_URI, context), data.getDescendantLabels(),
 							getPredefinedMapper(FieldMappings.DESCENDANT_LABEL, context));
 
 					// Add the ancestor details
-					modified |= addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
+					addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
 							getPredefinedMapper(FieldMappings.ANCESTOR_LABEL, context));
 				}
 
@@ -359,7 +354,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 						if (uriMapper == null) {
 							// No mappers created yet - build new ones for URI and label
-							Mapper.BuilderContext builderContext = new Mapper.BuilderContext(context.indexSettings(), context.path());
+							BuilderContext builderContext = new BuilderContext(context.indexSettings(), context.path());
 							uriMapper = MapperBuilders.stringField(uriMapperName)
 									.store(true)
 									.index(true)
@@ -370,9 +365,15 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 									.index(true)
 									.tokenized(true)
 									.build(builderContext);
+
+							synchronized (mutex) {
+								mappers = mappers.copyAndPut(uriMapper.fieldType().names().indexName(), uriMapper);
+								mappers = mappers.copyAndPut(labelMapper.fieldType().names().indexName(), labelMapper);
+							}
+							modified = true;
 						}
 
-						modified |= addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
+						addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
 				}
@@ -409,42 +410,21 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 		return data;
 	}
 
-	private boolean addFieldData(ParseContext context, StringFieldMapper mapper, Collection<String> data) throws IOException {
-		boolean modified = false;
+	private void addFieldData(ParseContext context, StringFieldMapper mapper, Collection<String> data) throws IOException {
 		if (data != null && !data.isEmpty()) {
-			if (mappers.get(mapper.fieldType().names().indexName()) == null) {
-				// New mapper
-				parseData(context, mapper, data);
-
-				synchronized (mutex) {
-					mappers = mappers.copyAndPut(mapper.fieldType().names().indexName(), mapper);
-					modified = true;
-				}
-			} else {
-				// Mapper already added
-				parseData(context, mapper, data);
+			for (String value : data) {
+				ParseContext evc = context.createExternalValueContext(value);
+				mapper.parse(evc);
 			}
 		}
-
-		return modified;
 	}
 
-	private void parseData(ParseContext context, StringFieldMapper mapper,
-			Collection<String> values) throws IOException {
-		for (String value : values) {
-			ParseContext evc = context.createExternalValueContext(value);
-			mapper.parse(evc);
-		}
-	}
-
-	private boolean addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
+	private void addRelatedNodesWithLabels(ParseContext context, Collection<String> iris, StringFieldMapper iriMapper,
 			Collection<String> labels, StringFieldMapper labelMapper) throws IOException {
-		boolean modified = false;
 		if (!iris.isEmpty()) {
-			modified |= addFieldData(context, iriMapper, iris);
-			modified |= addFieldData(context, labelMapper, labels);
+			addFieldData(context, iriMapper, iris);
+			addFieldData(context, labelMapper, labels);
 		}
-		return modified;
 	}
 
 	@Override
