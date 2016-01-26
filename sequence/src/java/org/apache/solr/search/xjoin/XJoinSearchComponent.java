@@ -151,11 +151,14 @@ public class XJoinSearchComponent extends SearchComponent {
       }
     }
     
+    List externalList = new ArrayList();
+    general.add("external", externalList);
+        
     for (String joinId : joinIds) {
       Object object = results.getResult(joinId);
       if (object == null) continue;
       NamedList external = new NamedList<>();
-      general.add("external", external);
+      externalList.add(external);
       external.add("joinId", joinId);
       if (object instanceof Iterable) {
         for (Object item : (Iterable)object) {

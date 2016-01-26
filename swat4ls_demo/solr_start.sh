@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SOLR_HOME=./solr-conf
+SOLR_HOME=`pwd`/solr-conf
 
 DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
 

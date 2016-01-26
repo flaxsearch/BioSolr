@@ -1,0 +1,1 @@
+http://localhost:8983/solr/products/xjoin?q=name:*&x_product_offers=true&bf=recip(product(price,sub(1,discount(x_product_offers))),1,100,100)^2&fl=*,score&start=0

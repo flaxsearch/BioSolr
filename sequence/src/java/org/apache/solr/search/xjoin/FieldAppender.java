@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 
 /**
  * Class for adding properties from an object to a NamedList.
@@ -89,7 +90,7 @@ public class FieldAppender {
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public NamedList addNamedList(NamedList target, String name, Object object) {
-    NamedList<Object> list = new NamedList<>();
+    NamedList<Object> list = new SimpleOrderedMap<>();
     target.add(name, list);
     
     for (Method method : object.getClass().getMethods()) {

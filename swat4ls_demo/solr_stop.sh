@@ -7,7 +7,7 @@ if [ -z $SOLR_DIR ]
     exit 1
   else
     echo 'Stopping Solr using SOLR_HOME = $SOLR_HOME'
-    $SOLR_DIR/bin/solr stop
+    $SOLR_DIR/bin/solr stop -p 8983
 fi
 
 
