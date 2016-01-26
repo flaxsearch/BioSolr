@@ -16,13 +16,12 @@
 
 package uk.co.flax.biosolr.ontology.documents.storage.elasticsearch;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequestBuilder;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.action.admin.cluster.health.*;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -75,16 +74,16 @@ public class ESStorageEngine implements StorageEngine {
 		} else {
 			TransportAddress[] serverAddresses = config.getServers().stream()
 					.map(HostAndPort::fromString)
-					.map(hp -> new InetSocketTransportAddress(hp.getHostText(), hp.getPortOrDefault(DEFAULT_PORT)))
+					.map(hp -> new InetSocketTransportAddress( new InetSocketAddress(hp.getHostText(), hp.getPortOrDefault(DEFAULT_PORT))))
 					.toArray(size -> new TransportAddress[size]);
-			client = new TransportClient().addTransportAddresses(serverAddresses);
+			client = TransportClient.builder().build().addTransportAddresses(serverAddresses);
 		}
 	}
 
 	@Override
 	public boolean isReady() {
 		ClusterHealthResponse response = client.admin().cluster()
-			.health(new ClusterHealthRequestBuilder(client.admin().cluster()).request())
+			.health(new ClusterHealthRequestBuilder(client, ClusterHealthAction.INSTANCE).request())
 			.actionGet();
 		return !response.isTimedOut() && (response.getStatus() == ClusterHealthStatus.GREEN || response.getStatus() == ClusterHealthStatus.YELLOW);
 	}
