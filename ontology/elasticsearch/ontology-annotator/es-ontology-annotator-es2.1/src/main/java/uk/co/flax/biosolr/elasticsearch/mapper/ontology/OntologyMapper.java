@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Field;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.collect.CopyOnWriteHashMap;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
@@ -220,7 +219,6 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	private final Object mutex = new Object();
 
 	private final OntologySettings ontologySettings;
-	private volatile ImmutableOpenMap<String, StringFieldMapper> predefinedMappers = ImmutableOpenMap.of();
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
 	private final ThreadPool threadPool;
 
@@ -233,10 +231,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			ThreadPool threadPool) {
 		super(simpleName, fieldType, defaultFieldType, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
-		// Predefined mappers are already defined, not dynamic;
-		// mappers for additional relations are created as required.
-		this.predefinedMappers = ImmutableOpenMap.builder(predefinedMappers).putAll(fieldMappers).build();
-		// Mappers are added to mappers map as they are used/created
+		// Dynamic mappers are added to mappers map as they are used/created
 		this.mappers = CopyOnWriteHashMap.copyOf(fieldMappers);
 		this.threadPool = threadPool;
 	}
