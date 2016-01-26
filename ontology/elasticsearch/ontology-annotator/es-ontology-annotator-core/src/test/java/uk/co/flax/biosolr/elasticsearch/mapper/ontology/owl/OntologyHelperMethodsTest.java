@@ -33,7 +33,8 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
+import uk.co.flax.biosolr.elasticsearch.mapper.ontology.OntologySettings;
+import uk.co.flax.biosolr.elasticsearch.mapper.ontology.owl.OntologyHelper;
 
 /**
  * Unit tests for the OntologyHelper, focussing on methods called

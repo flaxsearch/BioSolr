@@ -31,8 +31,6 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.*;
 import org.elasticsearch.index.mapper.core.StringFieldMapper;
 import org.elasticsearch.threadpool.ThreadPool;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettingsBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
@@ -180,9 +178,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			for (Iterator<Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext();) {
 				Entry<String, Object> entry = iterator.next();
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
-					ontologySettings = new OntologySettingsBuilder()
-							.settingsNode((Map<String, Object>) entry.getValue())
-							.build();
+					ontologySettings = parseOntologySettings((Map<String, Object>) entry.getValue());
 					iterator.remove();
 				} else if (entry.getKey().equals(ONTOLOGY_PROPERTIES)) {
 					Map<String, StringFieldMapper.Builder> builders = parseProperties((Map<String, Object>) entry.getValue(), parserContext);
@@ -201,6 +197,80 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			}
 
 			return builder;
+		}
+
+		private OntologySettings parseOntologySettings(Map<String, Object> ontSettingsNode) {
+			OntologySettings settings = new OntologySettings();
+
+			for (Iterator<Entry<String, Object>> iterator = ontSettingsNode.entrySet().iterator(); iterator.hasNext();) {
+				Entry<String, Object> entry = iterator.next();
+				String key = entry.getKey();
+				if (entry.getValue() != null) {
+					switch (key) {
+						case OntologySettings.ONTOLOGY_URI_PARAM:
+							settings.setOntologyUri(entry.getValue().toString());
+							iterator.remove();
+							break;
+						case OntologySettings.LABEL_URI_PARAM:
+							settings.setLabelPropertyUris(extractList(entry.getValue()));
+							iterator.remove();
+							break;
+						case OntologySettings.SYNONYM_URI_PARAM:
+							settings.setSynonymPropertyUris(extractList(entry.getValue()));
+							iterator.remove();
+							break;
+						case OntologySettings.DEFINITION_URI_PARAM:
+							settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+							iterator.remove();
+							break;
+						case OntologySettings.INCLUDE_INDIRECT_PARAM:
+							settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+							iterator.remove();
+							break;
+						case OntologySettings.INCLUDE_RELATIONS_PARAM:
+							settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+							iterator.remove();
+							break;
+						case OntologySettings.OLS_BASE_URL_PARAM:
+							settings.setOlsBaseUrl(entry.getValue().toString());
+							iterator.remove();
+							break;
+						case OntologySettings.OLS_ONTOLOGY_PARAM:
+							settings.setOlsOntology(entry.getValue().toString());
+							iterator.remove();
+							break;
+						case OntologySettings.OLS_PAGESIZE_PARAM:
+							settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
+							iterator.remove();
+							break;
+						case OntologySettings.OLS_THREADPOOL_PARAM:
+							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
+							iterator.remove();
+							break;
+						case OntologySettings.THREAD_CHECK_MS_PARAM:
+							settings.setThreadCheckMs(Long.parseLong(entry.getValue().toString()));
+							iterator.remove();
+					}
+				}
+			}
+
+			return settings;
+		}
+
+		@SuppressWarnings("rawtypes")
+		private List<String> extractList(Object value) {
+			List<String> ret = null;
+
+			if (value instanceof String) {
+				ret = Collections.singletonList((String) value);
+			} else if (value instanceof List) {
+				ret = new ArrayList<>(((List) value).size());
+				for (Object v : (List) value) {
+					ret.add(v.toString());
+				}
+			}
+
+			return ret;
 		}
 
 		private Map<String, StringFieldMapper.Builder> parseProperties(Map<String, Object> propertiesNode, ParserContext parserContext) {

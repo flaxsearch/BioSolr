@@ -20,7 +20,6 @@ import org.apache.lucene.util.NamedThreadFactory;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;

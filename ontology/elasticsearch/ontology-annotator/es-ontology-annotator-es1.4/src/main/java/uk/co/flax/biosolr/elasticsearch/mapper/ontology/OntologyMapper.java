@@ -39,8 +39,6 @@ import org.elasticsearch.index.mapper.*;
 import org.elasticsearch.index.mapper.core.AbstractFieldMapper;
 import org.elasticsearch.index.similarity.SimilarityProvider;
 import org.elasticsearch.threadpool.ThreadPool;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettings;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.config.OntologySettingsBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
@@ -164,9 +162,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 
 			for (Entry<String, Object> entry : node.entrySet()) {
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
-					ontologySettings = new OntologySettingsBuilder()
-							.settingsNode((Map<String, Object>) entry.getValue())
-							.build();
+					ontologySettings = parseOntologySettings((Map<String, Object>) entry.getValue());
 				}
 			}
 
@@ -180,6 +176,66 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			}
 			
 			return builder;
+		}
+
+		private OntologySettings parseOntologySettings(Map<String, Object> ontSettingsNode) {
+			OntologySettings settings = new OntologySettings();
+
+			for (Entry<String, Object> entry : ontSettingsNode.entrySet()) {
+				String key = entry.getKey();
+				if (entry.getValue() != null) {
+					switch (key) {
+						case OntologySettings.ONTOLOGY_URI_PARAM:
+							settings.setOntologyUri(entry.getValue().toString());
+							break;
+						case OntologySettings.LABEL_URI_PARAM:
+							settings.setLabelPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.SYNONYM_URI_PARAM:
+							settings.setSynonymPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.DEFINITION_URI_PARAM:
+							settings.setDefinitionPropertyUris(extractList(entry.getValue()));
+							break;
+						case OntologySettings.INCLUDE_INDIRECT_PARAM:
+							settings.setIncludeIndirect(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.INCLUDE_RELATIONS_PARAM:
+							settings.setIncludeRelations(Boolean.parseBoolean(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_BASE_URL_PARAM:
+							settings.setOlsBaseUrl(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_ONTOLOGY_PARAM:
+							settings.setOlsOntology(entry.getValue().toString());
+							break;
+						case OntologySettings.OLS_THREADPOOL_PARAM:
+							settings.setThreadpoolSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+						case OntologySettings.OLS_PAGESIZE_PARAM:
+							settings.setPageSize(Integer.parseInt(entry.getValue().toString()));
+							break;
+					}
+				}
+			}
+
+			return settings;
+		}
+
+		@SuppressWarnings("rawtypes")
+		private List<String> extractList(Object value) {
+			List<String> ret = null;
+
+			if (value instanceof String) {
+				ret = Collections.singletonList((String) value);
+			} else if (value instanceof List) {
+				ret = new ArrayList<>(((List)value).size());
+				for (Object v : (List)value) {
+					ret.add(v.toString());
+				}
+			}
+
+			return ret;
 		}
 
 	}

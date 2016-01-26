@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package uk.co.flax.biosolr.elasticsearch.mapper.ontology.config;
+package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import uk.co.flax.biosolr.elasticsearch.mapper.ontology.FieldMappings;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
 
 /**
@@ -31,9 +30,26 @@ import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
  */
 public class OntologySettings {
 
-	private static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
+	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 
-	public static final String ONTOLOGY_SETTINGS_KEY = "ontology";
+	static final String ONTOLOGY_SETTINGS_KEY = "ontology";
+
+	// OWL parameters
+	static final String ONTOLOGY_URI_PARAM = "ontologyURI";
+	static final String LABEL_URI_PARAM = "labelURI";
+	static final String SYNONYM_URI_PARAM = "synonymURI";
+	static final String DEFINITION_URI_PARAM = "definitionURI";
+
+	// OLS parameters
+	static final String OLS_BASE_URL_PARAM = "olsBaseURL";
+	static final String OLS_ONTOLOGY_PARAM = "olsOntology";
+	static final String OLS_THREADPOOL_PARAM = "olsThreadpool";
+	static final String OLS_PAGESIZE_PARAM = "olsPageSize";
+
+	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
+	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
+
+	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
 	/*
 	 * Default property annotation values.
@@ -60,7 +76,7 @@ public class OntologySettings {
 		return ontologyUri;
 	}
 
-	void setOntologyUri(String ontologyUri) {
+	public void setOntologyUri(String ontologyUri) {
 		this.ontologyUri = ontologyUri;
 	}
 
@@ -68,7 +84,7 @@ public class OntologySettings {
 		return labelPropertyUris;
 	}
 
-	void setLabelPropertyUris(List<String> labelPropertyUris) {
+	public void setLabelPropertyUris(List<String> labelPropertyUris) {
 		this.labelPropertyUris = labelPropertyUris;
 	}
 
@@ -76,7 +92,7 @@ public class OntologySettings {
 		return synonymPropertyUris;
 	}
 
-	void setSynonymPropertyUris(List<String> synonymPropertyUris) {
+	public void setSynonymPropertyUris(List<String> synonymPropertyUris) {
 		this.synonymPropertyUris = synonymPropertyUris;
 	}
 
@@ -84,7 +100,7 @@ public class OntologySettings {
 		return definitionPropertyUris;
 	}
 
-	void setDefinitionPropertyUris(List<String> definitionPropertyUris) {
+	public void setDefinitionPropertyUris(List<String> definitionPropertyUris) {
 		this.definitionPropertyUris = definitionPropertyUris;
 	}
 
@@ -92,7 +108,7 @@ public class OntologySettings {
 		return includeIndirect;
 	}
 
-	void setIncludeIndirect(boolean includeIndirect) {
+	public void setIncludeIndirect(boolean includeIndirect) {
 		this.includeIndirect = includeIndirect;
 	}
 
@@ -100,7 +116,7 @@ public class OntologySettings {
 		return includeRelations;
 	}
 
-	void setIncludeRelations(boolean includeRelations) {
+	public void setIncludeRelations(boolean includeRelations) {
 		this.includeRelations = includeRelations;
 	}
 
@@ -108,7 +124,7 @@ public class OntologySettings {
 		return olsBaseUrl;
 	}
 
-	void setOlsBaseUrl(String olsBaseUrl) {
+	public void setOlsBaseUrl(String olsBaseUrl) {
 		this.olsBaseUrl = olsBaseUrl;
 	}
 
@@ -116,7 +132,7 @@ public class OntologySettings {
 		return olsOntology;
 	}
 
-	void setOlsOntology(String olsOntology) {
+	public void setOlsOntology(String olsOntology) {
 		this.olsOntology = olsOntology;
 	}
 
@@ -124,7 +140,7 @@ public class OntologySettings {
 		return threadpoolSize;
 	}
 
-	void setThreadpoolSize(int threadpoolSize) {
+	public void setThreadpoolSize(int threadpoolSize) {
 		this.threadpoolSize = threadpoolSize;
 	}
 
@@ -132,7 +148,7 @@ public class OntologySettings {
 		return pageSize;
 	}
 
-	void setPageSize(int pageSize) {
+	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
 	}
 
@@ -140,7 +156,7 @@ public class OntologySettings {
 		return threadCheckMs;
 	}
 
-	void setThreadCheckMs(long threadCheckMs) {
+	public void setThreadCheckMs(long threadCheckMs) {
 		this.threadCheckMs = threadCheckMs;
 	}
 
