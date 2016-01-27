@@ -147,8 +147,6 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_uris"));
 		assertThat(hits.getHits()[0].field("annotation.participates_in_rel_uris").getValues().get(0), equalTo(TEST_IRI));
 		assertNotNull(hits.getHits()[0].field("annotation.participates_in_rel_labels").getValues().get(0));
-		SearchHitField fld = hits.getHits()[0].field("annotation");
-		assertNotNull(fld);
 	}
 
 }
