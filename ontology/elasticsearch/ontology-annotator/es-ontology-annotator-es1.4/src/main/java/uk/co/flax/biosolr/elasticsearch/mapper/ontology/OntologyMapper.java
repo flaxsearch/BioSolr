@@ -25,7 +25,6 @@ import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.collect.UpdateInPlaceMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
-import org.elasticsearch.common.netty.util.internal.ConcurrentHashMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -47,6 +46,9 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Mapper class to expand ontology details from an ontology
@@ -55,8 +57,6 @@ import java.util.Map.Entry;
  * @author mlp
  */
 public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
-
-	public static final long DELETE_CHECK_DELAY_MS = 15 * 60 * 1000; // 15 minutes
 
 	public static final String ONTOLOGY_PROPERTIES = "properties";
 
@@ -223,7 +223,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	private final UpdateInPlaceMap<String, FieldMapper<String>> mappers;
 	private final ThreadPool threadPool;
 	
-	private static Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
+	private static final Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
+	private static final Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(FieldMapper.Names names, FieldType fieldType, Boolean docValues,
 			NamedAnalyzer indexAnalyzer, NamedAnalyzer searchAnalyzer,
@@ -362,7 +363,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 					addRelatedNodesWithLabels(context, data.getAncestorIris(), getPredefinedMapper(FieldMappings.ANCESTOR_URI, context), data.getAncestorLabels(),
 							getPredefinedMapper(FieldMappings.ANCESTOR_LABEL, context));
 				}
-				
+
 				if (ontologySettings.isIncludeRelations()) {
 					// Add the related nodes
 					Map<String, Collection<String>> relations = data.getRelationIris();
@@ -510,19 +511,37 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		for (FieldMapper<String> mapper : mappers.values()) {
 			mapper.close();
 		}
-//		disposeHelper();
+		disposeHelper();
 	}
 
+	private void disposeHelper() {
+		String helperKey = buildHelperKey(ontologySettings);
+		if (checkers.containsKey(helperKey)) {
+			ScheduledFuture checker = checkers.remove(helperKey);
+			if (!checker.isCancelled() && !checker.isDone()) {
+				logger.debug("Cancelling ScheduledFuture for {}", helperKey);
+				checker.cancel(false);
+			}
+		}
+		if (helpers.containsKey(helperKey)) {
+			OntologyHelper helper = helpers.remove(helperKey);
+			helper.dispose();
+		}
 
-	public static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OntologyHelperException {
+		threadPool.stats();
+		logger.debug("helpers.size() = {}; checkers.size() = {}", helpers.size(), checkers.size());
+	}
+
+	private static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OntologyHelperException {
 		String helperKey = buildHelperKey(settings);
 		OntologyHelper helper = helpers.get(helperKey);
 
 		if (helper == null) {
 			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
-			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey);
-			threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(DELETE_CHECK_DELAY_MS));
+			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey, settings.getThreadCheckMs());
+			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(settings.getThreadCheckMs()));
 			helpers.put(helperKey, helper);
+			checkers.put(helperKey, checkFuture);
 			helper.updateLastCallTime();
 		}
 
@@ -549,9 +568,11 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 	private static final class OntologyCheckRunnable implements Runnable {
 
 		final String threadKey;
+		final long deleteCheckMs;
 
-		public OntologyCheckRunnable(String threadKey) {
+		public OntologyCheckRunnable(String threadKey, long deleteCheckMs) {
 			this.threadKey = threadKey;
+			this.deleteCheckMs = deleteCheckMs;
 		}
 
 		@Override
@@ -559,7 +580,7 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 			OntologyHelper helper = helpers.get(threadKey);
 			if (helper != null) {
 				// Check if the last call time was longer ago than the maximum
-				if (System.currentTimeMillis() - DELETE_CHECK_DELAY_MS > helper.getLastCallTime()) {
+				if (System.currentTimeMillis() - deleteCheckMs > helper.getLastCallTime()) {
 					// Assume helper is out of use - dispose of it to allow memory to be freed
 					helper.dispose();
 					helpers.remove(threadKey);

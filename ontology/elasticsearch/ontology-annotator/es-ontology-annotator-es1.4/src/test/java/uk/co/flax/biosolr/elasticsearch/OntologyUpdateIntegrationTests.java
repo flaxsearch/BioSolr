@@ -33,6 +33,7 @@ import org.elasticsearch.plugins.PluginsService;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ElasticsearchIntegrationTest;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import uk.co.flax.biosolr.elasticsearch.mapper.ontology.FieldMappings;
@@ -71,6 +72,11 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 				.build();
 	}
 
+	@BeforeClass
+	public static void initialiseSystem() {
+		System.setProperty("entityExpansionLimit", "100000000");
+	}
+
 	@Before
 	public void createEmptyIndex() throws Exception {
 		logger.info("creating index [{}]", INDEX_NAME);
@@ -89,7 +95,7 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		IndexResponse response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		String id = response.getId();
 		flush();
-		
+
 		QueryBuilder query = QueryBuilders.idsQuery(DOC_TYPE_NAME).addIds(id);
 		SearchResponse searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME).setFetchSource(true).addFields("annotation.uri", "annotation.label").setQuery(query).get();
 		assertNoFailures(searchResponse);
@@ -99,8 +105,8 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("annotation.uri", "annotation.label", 
-						"annotation.child_uris", "annotation.descendant_uris", 
+				.addFields("annotation.uri", "annotation.label",
+						"annotation.child_uris", "annotation.descendant_uris",
 						"annotation.parent_uris", "annotation.ancestor_uris")
 				.setQuery(query).get();
 		assertNoFailures(searchResponse);
@@ -122,11 +128,11 @@ public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest
 		source = XContentFactory.jsonBuilder().startObject().field(ANNOTATION_FIELD, TEST_CHILD_IRI).field("name", randomRealisticUnicodeOfLength(12)).endObject();
 		response = index(INDEX_NAME, DOC_TYPE_NAME, source);
 		flush();
-		
+
 		query = QueryBuilders.termQuery(ANNOTATION_FIELD + "." + FieldMappings.URI.getFieldName(), TEST_CHILD_IRI);
 		searchResponse = client().prepareSearch(INDEX_NAME).setTypes(DOC_TYPE_NAME)
 				.setFetchSource(true)
-				.addFields("*") 
+				.addFields("*")
 				.setQuery(query).get();
 		assertNoFailures(searchResponse);
 		hits = searchResponse.getHits();
