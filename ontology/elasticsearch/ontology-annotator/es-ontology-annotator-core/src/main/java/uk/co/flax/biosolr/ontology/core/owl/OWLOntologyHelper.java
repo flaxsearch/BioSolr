@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * OWL-specific implementation of OntologyHelper.
@@ -189,7 +190,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 		OWLDataFactory odf = ontology.getOWLOntologyManager().getOWLDataFactory();
 
 		// For every property URI, find the annotations for this entry
-		propertyUris.parallelStream()
+		propertyUris.stream()
 				.map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
 				.map(prop -> findAnnotationNames(iri, prop))
 				.forEach(classNames::addAll);
