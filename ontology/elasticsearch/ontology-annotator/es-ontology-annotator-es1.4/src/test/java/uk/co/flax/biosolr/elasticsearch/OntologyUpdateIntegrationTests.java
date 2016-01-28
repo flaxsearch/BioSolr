@@ -45,7 +45,6 @@ import uk.co.flax.biosolr.elasticsearch.mapper.ontology.FieldMappings;
 @ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.SUITE)
 public class OntologyUpdateIntegrationTests extends ElasticsearchIntegrationTest {
 
-	public static final String ROOT_IRI = "http://www.w3.org/2002/07/owl#Thing";
 	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 	public static final String TEST_CHILD_IRI = "http://www.ifomis.org/bfo/1.1/snap#MaterialEntity";
 

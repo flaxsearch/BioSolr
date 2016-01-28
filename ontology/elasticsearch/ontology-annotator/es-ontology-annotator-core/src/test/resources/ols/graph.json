@@ -1,0 +1,39 @@
+{
+  "nodes" : [ {
+    "iri" : "http://www.ebi.ac.uk/efo/EFO_0005580",
+    "label" : "red color blindness"
+  }, {
+    "iri" : "http://www.ebi.ac.uk/efo/EFO_0003966",
+    "label" : "eye disease"
+  }, {
+    "iri" : "http://www.ebi.ac.uk/efo/EFO_0000508",
+    "label" : "genetic disorder"
+  }, {
+    "iri" : "http://www.ebi.ac.uk/efo/EFO_1000031",
+    "label" : "genetic disease"
+  }, {
+    "iri" : "http://purl.obolibrary.org/obo/UBERON_0000970",
+    "label" : "eye"
+  } ],
+  "edges" : [ {
+    "source" : "http://www.ebi.ac.uk/efo/EFO_0005580",
+    "target" : "http://www.ebi.ac.uk/efo/EFO_0003966",
+    "label" : "is a",
+    "uri" : "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  }, {
+    "source" : "http://www.ebi.ac.uk/efo/EFO_0005580",
+    "target" : "http://www.ebi.ac.uk/efo/EFO_0000508",
+    "label" : "is a",
+    "uri" : "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  }, {
+    "source" : "http://www.ebi.ac.uk/efo/EFO_0005580",
+    "target" : "http://www.ebi.ac.uk/efo/EFO_1000031",
+    "label" : "is a",
+    "uri" : "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  }, {
+    "source" : "http://www.ebi.ac.uk/efo/EFO_0005580",
+    "target" : "http://purl.obolibrary.org/obo/UBERON_0000970",
+    "label" : "has_disease_location",
+    "uri" : "http://www.ebi.ac.uk/efo/EFO_0000784"
+  } ]
+}

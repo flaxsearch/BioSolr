@@ -16,8 +16,6 @@
 package uk.co.flax.biosolr.ontology.core.ols;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.util.DefaultSolrThreadFactory;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
@@ -27,15 +25,10 @@ import uk.co.flax.biosolr.ontology.core.ols.graph.Graph;
 import uk.co.flax.biosolr.ontology.core.ols.graph.Node;
 import uk.co.flax.biosolr.ontology.core.ols.terms.*;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**

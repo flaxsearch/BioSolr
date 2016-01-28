@@ -1,0 +1,16 @@
+{
+  "test": {
+    "properties": {
+      "annotation": {
+        "type": "ontology",
+        "ontology": {
+          "olsBaseURL": "http://www.ebi.ac.uk/ols/beta/api",
+          "olsOntology": "efo",
+          "includeIndirect": false,
+          "includeRelations": false,
+          "threadCheckMs": "500"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "test": {
+    "properties": {
+      "annotation": {
+        "type": "ontology",
+        "ontology": {
+          "ontologyURI": "./ontologyUpdate/owl/test.owl",
+          "synonymURI": "http://www.ebi.ac.uk/efo/alternative_term",
+          "definitionURI": [
+            "http://www.ebi.ac.uk/efo/definition",
+            "http://purl.obolibrary.org/obo/IAO_0000115"
+          ],
+          "threadCheckMs": "500"
+        }
+      }
+    }
+  }
+}
