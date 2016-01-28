@@ -624,7 +624,8 @@
   
   <requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
       <lst name="defaults">
-        <str name="echoParams">none</str>
+        <str name="wt">json</str>
+        <str name="echoParams">all</str>
         <str name="defType">edismax</str>
         <str name="df">description</str>
         <str name="fl">*</str>

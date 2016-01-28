@@ -67,7 +67,7 @@ def ids():
   # do the DB lookup
   try:
     c = get_db().cursor()
-    c.execute("SELECT id, SUM(weight) FROM click WHERE q MATCH ? GROUP BY id", (q, ))
+    c.execute("SELECT id, MAX(weight) FROM click WHERE q MATCH ? GROUP BY id", (q, ))
     return json.dumps([{ 'id': id, 'weight': w } for id, w in c])
   finally:
     c.close()

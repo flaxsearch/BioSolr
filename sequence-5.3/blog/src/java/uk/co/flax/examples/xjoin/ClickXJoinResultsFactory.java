@@ -1,6 +1,7 @@
 package uk.co.flax.examples.xjoin;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +31,8 @@ implements XJoinResultsFactory<String> {
   @Override
   public XJoinResults<String> getResults(SolrParams params)
   throws IOException {
-    String apiUrl = url + "?q=" + params.get("q");
+    String q = URLEncoder.encode(params.get("q"), "UTF-8");
+    String apiUrl = url + "?q=" + q;
     try (HttpConnection http = new HttpConnection(apiUrl)) {
       JsonArray products = (JsonArray)http.getJson();
       return new ClickResults(products);
