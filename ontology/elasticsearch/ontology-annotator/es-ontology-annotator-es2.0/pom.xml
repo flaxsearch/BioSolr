@@ -16,6 +16,15 @@
     <properties>
         <elasticsearch.version>2.0.2</elasticsearch.version>
         <lucene.version>5.2.1</lucene.version>
+        <randomizedtesting-runner.version>2.1.16</randomizedtesting-runner.version>
+
+        <!-- Test configuration -->
+        <tests.jvms>1</tests.jvms>
+        <tests.shuffle>true</tests.shuffle>
+        <tests.output>onerror</tests.output>
+        <tests.client.ratio></tests.client.ratio>
+        <tests.seed></tests.seed>
+        <tests.failfast>true</tests.failfast>
 
         <elasticsearch.assembly.descriptor>${project.basedir}/src/main/assemblies/plugin-assembly.xml</elasticsearch.assembly.descriptor>
         <elasticsearch.plugin.name>ontology-annotator</elasticsearch.plugin.name>
@@ -26,6 +35,79 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.carrotsearch.randomizedtesting</groupId>
+                <artifactId>junit4-maven-plugin</artifactId>
+                <version>${randomizedtesting-runner.version}</version>
+                <executions>
+                    <execution>
+                        <id>tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>junit4</goal>
+                        </goals>
+                        <configuration>
+                            <heartbeat>20</heartbeat>
+                            <jvmOutputAction>pipe,warn</jvmOutputAction>
+                            <leaveTemporary>true</leaveTemporary>
+                            <listeners>
+                                <report-ant-xml mavenExtensions="true"
+                                                dir="${project.build.directory}/surefire-reports"/>
+                                <report-text
+                                        showThrowable="true"
+                                        showStackTraces="true"
+                                        showOutput="${tests.output}"
+                                        showStatusOk="false"
+                                        showStatusError="true"
+                                        showStatusFailure="true"
+                                        showStatusIgnored="true"
+                                        showSuiteSummary="true"
+                                        timestamps="false"/>
+                                <report-execution-times file="${basedir}/.local-execution-hints.log"/>
+                            </listeners>
+                            <assertions>
+                                <enable/>
+                            </assertions>
+                            <parallelism>${tests.jvms}</parallelism>
+                            <balancers>
+                                <execution-times>
+                                    <fileset dir="${basedir}" includes=".local-execution-hints.log"/>
+                                </execution-times>
+                            </balancers>
+                            <includes>
+                                <include>**/*Tests.class</include>
+                                <include>**/*Test.class</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/Abstract*.class</exclude>
+                                <exclude>**/*StressTest.class</exclude>
+                            </excludes>
+                            <jvmArgs>
+                                <param>-Xmx512m</param>
+                                <param>-XX:MaxDirectMemorySize=512m</param>
+                                <param>-Des.logger.prefix=</param>
+                            </jvmArgs>
+                            <shuffleOnSlave>${tests.shuffle}</shuffleOnSlave>
+                            <seed>${tests.seed}</seed>
+                            <haltOnFailure>${tests.failfast}</haltOnFailure>
+                            <systemProperties>
+                                <!-- This is used by the OWL classes -->
+                                <entityExpansionLimit>100000000</entityExpansionLimit>
+                            </systemProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- we skip surefire to work with randomized testing above -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.15</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -67,6 +149,10 @@
                     <groupId>junit</groupId>
                     <artifactId>junit</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.carrotsearch.randomizedtesting</groupId>
+                    <artifactId>junit4-ant</artifactId>
+                </exclusion>
             </exclusions>
             <scope>test</scope>
         </dependency>
@@ -83,6 +169,13 @@
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>${elasticsearch.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>4.1.0</version>
+            <optional>true</optional>
             <scope>provided</scope>
         </dependency>
     </dependencies>
