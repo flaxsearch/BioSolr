@@ -16,13 +16,12 @@
 
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Ontology settings from the ontology mapping configuration.

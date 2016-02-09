@@ -60,7 +60,7 @@ public class OntologyUpdateIntegrationTests extends ESIntegTestCase {
 
 	@Override
 	protected Collection<Class<? extends Plugin>> nodePlugins() {
-		return Collections.singleton(OntologyUpdatePlugin.class);
+		return pluginList(OntologyUpdatePlugin.class);
 	}
 
 	@Before

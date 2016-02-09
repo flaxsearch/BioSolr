@@ -16,9 +16,14 @@
 
 package uk.co.flax.biosolr.elasticsearch;
 
+import org.elasticsearch.common.inject.Module;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.indices.IndicesModule;
 import org.elasticsearch.plugins.Plugin;
 import uk.co.flax.biosolr.elasticsearch.mapper.ontology.OntologyMapper;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Plugin class defining the ontology annotator.
@@ -38,6 +43,11 @@ public class OntologyUpdatePlugin extends Plugin {
 	@Override
 	public String description() {
 		return DESCRIPTION;
+	}
+
+	@Override
+	public Collection<Module> indexModules(Settings indexSettings) {
+		return Collections.<Module>singletonList(new OntologyUpdateModule());
 	}
 
 	public void onModule(IndicesModule indicesModule) {
