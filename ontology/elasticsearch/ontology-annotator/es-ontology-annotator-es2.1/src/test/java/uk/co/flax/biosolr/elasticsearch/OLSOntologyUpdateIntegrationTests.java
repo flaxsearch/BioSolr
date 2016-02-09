@@ -26,6 +26,7 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.test.StreamsUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +53,7 @@ public class OLSOntologyUpdateIntegrationTests extends ESIntegTestCase {
 
 	@Override
 	protected Collection<Class<? extends Plugin>> nodePlugins() {
-		return Collections.singleton(OntologyUpdatePlugin.class);
+		return pluginList(OntologyUpdatePlugin.class);
 	}
 
 	@Before
@@ -60,6 +61,11 @@ public class OLSOntologyUpdateIntegrationTests extends ESIntegTestCase {
 		logger.info("creating index [{}]", INDEX_NAME);
 		createIndex(INDEX_NAME);
 		ensureGreen();
+	}
+
+	@After
+	public void disposeHelpers() {
+		OntologyHelperBuilder.getInstance().close();
 	}
 
 	@Test
