@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015 Lemur Consulting Ltd.
- * <p/>
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,18 +24,16 @@ import org.elasticsearch.common.collect.CopyOnWriteHashMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.*;
 import org.elasticsearch.index.mapper.core.StringFieldMapper;
-import org.elasticsearch.threadpool.ThreadPool;
+import uk.co.flax.biosolr.elasticsearch.OntologyHelperBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
@@ -50,7 +48,7 @@ import static org.elasticsearch.index.mapper.core.TypeParsers.parseField;
  *
  * @author mlp
  */
-public class OntologyMapper extends FieldMapper implements Closeable {
+public class OntologyMapper extends FieldMapper {
 
 	public static final String CONTENT_TYPE = "ontology";
 
@@ -89,11 +87,9 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 		private OntologySettings ontologySettings;
 		private Map<String, StringFieldMapper.Builder> propertyBuilders;
-		private final ThreadPool threadPool;
 
-		public Builder(String name, ThreadPool threadPool) {
+		public Builder(String name) {
 			super(name, Defaults.FIELD_TYPE);
-			this.threadPool = threadPool;
 			builder = this;
 		}
 
@@ -143,7 +139,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 			return new OntologyMapper(name, fieldType, defaultFieldType, context.indexSettings(),
 					multiFieldsBuilder.build(this, context),
-					ontologySettings, fieldMappers, threadPool);
+					ontologySettings, fieldMappers);
 		}
 
 	}
@@ -151,10 +147,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 	public static class TypeParser implements Mapper.TypeParser {
 
-		private final ThreadPool threadPool;
-
 		public TypeParser() {
-			this.threadPool = new ThreadPool(CONTENT_TYPE);
 		}
 
 		/**
@@ -171,10 +164,10 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 				throws MapperParsingException {
 			OntologySettings ontologySettings = null;
 
-			Builder builder = new Builder(name, threadPool);
+			Builder builder = new Builder(name);
 			parseField(builder, name, node, parserContext);
 
-			for (Iterator<Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext();) {
+			for (Iterator<Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext(); ) {
 				Entry<String, Object> entry = iterator.next();
 				if (entry.getKey().equals(OntologySettings.ONTOLOGY_SETTINGS_KEY)) {
 					ontologySettings = new OntologySettingsBuilder()
@@ -202,13 +195,13 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 		private Map<String, StringFieldMapper.Builder> parseProperties(Map<String, Object> propertiesNode, ParserContext parserContext) {
 			Map<String, StringFieldMapper.Builder> propertyMap = new HashMap<>();
-			for (Iterator<Entry<String, Object>> iterator = propertiesNode.entrySet().iterator(); iterator.hasNext();) {
+			for (Iterator<Entry<String, Object>> iterator = propertiesNode.entrySet().iterator(); iterator.hasNext(); ) {
 				Entry<String, Object> entry = iterator.next();
 				String name = entry.getKey();
 
 				@SuppressWarnings("unchecked")
-				Mapper.Builder builder = new StringFieldMapper.TypeParser().parse(entry.getKey(), (Map<String, Object>)entry.getValue(), parserContext);
-				propertyMap.put(name, (StringFieldMapper.Builder)builder);
+				Mapper.Builder builder = new StringFieldMapper.TypeParser().parse(entry.getKey(), (Map<String, Object>) entry.getValue(), parserContext);
+				propertyMap.put(name, (StringFieldMapper.Builder) builder);
 			}
 			return propertyMap;
 		}
@@ -220,20 +213,14 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 	private final OntologySettings ontologySettings;
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
-	private final ThreadPool threadPool;
-
-	private static final Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
-	private static final Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(String simpleName, MappedFieldType fieldType, MappedFieldType defaultFieldType,
 			Settings indexSettings, MultiFields multiFields, OntologySettings oSettings,
-			Map<String, StringFieldMapper> fieldMappers,
-			ThreadPool threadPool) {
+			Map<String, StringFieldMapper> fieldMappers) {
 		super(simpleName, fieldType, defaultFieldType, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
 		// Dynamic mappers are added to mappers map as they are used/created
 		this.mappers = CopyOnWriteHashMap.copyOf(fieldMappers);
-		this.threadPool = threadPool;
 	}
 
 	@Override
@@ -306,7 +293,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 		boolean modified = false;
 
 		try {
-			OntologyHelper helper = getHelper(ontologySettings, threadPool);
+			OntologyHelper helper = OntologyHelperBuilder.getOntologyHelper(ontologySettings);
 
 			OntologyData data = findOntologyData(helper, iri);
 			if (data == null) {
@@ -437,7 +424,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 			return;
 		}
 
-		OntologyMapper oMergeWith = (OntologyMapper)mergeWith;
+		OntologyMapper oMergeWith = (OntologyMapper) mergeWith;
 		OntologySettings mergeSettings = oMergeWith.ontologySettings;
 		if (mergeSettings.getOntologyUri() != null && !mergeSettings.getOntologyUri().equals(ontologySettings.getOntologyUri())) {
 			mergeResult.addConflict("mapper [" + fieldType().names().fullName() + "] has different ontology URI");
@@ -479,84 +466,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	}
 
 	@Override
-	public void close() {
-		disposeHelper();
-	}
-
-	private void disposeHelper() {
-		String helperKey = buildHelperKey(ontologySettings);
-		if (helpers.containsKey(helperKey)) {
-			helpers.get(helperKey).dispose();
-			helpers.remove(helperKey);
-		}
-		if (checkers.containsKey(helperKey)) {
-			checkers.get(helperKey).cancel(false);
-			checkers.remove(helperKey);
-		}
-	}
-
-	@Override
 	public boolean isGenerated() {
 		return true;
-	}
-
-
-	public static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OntologyHelperException {
-		String helperKey = buildHelperKey(settings);
-		OntologyHelper helper = helpers.get(helperKey);
-
-		if (helper == null) {
-			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
-			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey, settings.getThreadCheckMs());
-			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(settings.getThreadCheckMs()));
-			helpers.put(helperKey, helper);
-			checkers.put(helperKey, checkFuture);
-			helper.updateLastCallTime();
-		}
-
-		return helper;
-	}
-
-	private static String buildHelperKey(OntologySettings settings) {
-		String key;
-
-		if (StringUtils.isNotBlank(settings.getOntologyUri())) {
-			key = settings.getOntologyUri();
-		} else {
-			if (StringUtils.isNotBlank(settings.getOlsOntology())) {
-				key = settings.getOlsBaseUrl() + "_" + settings.getOlsOntology();
-			} else {
-				key = settings.getOlsBaseUrl();
-			}
-		}
-
-		return key;
-	}
-
-
-	private static final class OntologyCheckRunnable implements Runnable {
-
-		final String threadKey;
-		final long deleteCheckMs;
-
-		public OntologyCheckRunnable(String threadKey, long deleteCheckMs) {
-			this.threadKey = threadKey;
-			this.deleteCheckMs = deleteCheckMs;
-		}
-
-		@Override
-		public void run() {
-			OntologyHelper helper = helpers.get(threadKey);
-			if (helper != null) {
-				// Check if the last call time was longer ago than the maximum
-				if (System.currentTimeMillis() - deleteCheckMs > helper.getLastCallTime()) {
-					// Assume helper is out of use - dispose of it to allow memory to be freed
-					helper.dispose();
-					helpers.remove(threadKey);
-				}
-			}
-		}
-
 	}
 
 }

@@ -28,6 +28,7 @@
 		<module>es-ontology-annotator-es1.5</module>
 		<module>es-ontology-annotator-es2.0</module>
 		<module>es-ontology-annotator-es2.1</module>
+		<module>es-ontology-annotator-es2.2</module>
 	</modules>
 
 	<build>
@@ -47,6 +48,13 @@
 	</build>
 
 	<dependencies>
+		<!-- Core module -->
+		<dependency>
+			<groupId>uk.co.flax</groupId>
+			<artifactId>ontology-annotator-core</artifactId>
+			<version>1.0</version>
+		</dependency>
+
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>com.carrotsearch.randomizedtesting</groupId>

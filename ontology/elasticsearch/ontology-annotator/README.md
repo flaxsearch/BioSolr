@@ -36,6 +36,10 @@ it needs to be added to your local ElasticSearch instance. The easiest way to
 do this is using ElasticSearch's own plugin manager, although usage of this
 varies between ElasticSearch 1.x and 2.x. 
 
+**Note**: These plugins now depend on the [Ontology Annotator Core](https://github.com/flaxsearch/BioSolr/tree/master/ontology/ontology-annotator/core)
+module, which should be built and installed to your local maven repository 
+before building this module.
+
 
 ### Installing to ElasticSearch 1.x
 

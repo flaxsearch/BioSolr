@@ -9,7 +9,8 @@
 					"definitionURI": [
 						"http://www.ebi.ac.uk/efo/definition",
 						"http://purl.obolibrary.org/obo/IAO_0000115"
-					]
+					],
+					"threadCheckMs": "2500"
 				}
 			}
 		}

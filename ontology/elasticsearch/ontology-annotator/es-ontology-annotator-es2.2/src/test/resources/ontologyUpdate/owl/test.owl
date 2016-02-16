@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY terms "http://purl.org/dc/terms/" >
+    <!ENTITY efo "http://www.ebi.ac.uk/efo/" >
+]>
+<rdf:RDF xmlns="http://www.ebi.ac.uk/efo" xml:base="http://www.ebi.ac.uk/efo" 
+	xmlns:ro="http://www.obofoundry.org/ro/ro.owl#" 
+	xmlns:efo="http://www.ebi.ac.uk/efo/" 
+	xmlns:snap="http://www.ifomis.org/bfo/1.1/snap#" 
+	xmlns:terms="http://purl.org/dc/terms/" 
+	xmlns:uberon="http://purl.obolibrary.org/obo/uberon#" 
+	xmlns:ORDO="http://www.orpha.net/ORDO/" 
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" 
+	xmlns:bto="http://purl.obolibrary.org/obo/bto#" 
+	xmlns:rdfns="http://www.orphanet.org/rdfns#" 
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+	xmlns:OBO_REL="http://purl.org/obo/owl/OBO_REL#" 
+	xmlns:dc="http://purl.org/dc/elements/1.1/" 
+	xmlns:PATO="http://purl.org/obo/owl/PATO#" 
+	xmlns:phenoscape-anatomy="http://purl.obolibrary.org/obo/uberon/phenoscape-anatomy#" 
+	xmlns:patterns="http://www.co-ode.org/patterns#" 
+	xmlns:foaf="http://xmlns.com/foaf/0.1/" 
+	xmlns:resource="http://semanticscience.org/resource/" 
+	xmlns:ncbitaxon="http://purl.obolibrary.org/obo/ncbitaxon#" 
+	xmlns:obo="http://purl.obolibrary.org/obo/" 
+	xmlns:obo2="http://purl.obolibrary.org/obo#" 
+	xmlns:owl="http://www.w3.org/2002/07/owl#" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#" 
+	xmlns:core="http://purl.obolibrary.org/obo/uberon/core#" 
+	xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#" 
+	xmlns:doap="http://usefulinc.com/ns/doap#" 
+	xmlns:go="http://purl.obolibrary.org/obo/go#" 
+	xmlns:span="http://www.ifomis.org/bfo/1.1/span#">
+	
+    <!-- http://www.obofoundry.org/ro/ro.owl#participates_in -->
+    <owl:ObjectProperty rdf:about="http://www.obofoundry.org/ro/ro.owl#participates_in">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">participates_in</rdfs:label>
+        <efo:definition rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Participates in is a primitive instance-level relation between a continuant and a process in which it participates. For example a scanner participates in a scanning process at some specific time.</efo:definition>
+    </owl:ObjectProperty>
+    
+	<owl:Class rdf:about="http://www.ebi.ac.uk/efo/EFO_0000001">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">experimental factor</rdfs:label>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">second label</rdfs:label>
+        <owl:disjointWith rdf:resource="http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"/>
+        <obo:IAO_0000115 rdf:datatype="http://www.w3.org/2001/XMLSchema#string">An experimental factor in Array Express which are essentially the variable aspects of an experiment design which can be used to describe an experiment, or set of experiments, in an increasingly detailed manner. This upper level class is really used to give a root class from which applications can rely on and not be tied to upper ontology classses which do change.</obo:IAO_0000115>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Concept naming convention is lower case natural naming with spaces, when necessary captials should be used, for example disease factor, HIV, breast carcinoma, Ewing's sarcoma</rdfs:comment>
+        <oboInOwl:hasExactSynonym rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ExperimentalFactor</oboInOwl:hasExactSynonym>
+        <efo:bioportal_provenance rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ExperimentalFactor[accessedResource: MO_10][accessDate: 05-04-2011]</efo:bioportal_provenance>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Helen Parkinson</oboInOwl:created_by>
+        <efo:definition_editor rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Helen Parkinson</efo:definition_editor>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">James Malone</oboInOwl:created_by>
+        <efo:definition_editor rdf:datatype="http://www.w3.org/2001/XMLSchema#string">James Malone</efo:definition_editor>
+        <efo:definition_editor rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Jie Zheng</efo:definition_editor>
+        <efo:definition_citation rdf:datatype="http://www.w3.org/2001/XMLSchema#string">MO_10</efo:definition_citation>
+        <efo:definition_editor rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Tomasz Adamusiak</efo:definition_editor>
+        <oboInOwl:created_by rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Tomasz Adamusiak</oboInOwl:created_by>
+        <efo:organizational_class rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</efo:organizational_class>
+    </owl:Class>
+	
+    <owl:Class rdf:about="http://www.ifomis.org/bfo/1.1/snap#MaterialEntity">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">material entity</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://www.ebi.ac.uk/efo/EFO_0000001"/>
+        <efo:example_of_usage rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A heart, a human, a fly, a microarray.</efo:example_of_usage>
+        <efo:definition rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A material entity is an entity that exists in full during the length of time of its existence, persists through this time while maintaining its identity and has no temporal parts. For example a heart, a human, a fly, a microarray.</efo:definition>
+        <efo:source_definition rdf:datatype="http://www.w3.org/2001/XMLSchema#string">An independent continuant [snap:IndependentContinuant] that is spatially extended whose identity is independent of that of other entities and can be maintained through time. Note: Material entity [snap:MaterialEntity] subsumes object [snap:Object], fiat object part [snap:FiatObjectPart], and object aggregate [snap:ObjectAggregate], which assume a three level theory of granularity, which is inadequate for some domains, such as biology.</efo:source_definition>
+        <efo:definition_editor rdf:datatype="http://www.w3.org/2001/XMLSchema#string">James Malone</efo:definition_editor>
+        <efo:EFO_URI rdf:datatype="http://www.w3.org/2001/XMLSchema#string">http://www.ebi.ac.uk/efo/EFO_0001434</efo:EFO_URI>
+        <efo:ArrayExpress_label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">sample factor</efo:ArrayExpress_label>
+        <efo:organizational_class rdf:datatype="http://www.w3.org/2001/XMLSchema#string">true</efo:organizational_class>
+        <efo:alternative_term>material type</efo:alternative_term>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.obofoundry.org/ro/ro.owl#participates_in"/>
+                <owl:someValuesFrom rdf:resource="http://www.ebi.ac.uk/efo/EFO_0000001"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+</rdf:RDF>
