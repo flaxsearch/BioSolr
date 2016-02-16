@@ -29,8 +29,10 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.test.StreamsUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import uk.co.flax.biosolr.elasticsearch.OntologyHelperBuilder;
 import uk.co.flax.biosolr.elasticsearch.OntologyUpdatePlugin;
 import uk.co.flax.biosolr.elasticsearch.mapper.ontology.FieldMappings;
 
@@ -67,6 +69,11 @@ public class OntologyUpdateIntegrationTests extends ESIntegTestCase {
 		logger.info("creating index [{}]", INDEX_NAME);
 		createIndex(INDEX_NAME);
 		ensureGreen();
+	}
+
+	@AfterClass
+	public static void shutdownOntologyHelper() {
+		OntologyHelperBuilder.getInstance().close();
 	}
 
 	@Test

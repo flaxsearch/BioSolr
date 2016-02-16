@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Lemur Consulting Ltd.
+ * Copyright (c) 2016 Lemur Consulting Ltd.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.flax.biosolr.ontology.core.ols.terms;
+package uk.co.flax.biosolr.elasticsearch;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.elasticsearch.common.inject.AbstractModule;
 
 /**
- * Link entry, as supplied by OLS.
- *
- * Created by mlp on 21/10/15.
+ * Created by mlp on 09/02/16.
  * @author mlp
  */
-public class Link {
+public class OntologyUpdateModule extends AbstractModule {
 
-	private final String href;
-
-	public Link(@JsonProperty("href") String href) {
-		this.href = href;
+	@Override
+	protected void configure() {
+		bind(OntologyHelperBuilder.class).asEagerSingleton();
 	}
-
-	public String getHref() {
-		return href;
-	}
-
 }

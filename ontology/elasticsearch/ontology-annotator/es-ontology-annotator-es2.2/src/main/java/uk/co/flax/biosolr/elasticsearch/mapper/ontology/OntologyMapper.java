@@ -30,6 +30,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.*;
 import org.elasticsearch.index.mapper.core.StringFieldMapper;
 import org.elasticsearch.threadpool.ThreadPool;
+import uk.co.flax.biosolr.elasticsearch.OntologyHelperBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
@@ -50,9 +51,9 @@ import static org.elasticsearch.index.mapper.core.TypeParsers.parseField;
  *
  * @author mlp
  */
-public class OntologyMapper extends FieldMapper implements Closeable {
+public class OntologyMapper extends FieldMapper {
 
-	public static final String CONTENT_TYPE = "uk/co/flax/biosolr/elasticsearch/mapper/ontology";
+	public static final String CONTENT_TYPE = "ontology";
 
 	public static final String ONTOLOGY_PROPERTIES = "properties";
 
@@ -89,11 +90,9 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 		private OntologySettings ontologySettings;
 		private Map<String, StringFieldMapper.Builder> propertyBuilders;
-		private final ThreadPool threadPool;
 
-		public Builder(String name, ThreadPool threadPool) {
+		public Builder(String name) {
 			super(name, Defaults.FIELD_TYPE, Defaults.FIELD_TYPE);
-			this.threadPool = threadPool;
 			builder = this;
 		}
 
@@ -143,19 +142,13 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 			return new OntologyMapper(name, fieldType, defaultFieldType, context.indexSettings(),
 					multiFieldsBuilder.build(this, context),
-					ontologySettings, fieldMappers, threadPool);
+					ontologySettings, fieldMappers);
 		}
 
 	}
 
 
 	public static class TypeParser implements Mapper.TypeParser {
-
-		private final ThreadPool threadPool;
-
-		public TypeParser() {
-			this.threadPool = new ThreadPool(CONTENT_TYPE);
-		}
 
 		/**
 		 * Parse the mapping definition for the ontology type.
@@ -171,7 +164,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 				throws MapperParsingException {
 			OntologySettings ontologySettings = null;
 
-			Builder builder = new Builder(name, threadPool);
+			Builder builder = new Builder(name);
 			parseField(builder, name, node, parserContext);
 
 			for (Iterator<Entry<String, Object>> iterator = node.entrySet().iterator(); iterator.hasNext(); ) {
@@ -220,20 +213,14 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 
 	private final OntologySettings ontologySettings;
 	private volatile CopyOnWriteHashMap<String, StringFieldMapper> mappers;
-	private final ThreadPool threadPool;
-
-	private static final Map<String, OntologyHelper> helpers = new ConcurrentHashMap<>();
-	private static final Map<String, ScheduledFuture> checkers = new ConcurrentHashMap<>();
 
 	public OntologyMapper(String simpleName, MappedFieldType fieldType, MappedFieldType defaultFieldType,
 			Settings indexSettings, MultiFields multiFields, OntologySettings oSettings,
-			Map<String, StringFieldMapper> fieldMappers,
-			ThreadPool threadPool) {
+			Map<String, StringFieldMapper> fieldMappers) {
 		super(simpleName, fieldType, defaultFieldType, indexSettings, multiFields, null);
 		this.ontologySettings = oSettings;
 		// Dynamic mappers are added to mappers map as they are used/created
 		this.mappers = CopyOnWriteHashMap.copyOf(fieldMappers);
-		this.threadPool = threadPool;
 	}
 
 	@Override
@@ -306,7 +293,7 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 		boolean modified = false;
 
 		try {
-			OntologyHelper helper = getHelper(ontologySettings, threadPool);
+			OntologyHelper helper = OntologyHelperBuilder.getOntologyHelper(ontologySettings);
 
 			OntologyData data = findOntologyData(helper, iri);
 			if (data == null) {
@@ -477,84 +464,8 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 	}
 
 	@Override
-	public void close() {
-		disposeHelper();
-	}
-
-	private void disposeHelper() {
-		String helperKey = buildHelperKey(ontologySettings);
-		if (helpers.containsKey(helperKey)) {
-			helpers.get(helperKey).dispose();
-			helpers.remove(helperKey);
-		}
-		if (checkers.containsKey(helperKey)) {
-			checkers.get(helperKey).cancel(false);
-			checkers.remove(helperKey);
-		}
-	}
-
-	@Override
 	public boolean isGenerated() {
 		return true;
-	}
-
-
-	public static OntologyHelper getHelper(OntologySettings settings, ThreadPool threadPool) throws OntologyHelperException {
-		String helperKey = buildHelperKey(settings);
-		OntologyHelper helper = helpers.get(helperKey);
-
-		if (helper == null) {
-			helper = new ElasticOntologyHelperFactory(settings).buildOntologyHelper();
-			OntologyCheckRunnable checker = new OntologyCheckRunnable(helperKey, settings.getThreadCheckMs());
-			ScheduledFuture checkFuture = threadPool.scheduleWithFixedDelay(checker, TimeValue.timeValueMillis(settings.getThreadCheckMs()));
-			helpers.put(helperKey, helper);
-			checkers.put(helperKey, checkFuture);
-			helper.updateLastCallTime();
-		}
-
-		return helper;
-	}
-
-	private static String buildHelperKey(OntologySettings settings) {
-		String key;
-
-		if (StringUtils.isNotBlank(settings.getOntologyUri())) {
-			key = settings.getOntologyUri();
-		} else {
-			if (StringUtils.isNotBlank(settings.getOlsOntology())) {
-				key = settings.getOlsBaseUrl() + "_" + settings.getOlsOntology();
-			} else {
-				key = settings.getOlsBaseUrl();
-			}
-		}
-
-		return key;
-	}
-
-
-	private static final class OntologyCheckRunnable implements Runnable {
-
-		final String threadKey;
-		final long deleteCheckMs;
-
-		public OntologyCheckRunnable(String threadKey, long deleteCheckMs) {
-			this.threadKey = threadKey;
-			this.deleteCheckMs = deleteCheckMs;
-		}
-
-		@Override
-		public void run() {
-			OntologyHelper helper = helpers.get(threadKey);
-			if (helper != null) {
-				// Check if the last call time was longer ago than the maximum
-				if (System.currentTimeMillis() - deleteCheckMs > helper.getLastCallTime()) {
-					// Assume helper is out of use - dispose of it to allow memory to be freed
-					helper.dispose();
-					helpers.remove(threadKey);
-				}
-			}
-		}
-
 	}
 
 }

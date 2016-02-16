@@ -10,7 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>es-ontology-annotator-es2.2</artifactId>
-    <packaging>pom</packaging>
     <name>ElasticSearch Ontology Annotator - ElasticSearch v2.2</name>
     <description>ElasticSearch 2.2 version of the ElasticSearch Ontology Annotator</description>
 
@@ -27,6 +26,7 @@
         <tests.seed></tests.seed>
         <tests.failfast>true</tests.failfast>
         <tests.assertion.disabled>false</tests.assertion.disabled>
+        <tests.security.manager>false</tests.security.manager>
 
         <!-- Assembly configuration -->
         <elasticsearch.assembly.descriptor>${project.basedir}/src/main/assemblies/plugin.xml
@@ -119,6 +119,7 @@
                             <seed>${tests.seed}</seed>
                             <haltOnFailure>${tests.failfast}</haltOnFailure>
                             <systemProperties>
+                                <tests.security.manager>${tests.security.manager}</tests.security.manager>
                                 <!-- This is used by the OWL classes -->
                                 <entityExpansionLimit>100000000</entityExpansionLimit>
                             </systemProperties>

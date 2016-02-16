@@ -26,8 +26,10 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.test.StreamsUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import uk.co.flax.biosolr.elasticsearch.OntologyHelperBuilder;
 import uk.co.flax.biosolr.elasticsearch.OntologyUpdatePlugin;
 
 import java.util.Collection;
@@ -38,6 +40,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Created by mlp on 12/01/16.
+ *
  * @author mlp
  */
 public class OLSOntologyUpdateIntegrationTests extends ESIntegTestCase {
@@ -61,6 +64,11 @@ public class OLSOntologyUpdateIntegrationTests extends ESIntegTestCase {
 		logger.info("creating index [{}]", INDEX_NAME);
 		createIndex(INDEX_NAME);
 		ensureGreen();
+	}
+
+	@AfterClass
+	public static void shutdownOntologyHelper() {
+		OntologyHelperBuilder.getInstance().close();
 	}
 
 	@Test
