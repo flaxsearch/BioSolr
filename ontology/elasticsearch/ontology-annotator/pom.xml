@@ -48,6 +48,13 @@
 	</build>
 
 	<dependencies>
+		<!-- Core module -->
+		<dependency>
+			<groupId>uk.co.flax</groupId>
+			<artifactId>ontology-annotator-core</artifactId>
+			<version>1.0</version>
+		</dependency>
+
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>com.carrotsearch.randomizedtesting</groupId>

@@ -1,7 +1,0 @@
-{
-  "timestamp": 1449740380146,
-  "status": 404,
-  "error": "Not Found",
-  "exception": "org.springframework.data.rest.webmvc.ResourceNotFoundException",
-  "message": "Resource not found"
-}
