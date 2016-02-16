@@ -21,6 +21,10 @@ dependencies, skipping those which crossover with Solr. It will be called
 `solr-ontology-update-processor-0.0.1.jar` or similar,
 depending on the version number.
 
+**Note**: This plugin now depends on the [Ontology Annotator Core](https://github.com/flaxsearch/BioSolr/tree/master/ontology/ontology-annotator/core)
+module, which should be built and installed to your local maven repository 
+before building this module.
+
 
 ## Installation
 
