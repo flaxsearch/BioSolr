@@ -1,0 +1,46 @@
+{
+  "iri" : "http://www.ifomis.org/bfo/1.1/snap#MaterialEntity",
+  "label" : "material entity",
+  "description" : [ "A material entity is an entity that exists in full during the length of time of its existence, persists through this time while maintaining its identity and has no temporal parts. For example a heart, a human, a fly, a microarray." ],
+  "annotation" : {
+    "ArrayExpress_label" : [ "sample factor" ],
+    "EFO_URI" : [ "http://www.ebi.ac.uk/efo/EFO_0001434" ],
+    "definition_editor" : [ "James Malone" ],
+    "example_of_usage" : [ "A heart, a human, a fly, a microarray." ],
+    "organizational_class" : [ "true" ],
+    "source_definition" : [ "An independent continuant [snap:IndependentContinuant] that is spatially extended whose identity is independent of that of other entities and can be maintained through time. Note: Material entity [snap:MaterialEntity] subsumes object [snap:Object], fiat object part [snap:FiatObjectPart], and object aggregate [snap:ObjectAggregate], which assume a three level theory of granularity, which is inadequate for some domains, such as biology." ]
+  },
+  "synonyms" : [ "material type" ],
+  "ontology_name" : "efo",
+  "ontology_prefix" : "EFO",
+  "ontology_iri" : "http://www.ebi.ac.uk/efo",
+  "is_obsolete" : false,
+  "is_defining_ontology" : false,
+  "has_children" : true,
+  "is_root" : false,
+  "short_form" : "MaterialEntity",
+  "obo_id" : null,
+  "_links" : {
+    "self" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity"
+    },
+    "parents" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/parents"
+    },
+    "ancestors" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/ancestors"
+    },
+    "jstree" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/jstree"
+    },
+    "children" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/children"
+    },
+    "descendants" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/descendants"
+    },
+    "graph" : {
+      "href" : "http://www.ebi.ac.uk/ols/beta/api/ontologies/efo/terms/http%253A%252F%252Fwww.ifomis.org%252Fbfo%252F1.1%252Fsnap%2523MaterialEntity/graph"
+    }
+  }
+}
