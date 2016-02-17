@@ -16,7 +16,9 @@
 package uk.co.flax.biosolr.ontology.core.ols;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
 
 import javax.ws.rs.ext.ContextResolver;
 
@@ -37,6 +39,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 	private static ObjectMapper createDefaultMapper() {
 		ObjectMapper defaultMapper = new ObjectMapper();
 		defaultMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		defaultMapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
 		return defaultMapper;
 	}
 

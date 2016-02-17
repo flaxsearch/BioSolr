@@ -15,12 +15,17 @@
  */
 package uk.co.flax.biosolr.ontology.core.ols.terms;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import uk.co.flax.biosolr.ontology.core.ols.OLSHttpClientTest;
+import uk.co.flax.biosolr.ontology.core.ols.ObjectMapperResolver;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for the OntologyTerm object.
@@ -34,15 +39,18 @@ public class OntologyTermTest {
 
 	@Test
 	public void deserialize_fromFile() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		ObjectMapper mapper = new ObjectMapperResolver().getContext(OntologyTerm.class);
+
 		OntologyTerm terms = mapper.readValue(
 				OLSHttpClientTest.getFile(TERMS_FILE),
 				OntologyTerm.class);
 		assertNotNull(terms);
 		assertNotNull(terms.getIri());
+		assertNotNull(terms.getDescription());
+		assertTrue(StringUtils.isNotBlank(terms.getDescription().get(0)));
+		assertNull(terms.getSynonyms());
 		assertNotNull(terms.getLinks());
-		assertNotNull(terms.getLinks().get(TermLinkType.SELF));
+		assertNotNull(terms.getLinks().get(TermLinkType.SELF.toString()));
 	}
 
 }

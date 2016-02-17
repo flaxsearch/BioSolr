@@ -33,8 +33,9 @@ import java.util.stream.Collectors;
 
 /**
  * OLS-specific implementation of OntologyHelper.
- *
+ * <p>
  * Created by mlp on 21/10/15.
+ *
  * @author mlp
  */
 public class OLSOntologyHelper implements OntologyHelper {
@@ -106,6 +107,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Check whether a term is in the terms cache and, if not, attempt to add it.
+	 *
 	 * @param iri the IRI to look up.
 	 * @throws OntologyHelperException if problems occur looking up the IRI.
 	 */
@@ -117,6 +119,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 * Check whether a collection of terms are in the terms cache, and if not,
 	 * attempt to add them. Terms which cannot be found in OLS are added as a
 	 * <code>null</code> entry, to avoid looking them up again.
+	 *
 	 * @param iris the collection of IRIs to be queried.
 	 * @throws OntologyHelperException if the lookup is interrupted.
 	 */
@@ -137,6 +140,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Look up a collection of terms in OLS.
+	 *
 	 * @param iris the terms to be queried.
 	 * @return a list of those terms which were found.
 	 * @throws OntologyHelperException if the lookup is interrupted.
@@ -280,7 +284,8 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Extract the URL for a particular type of link from an OntologyTerm.
-	 * @param term the term.
+	 *
+	 * @param term     the term.
 	 * @param linkType the type of link required.
 	 * @return the URL, or <code>null</code> if the term is null, or doesn't
 	 * have a link of the required type.
@@ -289,7 +294,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 		String ret = null;
 
 		if (term != null) {
-			Link link = term.getLinks().get(linkType);
+			Link link = term.getLinks().get(linkType.toString());
 			if (link != null && StringUtils.isNotBlank(link.getHref())) {
 				ret = link.getHref();
 			}
@@ -326,6 +331,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Find the IRIs of all terms referenced by a related URL.
+	 *
 	 * @param baseUrl the base URL to look up, from a Link or similar
 	 *                query-type URL.
 	 * @return a set of IRIs referencing the terms found for the
@@ -365,10 +371,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	/**
 	 * Build a list of URLs for a range of pages.
-	 * @param baseUrl the base URL; the page size and page number will be appended to
-	 *                this as query parameters.
+	 *
+	 * @param baseUrl   the base URL; the page size and page number will be appended to
+	 *                  this as query parameters.
 	 * @param firstPage the first page in the range, inclusive.
-	 * @param lastPage the last page in the range, exclusive.
+	 * @param lastPage  the last page in the range, exclusive.
 	 * @return the list of generated URLs.
 	 */
 	protected List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
@@ -378,7 +385,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 		List<String> pageUrls = new ArrayList<>(lastPage - firstPage);
 
-		for (int i = firstPage; i < lastPage; i ++) {
+		for (int i = firstPage; i < lastPage; i++) {
 			pageUrls.add(builder.build(i).toString());
 		}
 
@@ -408,7 +415,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 			String graphUrl = getLinkUrl(terms.get(iri), TermLinkType.GRAPH);
 			if (graphUrl != null) {
 				List<Graph> graphResults = olsClient.callOLS(Collections.singletonList(graphUrl), Graph.class);
-				if (graphResults.size() > 0){
+				if (graphResults.size() > 0) {
 					graphs.put(iri, graphResults.get(0));
 					cacheGraphLabels(graphResults.get(0));
 				} else {
