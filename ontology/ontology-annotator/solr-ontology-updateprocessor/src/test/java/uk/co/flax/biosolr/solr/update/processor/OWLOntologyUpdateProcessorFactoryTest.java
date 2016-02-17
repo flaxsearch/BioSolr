@@ -16,24 +16,7 @@
 
 package uk.co.flax.biosolr.solr.update.processor;
 
-import org.apache.solr.SolrTestCaseJ4;
-import org.apache.solr.common.params.MultiMapSolrParams;
-import org.apache.solr.common.params.UpdateParams;
-import org.apache.solr.common.util.ContentStream;
-import org.apache.solr.common.util.ContentStreamBase;
-import org.apache.solr.handler.UpdateRequestHandler;
-import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrQueryRequestBase;
-import org.apache.solr.response.SolrQueryResponse;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
-import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperTest;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Unit tests for the OntologyUpdateProcessorFactory, using SolrTestCaseJ4
