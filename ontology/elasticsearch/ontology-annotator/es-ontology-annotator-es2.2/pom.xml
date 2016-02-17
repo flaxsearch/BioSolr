@@ -26,7 +26,8 @@
         <tests.seed></tests.seed>
         <tests.failfast>true</tests.failfast>
         <tests.assertion.disabled>false</tests.assertion.disabled>
-        <tests.security.manager>false</tests.security.manager>
+        <tests.security.manager>true</tests.security.manager>
+        <tests.config>${project.basedir}/src/main/plugin-metadata/plugin-security.policy</tests.config>
 
         <!-- Assembly configuration -->
         <elasticsearch.assembly.descriptor>${project.basedir}/src/main/assemblies/plugin.xml
@@ -120,6 +121,7 @@
                             <haltOnFailure>${tests.failfast}</haltOnFailure>
                             <systemProperties>
                                 <tests.security.manager>${tests.security.manager}</tests.security.manager>
+                                <tests.config>${tests.config}</tests.config>
                                 <!-- This is used by the OWL classes -->
                                 <entityExpansionLimit>100000000</entityExpansionLimit>
                             </systemProperties>
