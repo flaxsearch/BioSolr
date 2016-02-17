@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.core.ols;
 
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +47,7 @@ public class OLSHttpClient {
 
 	public OLSHttpClient(int threadPoolSize, ThreadFactory threadFactory) {
 		// Initialise the HTTP client
-		this.client = ClientBuilder.newBuilder()
+		this.client = new JerseyClientBuilder()
 				.register(ObjectMapperResolver.class)
 				.register(JacksonFeature.class)
 				.build();
