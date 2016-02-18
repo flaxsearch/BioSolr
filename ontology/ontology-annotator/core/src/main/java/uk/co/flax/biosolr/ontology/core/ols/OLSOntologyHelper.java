@@ -103,6 +103,12 @@ public class OLSOntologyHelper implements OntologyHelper {
 	public void dispose() {
 		LOGGER.info("Disposing of OLS ontology helper for {}", ontology);
 		olsClient.shutdown();
+
+		// Clear caches
+		terms.clear();
+		relatedIris.clear();
+		graphs.clear();
+		graphLabels.clear();
 	}
 
 	/**
