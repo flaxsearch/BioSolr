@@ -16,15 +16,13 @@
 package uk.co.flax.biosolr.ontology.core.owl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,16 +40,11 @@ public class OWLOntologyHelper implements OntologyHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyHelper.class);
 
 	private final OWLOntologyConfiguration config;
-	private final URI ontologyUri;
+	private final OWLDataManager dataManager;
 
-	private final OWLOntology ontology;
-	private final OWLReasoner reasoner;
-
-	private final Map<IRI, OWLClass> owlClassMap = new HashMap<>();
-
-	private Map<IRI, Collection<String>> labels = new HashMap<>();
-	private Map<IRI, Collection<String>> synonyms = new HashMap<>();
-	private Map<IRI, Collection<String>> definitions = new HashMap<>();
+	private final Map<IRI, Collection<String>> labels = new HashMap<>();
+	private final Map<IRI, Collection<String>> synonyms = new HashMap<>();
+	private final Map<IRI, Collection<String>> definitions = new HashMap<>();
 
 	private long lastCallTime;
 
@@ -95,23 +88,8 @@ public class OWLOntologyHelper implements OntologyHelper {
 				throw new URISyntaxException(ontologyUri.toString(), "Could not build URL for file");
 			}
 		}
-		this.ontologyUri = ontologyUri;
-		LOGGER.info("Loading ontology from " + ontologyUri + "...");
 
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		IRI iri = IRI.create(ontologyUri);
-		this.ontology = manager.loadOntologyFromOntologyDocument(iri);
-		// Use a buffering reasoner - not interested in ongoing changes
-		this.reasoner = new StructuralReasonerFactory().createReasoner(ontology);
-
-		// Initialise the class map
-		initialiseClassMap();
-	}
-
-	private void initialiseClassMap() {
-		for (OWLClass clazz : ontology.getClassesInSignature()) {
-			owlClassMap.put(clazz.getIRI(), clazz);
-		}
+		this.dataManager = new OWLDataManager(ontologyUri);
 	}
 
 	@Override
@@ -126,64 +104,69 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 	@Override
 	public void dispose() {
-		LOGGER.info("Disposing of OWL ontology reasoner for {}", ontologyUri);
-		reasoner.dispose();
+		dataManager.dispose();
+
+		// Empty caches
+		labels.clear();
+		synonyms.clear();
+		definitions.clear();
 	}
 
 	@Override
-	public boolean isIriInOntology(String iri) {
-		return owlClassMap.containsKey(IRI.create(iri));
+	public boolean isIriInOntology(String iri) throws OntologyHelperException {
+		return dataManager.isIriInOntology(IRI.create(iri));
 	}
 
 	@Override
-	public Collection<String> findLabels(String iri) {
-		return findLabels(IRI.create(iri));
+	public Collection<String> findLabels(String iri) throws OntologyHelperException {
+		return findLabels(dataManager.getOntology(), IRI.create(iri));
 	}
 
 	@Override
-	public Collection<String> findLabelsForIRIs(Collection<String> iris) {
+	public Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException {
 		Set<String> labels = new HashSet<>();
+		OWLOntology ontology = dataManager.getOntology();
 		iris.stream()
-				.map(iri -> findLabels(IRI.create(iri)))
+				.map(iri -> findLabels(ontology, IRI.create(iri)))
 				.forEach(labels::addAll);
 		return labels;
 	}
 
 	@Override
-	public Collection<String> findSynonyms(String iri) {
+	public Collection<String> findSynonyms(String iri) throws OntologyHelperException {
 		return findSynonyms(IRI.create(iri));
 	}
 
 	@Override
-	public Collection<String> findDefinitions(String iri) {
+	public Collection<String> findDefinitions(String iri) throws OntologyHelperException {
 		return findDefinitions(IRI.create(iri));
 	}
 
-	private Collection<String> findLabels(IRI iri) {
+	private Collection<String> findLabels(OWLOntology ontology, IRI iri) {
 		if (!labels.containsKey(iri)) {
-			Collection<String> classNames = findPropertyValueStrings(config.getLabelPropertyUris(), iri);
+			Collection<String> classNames = findPropertyValueStrings(ontology, config.getLabelPropertyUris(), iri);
 			labels.put(iri, classNames);
 		}
 		return labels.get(iri);
 	}
 
-	private Collection<String> findSynonyms(IRI iri) {
+	private Collection<String> findSynonyms(IRI iri) throws OntologyHelperException {
 		if (!synonyms.containsKey(iri)) {
-			Collection<String> classNames = findPropertyValueStrings(config.getSynonymPropertyUris(), iri);
+			Collection<String> classNames = findPropertyValueStrings(dataManager.getOntology(), config.getSynonymPropertyUris(), iri);
 			synonyms.put(iri, classNames);
 		}
 		return synonyms.get(iri);
 	}
 
-	private Collection<String> findDefinitions(IRI iri) {
+	private Collection<String> findDefinitions(IRI iri) throws OntologyHelperException {
 		if (!definitions.containsKey(iri)) {
-			Collection<String> classNames = findPropertyValueStrings(config.getDefinitionPropertyUris(), iri);
+			Collection<String> classNames = findPropertyValueStrings(dataManager.getOntology(), config.getDefinitionPropertyUris(), iri);
 			definitions.put(iri, classNames);
 		}
 		return definitions.get(iri);
 	}
 
-	private Collection<String> findPropertyValueStrings(List<String> propertyUris, IRI iri) {
+	private Collection<String> findPropertyValueStrings(OWLOntology ontology, List<String> propertyUris, IRI iri) {
 		Collection<String> classNames = new HashSet<>();
 
 		OWLDataFactory odf = ontology.getOWLOntologyManager().getOWLDataFactory();
@@ -191,13 +174,13 @@ public class OWLOntologyHelper implements OntologyHelper {
 		// For every property URI, find the annotations for this entry
 		propertyUris.stream()
 				.map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
-				.map(prop -> findAnnotationNames(iri, prop))
+				.map(prop -> findAnnotationNames(ontology, iri, prop))
 				.forEach(classNames::addAll);
 
 		return classNames;
 	}
 
-	private Collection<String> findAnnotationNames(IRI iri, OWLAnnotationProperty annotationType) {
+	private Collection<String> findAnnotationNames(OWLOntology ontology, IRI iri, OWLAnnotationProperty annotationType) {
 		Collection<String> classNames = new HashSet<>();
 
 		// get all literal annotations
@@ -257,37 +240,37 @@ public class OWLOntologyHelper implements OntologyHelper {
 	}
 
 	@Override
-	public Collection<String> getChildIris(String iri) {
-		return getSubclassUris(owlClassMap.get(IRI.create(iri)), true);
+	public Collection<String> getChildIris(String iri) throws OntologyHelperException {
+		return getSubclassUris(dataManager.getOWLClass(IRI.create(iri)), true);
 	}
 
 	@Override
-	public Collection<String> getDescendantIris(String iri) {
-		return getSubclassUris(owlClassMap.get(IRI.create(iri)), false);
+	public Collection<String> getDescendantIris(String iri) throws OntologyHelperException {
+		return getSubclassUris(dataManager.getOWLClass(IRI.create(iri)), false);
 	}
 
 	@Override
-	public Collection<String> getParentIris(String iri) {
-		return getSuperclassUris(owlClassMap.get(IRI.create(iri)), true);
+	public Collection<String> getParentIris(String iri) throws OntologyHelperException {
+		return getSuperclassUris(dataManager.getOWLClass(IRI.create(iri)), true);
 	}
 
 	@Override
-	public Collection<String> getAncestorIris(String iri) {
-		return getSuperclassUris(owlClassMap.get(IRI.create(iri)), false);
+	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
+		return getSuperclassUris(dataManager.getOWLClass(IRI.create(iri)), false);
 	}
 
-	private Collection<String> getSubclassUris(OWLClass owlClass, boolean direct) {
+	private Collection<String> getSubclassUris(OWLClass owlClass, boolean direct) throws OntologyHelperException {
 		if (owlClass == null) {
 			return Collections.emptySet();
 		}
-		return getUrisFromNodeSet(reasoner.getSubClasses(owlClass, direct));
+		return getUrisFromNodeSet(dataManager.getReasoner().getSubClasses(owlClass, direct));
 	}
 
-	private Collection<String> getSuperclassUris(OWLClass owlClass, boolean direct) {
+	private Collection<String> getSuperclassUris(OWLClass owlClass, boolean direct) throws OntologyHelperException {
 		if (owlClass == null) {
 			return Collections.emptySet();
 		}
-		return getUrisFromNodeSet(reasoner.getSuperClasses(owlClass, direct));
+		return getUrisFromNodeSet(dataManager.getReasoner().getSuperClasses(owlClass, direct));
 	}
 
 	private Collection<String> getUrisFromNodeSet(NodeSet<OWLClass> nodeSet) {
@@ -313,10 +296,11 @@ public class OWLOntologyHelper implements OntologyHelper {
 	}
 
 	@Override
-	public Map<String, Collection<String>> getRelations(String iri) {
+	public Map<String, Collection<String>> getRelations(String iri) throws OntologyHelperException {
 		Map<String, Collection<String>> restrictions = new HashMap<>();
 
-		OWLClass owlClass = owlClassMap.get(IRI.create(iri));
+		OWLOntology ontology = dataManager.getOntology();
+		OWLClass owlClass = dataManager.getOWLClass(IRI.create(iri));
 		if (owlClass != null) {
 			RestrictionVisitor visitor = new RestrictionVisitor(Collections.singleton(ontology));
 			for (OWLSubClassOfAxiom ax : ontology.getSubClassAxiomsForSubClass(owlClass)) {
@@ -334,7 +318,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 				String shortForm = null;
 				Set<OWLObjectProperty> signatureProps = val.getProperty().getObjectPropertiesInSignature();
 				for (OWLObjectProperty sigProp : signatureProps) {
-					Collection<String> labels = findLabels(sigProp.getIRI());
+					Collection<String> labels = findLabels(ontology, sigProp.getIRI());
 					if (labels.size() > 0) {
 						shortForm = new ArrayList<>(labels).get(0);
 					}
