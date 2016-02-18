@@ -97,7 +97,7 @@ Now install the BioSolr plugin from the `plugins` directory.
 
 ```
 >: cd ~/Projects/BioSolr/swat4ls_demo/plugins
->: ~/Applications/elasticsearch-2.2.0/bin/plugin install file:///`pwd`/es-ontology-annotator-es2.2-0.0.1-SNAPSHOT.zip
+>: ~/Applications/elasticsearch-2.2.0/bin/plugin install file:///`pwd`/es-ontology-annotator-es2.2-0.1.zip
 ```
 
 We've installed our plugin, now we need to tell ElasticSearch when to use it.
