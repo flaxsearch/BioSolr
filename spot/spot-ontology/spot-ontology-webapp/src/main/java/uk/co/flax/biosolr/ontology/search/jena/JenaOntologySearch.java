@@ -15,40 +15,29 @@
  */
 package uk.co.flax.biosolr.ontology.search.jena;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.query.*;
 import org.apache.jena.query.text.EntityDefinition;
 import org.apache.jena.query.text.TextDatasetFactory;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.tdb.TDBFactory;
+import org.apache.jena.util.FileManager;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.co.flax.biosolr.ontology.config.JenaConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 import uk.co.flax.biosolr.ontology.search.ResultsList;
 import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryException;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Literal;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
-import com.hp.hpl.jena.tdb.TDBFactory;
-import com.hp.hpl.jena.util.FileManager;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Search engine providing SPARQL search through Apache Jena, using
@@ -84,9 +73,9 @@ public class JenaOntologySearch {
 			// Define the index mapping
 			EntityDefinition entDef = buildEntityDefinition();
 			// Define the Solr server
-			SolrServer server = new HttpSolrServer(solrConfig.getOntologyUrl());
+			SolrClient server = new HttpSolrClient(solrConfig.getOntologyUrl());
 			// Join together into a dataset
-			ds = TextDatasetFactory.createSolrIndex(jenaData, server, entDef);
+			ds = TextDatasetFactory.create(jenaData, new TextIndexSolr5(server, entDef));
 		}
 		
 		return ds;
