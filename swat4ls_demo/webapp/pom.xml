@@ -11,6 +11,7 @@
     <properties>
         <solr.version>5.3.1</solr.version>
         <dropwizard.version>0.9.1</dropwizard.version>
+        <dropwizard-elasticsearch.version>0.9.1-1</dropwizard-elasticsearch.version>
         <angularjs.version>1.4.7</angularjs.version>
         <bootstrap.version>3.3.5</bootstrap.version>
         <!-- Main class -->
@@ -86,6 +87,11 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-assets</artifactId>
             <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.modules</groupId>
+            <artifactId>dropwizard-elasticsearch</artifactId>
+            <version>${dropwizard-elasticsearch.version}</version>
         </dependency>
 
         <!-- UI dependencies -->
