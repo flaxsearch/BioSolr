@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>uk.co.flax</groupId>
 		<artifactId>es-ontology-annotator</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1</version>
 	</parent>
 	
 	<artifactId>es-ontology-annotator-core</artifactId>
