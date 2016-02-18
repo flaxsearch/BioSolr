@@ -1,4 +1,4 @@
-# SPOT Ontology indexer
+# Ontology indexer application
 
 This directory contains a standalone generic ontology indexer application,
 including Solr config with an example schema for storing ontology data.
@@ -9,16 +9,31 @@ The ontology indexer is extensible, allowing for plugins to be added to
 the indexing process.
 
 
-## Indexing ontologies
+## Building the application
 
-The application can be packaged using `mvn clean package`, to produce a
-standalone jar file including all dependencies.
+The application is split into three parts:
+
+* base - the core classes, shared between both the indexer application and
+any plugins that may have been developed.
+* application - the application itself.
+* plugins - any plugins that may have been developed for the indexer 
+application.
+
+The whole project can be built by running
+
+    mvn clean package
+    
+in the top-level directory. This will build the base, plugins and application
+in turn, resulting in an application jar that contains all dependencies and
+can be run on its own.
+
+
+## Indexing ontologies
 
 To run the indexer, use
 
-```
-   java -jar target/spot-ontology-indexer-standalone.0.0.1-SNAPSHOT.jar config/indexer.yml
-```
+    % cd biosolr-ontology-indexer-application
+    % java -jar target/biosolr-ontology-indexer-application.0.0.1-SNAPSHOT.jar config/indexer.yml
 
 making sure to modify the indexer.yml file to include paths to the ontologies to be
 indexed.
@@ -49,5 +64,3 @@ plugins:
 ```
 
 Each individual plugin has a class property, defining the class to run, and a configuration section, with any additional configuration properties required to run the plugin.
-
-

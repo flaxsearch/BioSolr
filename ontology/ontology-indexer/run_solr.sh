@@ -1,5 +1,5 @@
-SOLR_DIR=/home/mlp/apps/solr-5.0.0
-SOLR_HOME=/home/mlp/flax/BioSolr/spot/ontology-indexer/solr-conf
+SOLR_DIR=/home/mlp/apps/solr-5.3.1
+SOLR_HOME=/home/mlp/flax/BioSolr/ontology/ontology-indexer/solr-conf
 
 DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
 
