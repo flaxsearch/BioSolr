@@ -110,4 +110,8 @@ public abstract class ElasticSearchEngine implements SearchEngine {
 		return configuration.getDocType();
 	}
 
+	protected String getAnnotationField() {
+		return configuration.getAnnotationField();
+	}
+
 }
