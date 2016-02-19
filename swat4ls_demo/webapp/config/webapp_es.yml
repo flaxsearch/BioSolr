@@ -56,7 +56,7 @@ logging:
 # ElasticSearch client configuration
 elasticsearch:
   # Use the nodeClient (defaults to true, may have firewall issues)
-  nodeClient: true
+  nodeClient: false
 
   # List of servers, to be used if *not* using nodeClient
   servers:
@@ -64,4 +64,12 @@ elasticsearch:
 
   # Name of the cluster - defaults to elasticsearch
   # clusterName: elasticsearch
+
+  # The index to use
+  indexName: biosolr
+  # The document type
+  documentType: gwas
+  # The field being annotated
+  annotationField: efo_uri
+
 

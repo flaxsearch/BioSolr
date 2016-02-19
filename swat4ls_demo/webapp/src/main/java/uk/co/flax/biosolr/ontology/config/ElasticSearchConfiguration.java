@@ -35,6 +35,9 @@ public class ElasticSearchConfiguration extends EsConfiguration {
 	@JsonProperty("timeoutMs")
 	private long timeoutMillis = 5000;
 
+	@JsonProperty("annotationField")
+	private String annotationField;
+
 	public String getIndexName() {
 		return indexName;
 	}
@@ -45,6 +48,10 @@ public class ElasticSearchConfiguration extends EsConfiguration {
 
 	public long getTimeoutMillis() {
 		return timeoutMillis;
+	}
+
+	public String getAnnotationField() {
+		return annotationField;
 	}
 
 	public boolean isValidConfiguration() {
