@@ -15,6 +15,7 @@
  */
 package uk.co.flax.biosolr.ontology.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.HashMap;
@@ -38,12 +39,14 @@ public class Document {
 	private int gid;
 	
 	@Field("study_id")
+	@JsonProperty("study_id")
 	private int studyId;
 	
 	@Field("study")
 	private int study;
 	
 	@Field("first_author")
+	@JsonProperty("first_author")
 	private String firstAuthor;
 	
 	@Field("publication")
@@ -56,12 +59,14 @@ public class Document {
 	private String snp;
 	
 	@Field("disease_trait")
+	@JsonProperty("disease_trait")
 	private String diseaseTrait;
 	
 //	@Field("p_value")
 //	private double pValue;
 	
 	@Field("efo_uri")
+	@JsonProperty("efo_uri")
 	private String efoUri;
 	
 	@Field("efo_uri_hash")
@@ -277,6 +282,10 @@ public class Document {
 	 */
 	public List<String> getEfoLabels() {
 		return efoLabels;
+	}
+
+	public void setEfoLabels(List<String> efoLabels) {
+		this.efoLabels = efoLabels;
 	}
 
 	/**

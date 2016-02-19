@@ -30,13 +30,13 @@
 		<div class="col-md-1">{{ start+$index }}.</div>
 		<div class="col-md-9">
 			<strong>{{ result.title }}</strong><br />
-			{{result.firstAuthor}} - {{result.publication}}<br />
-			<i>{{result.snp}}</i> is associated with <i>{{result.diseaseTrait}}</i>
+			{{result.first_author}} - {{result.publication}}<br />
+			<i>{{result.snp}}</i> is associated with <i>{{result.disease_trait}}</i>
 			<div ng-show="result.efoLabels" class="row">
 				<div class="col-md-3"><strong>Annotation</strong></div>
 				<div class="col-md-9">
 				 <ul class="label-display">
-					 <li ng-repeat="label in result.efoLabels">{{ label }} [<a target="_blank" href="{{ result.efoUri }}">{{ result.efoUri }}</a>]</li>
+					 <li ng-repeat="label in result.efoLabels">{{ label }} [<a target="_blank" href="{{ result.efo_uri }}">{{ result.efo_uri }}</a>]</li>
 				 </ul>
 				</div>
 			</div>
