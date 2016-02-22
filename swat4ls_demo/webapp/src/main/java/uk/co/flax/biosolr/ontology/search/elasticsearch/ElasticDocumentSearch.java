@@ -32,6 +32,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.api.Document;
@@ -61,8 +62,14 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 	private static final String SCORE_AGGREGATION = "topScore";
 
 	private static final String[] DEFAULT_FIELDS = new String[]{
-		"title", "first_author", "publication", "efo_uri.label"
+			"title", "first_author", "publication", "efo_uri.label"
 	};
+	private static final List<String> ANNOTATED_FIELDS = new ArrayList<>();
+	static {
+		ANNOTATED_FIELDS.add("label");
+		ANNOTATED_FIELDS.add("child_labels");
+		ANNOTATED_FIELDS.add("parent_labels");
+	}
 
 	public ElasticDocumentSearch(Client client, ElasticSearchConfiguration config) {
 		super(client, config);
@@ -79,9 +86,18 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 			parsedAdditional.forEach(qb::field);
 		}
 
+		TopHitsBuilder topHitsBuilder = AggregationBuilders.topHits(HITS_AGGREGATION)
+				.setFetchSource(true)
+				.setFrom(0)
+				.setSize(1);
+		// Add the annotated fields we need
+		ANNOTATED_FIELDS.forEach(fdf -> topHitsBuilder.addFieldDataField(getAnnotationField() + "." + fdf));
+		getDynamicFieldNames().forEach(fdf -> topHitsBuilder.addFieldDataField(getAnnotationField() + "." + fdf));
+
 		/* Build the terms aggregation, since we need a result set grouped by study ID.
 		 * The "top_score" sub-agg allows us to sort by the top score of the results;
-		 * the "study" sub-agg actually pulls back the record data.
+		 * the topHits sub-agg actually pulls back the record data, returning just the first
+		 * hit in the aggregation.
 		 * Note that we have to get _all_ rows up to and including the last required, annoyingly. */
 		AggregationBuilder termsAgg = AggregationBuilders.terms(HITS_AGGREGATION)
 				.field(GROUP_FIELD)
@@ -90,12 +106,7 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 				.subAggregation(
 						AggregationBuilders.max(SCORE_AGGREGATION)
 								.script(new Script("_score", ScriptService.ScriptType.INLINE, "expression", null)))
-				.subAggregation(
-						AggregationBuilders.topHits(HITS_AGGREGATION)
-								.setFetchSource("*", "")
-								.addFieldDataField("*")
-								.setFrom(0)
-								.setSize(start + rows));
+				.subAggregation(topHitsBuilder);
 
 		// Build the actual search request, including another aggregation to get
 		// the number of unique study IDs returned.
@@ -135,6 +146,7 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 	public ResultsList<Document> searchByEfoUri(int start, int rows, String term, String... uris) throws SearchEngineException {
 		return null;
 	}
+
 	private List<String> parseAdditionalFields(List<String> additional) {
 		List<String> parsed;
 
@@ -142,7 +154,9 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 			parsed = null;
 		} else {
 			// Need to add annotation field name to all additional fields
+			// Also need to handle hard-coded Solr field names
 			parsed = additional.stream()
+					.map(add -> add.replaceAll("^efo_uri_(.*)_t$", "$1"))
 					.map(add -> getAnnotationField() + "." + add)
 					.collect(Collectors.toList());
 		}
@@ -181,8 +195,10 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 							if (fieldName.endsWith("_rel_uris")) {
 								doc.getRelatedIris().put(shortName, getStringValues(fieldEntry.getValue().getValues()));
 							} else if (fieldName.endsWith("_rel_labels")) {
-								doc.getRelatedLabels().put(shortName,
-										getStringValues(fieldEntry.getValue().getValues()));
+								List<String> labels = getStringValues(fieldEntry.getValue().getValues());
+								if (labels != null) {
+									doc.getRelatedLabels().put(shortName, labels);
+								}
 							}
 					}
 				}
@@ -197,7 +213,7 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 
 	private List<String> getStringValues(List<Object> fieldValues) {
 		List<String> retList;
-		if (fieldValues == null) {
+		if (fieldValues == null || fieldValues.size() == 0) {
 			retList = null;
 		} else {
 			retList = fieldValues.stream().map(Object::toString).collect(Collectors.toList());
