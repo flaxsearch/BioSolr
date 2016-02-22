@@ -85,9 +85,11 @@ public abstract class ElasticSearchEngine implements SearchEngine {
 			Object annotationField = ((Map)sourceMap.get("properties")).get(configuration.getAnnotationField());
 			Map<String, Object> annotationProperties = (Map<String, Object>)((Map)annotationField).get("properties");
 
-			for (String field : annotationProperties.keySet()) {
-				if (field.matches(DYNAMIC_LABEL_FIELD_REGEX)) {
-					fieldNames.add(field);
+			if (annotationProperties != null) {
+				for (String field : annotationProperties.keySet()) {
+					if (field.matches(DYNAMIC_LABEL_FIELD_REGEX)) {
+						fieldNames.add(field);
+					}
 				}
 			}
 		} catch (IOException e) {
