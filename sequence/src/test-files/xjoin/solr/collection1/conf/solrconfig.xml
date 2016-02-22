@@ -273,7 +273,7 @@
   </queryParser>
 
   <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="string">component with no results</str>
@@ -281,7 +281,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="values">1,3,8</str>
@@ -291,7 +291,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin2" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="values">3,8</str>
@@ -301,7 +301,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin3" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">colour</str>
     <lst name="external">
       <str name="values">red,pink</str>
@@ -310,11 +310,24 @@
   </searchComponent>
 
   <searchComponent name="xjoin4" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">letter</str>
     <lst name="external">
       <str name="values">alpha,gamma</str>
       <str name="string">component with a multi-valued join field</str>
+    </lst>
+  </searchComponent>
+
+  <searchComponent name="xjoin_rest" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.simple.RestHttpFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="type">JSON</str>
+      <str name="rootUrl">file:///hahahahaha.json</str>
+      <lst name="globalFields">
+        <str name="prop1">/path/to/prop1</str>
+        <str name="prop2">/path/to/prop2</str>
+      </lst>
     </lst>
   </searchComponent>
       

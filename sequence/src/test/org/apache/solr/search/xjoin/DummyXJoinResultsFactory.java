@@ -23,7 +23,7 @@ import java.util.Arrays;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 
-public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
+public class DummyXJoinResultsFactory implements XJoinResultsFactory<String> {
   
   private String string;
   
