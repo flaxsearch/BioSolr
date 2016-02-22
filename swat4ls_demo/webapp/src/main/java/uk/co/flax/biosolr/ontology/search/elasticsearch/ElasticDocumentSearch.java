@@ -17,12 +17,21 @@ package uk.co.flax.biosolr.ontology.search.elasticsearch;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.api.Document;
@@ -46,6 +55,11 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticDocumentSearch.class);
 
+	private static final String GROUP_FIELD = "study_id";
+	private static final String COUNT_AGGREGATION = "numFound";
+	private static final String HITS_AGGREGATION = "study";
+	private static final String SCORE_AGGREGATION = "topScore";
+
 	private static final String[] DEFAULT_FIELDS = new String[]{
 		"title", "first_author", "publication", "efo_uri.label"
 	};
@@ -58,27 +72,60 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 	public ResultsList<Document> searchDocuments(String term, int start, int rows,
 			List<String> additionalFields, List<String> filters) throws SearchEngineException {
 		// Build the query
-		MultiMatchQueryBuilder qb = QueryBuilders.multiMatchQuery(term, DEFAULT_FIELDS);
+		MultiMatchQueryBuilder qb = QueryBuilders.multiMatchQuery(term, DEFAULT_FIELDS)
+				.minimumShouldMatch("2<25%");
 		if (additionalFields != null && additionalFields.size() > 0) {
 			List<String> parsedAdditional = parseAdditionalFields(additionalFields);
 			parsedAdditional.forEach(qb::field);
 		}
 
-		SearchResponse response = getClient().prepareSearch(getIndexName())
+		/* Build the terms aggregation, since we need a result set grouped by study ID.
+		 * The "top_score" sub-agg allows us to sort by the top score of the results;
+		 * the "study" sub-agg actually pulls back the record data.
+		 * Note that we have to get _all_ rows up to and including the last required, annoyingly. */
+		AggregationBuilder termsAgg = AggregationBuilders.terms(HITS_AGGREGATION)
+				.field(GROUP_FIELD)
+				.order(Terms.Order.aggregation(SCORE_AGGREGATION, false))
+				.size(start + rows)
+				.subAggregation(
+						AggregationBuilders.max(SCORE_AGGREGATION)
+								.script(new Script("_score", ScriptService.ScriptType.INLINE, "expression", null)))
+				.subAggregation(
+						AggregationBuilders.topHits(HITS_AGGREGATION)
+								.setFetchSource("*", "")
+								.addFieldDataField("*")
+								.setFrom(0)
+								.setSize(start + rows));
+
+		// Build the actual search request, including another aggregation to get
+		// the number of unique study IDs returned.
+		SearchRequestBuilder srb = getClient().prepareSearch(getIndexName())
 				.setTypes(getDocumentType())
 				.setQuery(qb)
-				.addFields("*", "_source")
-				.setFrom(start)
-				.setSize(rows)
-				.execute().actionGet();
+				.setSize(0)
+				.addAggregation(termsAgg)
+				.addAggregation(AggregationBuilders.cardinality(COUNT_AGGREGATION).field(GROUP_FIELD));
+		LOGGER.debug("ES Query: {}", srb.toString());
+
+		SearchResponse response = srb.execute().actionGet();
 
 		// Handle the response
-		long total = response.getHits().getTotalHits();
+		long total = ((Cardinality)(response.getAggregations().get(COUNT_AGGREGATION))).getValue();
 		List<Document> docs;
 		if (total == 0) {
 			docs = new ArrayList<>();
 		} else {
-			docs = extractDocuments(response.getHits().getHits());
+			docs = new ArrayList<>(rows);
+			ObjectMapper mapper = buildObjectMapper();
+
+			int lastIdx = (int)(start + rows <= total ? start + rows : total);
+			StringTerms terms = response.getAggregations().get(HITS_AGGREGATION);
+			List<Terms.Bucket> termBuckets = terms.getBuckets().subList(start, lastIdx);
+			for (Terms.Bucket bucket : termBuckets) {
+				TopHits hits = bucket.getAggregations().get(HITS_AGGREGATION);
+				Document doc = extractDocument(mapper, hits.getHits().getAt(0));
+				docs.add(doc);
+			}
 		}
 
 		return new ResultsList<>(docs, start, (start / rows), total);
@@ -88,7 +135,6 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 	public ResultsList<Document> searchByEfoUri(int start, int rows, String term, String... uris) throws SearchEngineException {
 		return null;
 	}
-
 	private List<String> parseAdditionalFields(List<String> additional) {
 		List<String> parsed;
 
@@ -104,47 +150,49 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 		return parsed;
 	}
 
-	private List<Document> extractDocuments(SearchHit[] hits) throws SearchEngineException {
+	private ObjectMapper buildObjectMapper() {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		List<Document> docs = new ArrayList<>(hits.length);
+		return mapper;
+	}
+
+	private Document extractDocument(ObjectMapper mapper, SearchHit hit) throws SearchEngineException {
+		Document doc;
 
 		try {
-			for (SearchHit hit : hits) {
-				Document doc = mapper.readValue(hit.getSourceAsString(), Document.class);
+			doc = mapper.readValue(hit.getSourceAsString(), Document.class);
 
-				for (Map.Entry<String, SearchHitField> fieldEntry : hit.fields().entrySet()) {
-					if (fieldEntry.getKey().startsWith(getAnnotationField())) {
-						String fieldName = fieldEntry.getKey();
+			for (Map.Entry<String, SearchHitField> fieldEntry : hit.fields().entrySet()) {
+				if (fieldEntry.getKey().startsWith(getAnnotationField())) {
+					String fieldName = fieldEntry.getKey();
 
-						switch (fieldName) {
-							case "efo_uri.label":
-								doc.setEfoLabels(getStringValues(fieldEntry.getValue().getValues()));
-								break;
-							case "efo_uri.child_labels":
-								doc.setChildLabels(getStringValues(fieldEntry.getValue().getValues()));
-								break;
-							case "efo_uri.parent_labels":
-								doc.setParentLabels(getStringValues(fieldEntry.getValue().getValues()));
-								break;
-							default:
-								String shortName = fieldName.substring("efo_uri.".length());
-								if (fieldName.endsWith("_rel_uris")) {
-									doc.getRelatedIris().put(shortName, getStringValues(fieldEntry.getValue().getValues()));
-								} else if (fieldName.endsWith("_rel_labels")) {
-									doc.getRelatedLabels().put(shortName, getStringValues(fieldEntry.getValue().getValues()));
-								}
-						}
+					switch (fieldName) {
+						case "efo_uri.label":
+							doc.setEfoLabels(getStringValues(fieldEntry.getValue().getValues()));
+							break;
+						case "efo_uri.child_labels":
+							doc.setChildLabels(getStringValues(fieldEntry.getValue().getValues()));
+							break;
+						case "efo_uri.parent_labels":
+							doc.setParentLabels(getStringValues(fieldEntry.getValue().getValues()));
+							break;
+						default:
+							String shortName = fieldName.substring("efo_uri.".length());
+							if (fieldName.endsWith("_rel_uris")) {
+								doc.getRelatedIris().put(shortName, getStringValues(fieldEntry.getValue().getValues()));
+							} else if (fieldName.endsWith("_rel_labels")) {
+								doc.getRelatedLabels().put(shortName,
+										getStringValues(fieldEntry.getValue().getValues()));
+							}
 					}
 				}
-
-				docs.add(doc);
 			}
 		} catch (IOException e) {
 			LOGGER.error("Error reading document from source: {}", e.getMessage());
+			throw new SearchEngineException(e);
 		}
 
-		return docs;
+		return doc;
 	}
 
 	private List<String> getStringValues(List<Object> fieldValues) {
