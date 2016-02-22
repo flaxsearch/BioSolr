@@ -66,10 +66,12 @@ We've supplied some sample data to demonstrate how BioSolr can index information
 **Data** is taken from the GWAS Catalog: http://www.ebi.ac.uk/gwas
 **Ontology** information is from the Experimental Factor Ontology: http://www.ebi.ac.uk/efo
 
-Now let's index this data. We'll use logstash to import our data file.
+Now let's index this data. We'll set some basic mappings, and use logstash 
+to import our data file.
 
 ```
 >: cd ~/Projects/BioSolr/swat4ls_demo/elasticsearch
+>: curl -XPOST http://localhost:9200/biosolr -d @mapping_basic.json
 >: sh import_data.sh
 
 ```
@@ -109,7 +111,7 @@ Looks like we get 31 results, all containing lung cancer in the title or the ass
 >       Broderick P - Cancer Res.  
 >       *rs4254535* is associated with *Lung cancer*  
 
-But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 3 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
+But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 4 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
 
 Let's try another example.  We could search for `schizophrenia` - this gives us nice results, we get 51 documents that seems to be annotated to schizophrenia or treatment responses in schizophrenia.  But what if we want other mental disorders?  If we search for `mental disorder` we get no results.
 
@@ -156,7 +158,7 @@ mappings so it recognizes that efo_uri is an ontology annotation.
 ```
 >: cd ~/Projects/BioSolr/swat4ls_demo/elasticsearch
 >: curl -XDELETE http://localhost:9200/biosolr
->: curl -XPOST http://localhost:9200/biosolr -d @mapping.json
+>: curl -XPOST http://localhost:9200/biosolr -d @mapping_annotated.json
 ```
 
 If you now go to your browser and look at the mappings for the BioSolr GWAS
