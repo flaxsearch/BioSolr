@@ -1,0 +1,87 @@
+/**
+ * Copyright (c) 2016 Lemur Consulting Ltd.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Lifted directly from ElasticSearch source to make the unit tests run
+ * under the security manager.
+ */
+
+//// additional test framework permissions.
+//// These are mock objects and test management that we allow test framework libs
+//// to provide on our behalf. But tests themselves cannot do this stuff!
+
+grant codeBase "${codebase.securemock-1.1.jar}" {
+  // needed to access ReflectionFactory (see below)
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.reflect";
+  // needed to support creation of mocks
+  permission java.lang.RuntimePermission "reflectionFactoryAccess";
+  // needed for spy interception, etc
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.lucene-test-framework-5.4.1.jar}" {
+  // needed by RamUsageTester
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.randomizedtesting-runner-2.3.1.jar}" {
+  // optionally needed for access to private test methods (e.g. beforeClass)
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  // needed to fail tests on uncaught exceptions from other threads
+  permission java.lang.RuntimePermission "setDefaultUncaughtExceptionHandler";
+  // needed for top threads handling
+  permission org.elasticsearch.ThreadPermission "modifyArbitraryThreadGroup";
+};
+
+grant codeBase "${codebase.junit4-ant-2.3.1.jar}" {
+  // needed for stream redirection
+  permission java.lang.RuntimePermission "setIO";
+};
+
+// General permissions required by the Jersey/JAX-RS classes
+// Cannot work out how to make these specific to the javax-ws jar files.
+/*
+grant codeBase "${codebase.javax.ws.rs-api-2.0.1.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+*/
+
+grant codeBase "${codebase.hk2-api-2.4.0-b31.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.hk2-locator-2.4.0-b31.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.hk2-utils-2.4.0-b31.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.jersey-client-2.22.1.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+grant codeBase "${codebase.jersey-common-2.22.1.jar}" {
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};

@@ -2,7 +2,6 @@
 
 This is the top-level folder for the SPOT Ontology applications. These include:
 
-* a generic, standalone indexer for ontology data.
 * an indexer for documents that have been annotated with ontology references.
 The ontology references are expanded during the indexing process, pulling 
 across labels, synonyms, child and parent relationship details, and data
@@ -25,14 +24,12 @@ web application.
 * `spot-ontology-document-indexer` contains the document indexer. This is 
 a fairly basic Java application for reading the document data and pushing it 
 into Solr.
-* `spot-ontology-indexer-standalone` is a generic, standalone ontology
-indexer.
 * `spot-ontology-webapp` contains a DropWizard web application, providing
 both an API for searching across the document data, and a simple front-end.
 
 The whole project can be built at this level using maven. The web application
-and indexers will build a fat jar, containing all the files required to run it in a
-standalone environment, except for the server configuration details.
+and indexers will each build a fat jar, containing all the files required to 
+run it in a standalone environment, except for the server configuration details.
 
 
 ### Running Solr

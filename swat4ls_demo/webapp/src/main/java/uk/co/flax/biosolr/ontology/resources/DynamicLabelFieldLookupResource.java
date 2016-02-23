@@ -40,7 +40,8 @@ public class DynamicLabelFieldLookupResource {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(DynamicLabelFieldLookupResource.class);
 	
-	private static final String LABEL_FIELD_REGEX = ".*_rel_labels_t$";
+	private static final String SOLR_LABEL_FIELD_REGEX = ".*_rel_labels_t$";
+	private static final String ES_LABEL_FIELD_REGEX = "^.*_rel_labels$";
 	
 	private final SearchEngine searchEngine;
 
@@ -56,7 +57,7 @@ public class DynamicLabelFieldLookupResource {
 		try {
 			List<String> fieldList = searchEngine.getDynamicFieldNames();
 			for (String fieldName : fieldList) {
-				if (fieldName.matches(LABEL_FIELD_REGEX)) {
+				if (fieldName.matches(SOLR_LABEL_FIELD_REGEX) || fieldName.matches(ES_LABEL_FIELD_REGEX)) {
 					retList.add(fieldName);
 				}
 			}

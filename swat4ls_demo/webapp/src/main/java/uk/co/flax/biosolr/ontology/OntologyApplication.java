@@ -17,6 +17,9 @@ package uk.co.flax.biosolr.ontology;
 
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.configuration.ConfigurationException;
+import io.dropwizard.elasticsearch.health.EsClusterHealthCheck;
+import io.dropwizard.elasticsearch.managed.ManagedEsClient;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import uk.co.flax.biosolr.ontology.health.SolrHealthCheck;
@@ -24,6 +27,7 @@ import uk.co.flax.biosolr.ontology.resources.DocumentTermSearchResource;
 import uk.co.flax.biosolr.ontology.resources.DynamicLabelFieldLookupResource;
 import uk.co.flax.biosolr.ontology.resources.SearchResource;
 import uk.co.flax.biosolr.ontology.search.DocumentSearch;
+import uk.co.flax.biosolr.ontology.search.elasticsearch.ElasticDocumentSearch;
 import uk.co.flax.biosolr.ontology.search.solr.SolrDocumentSearch;
 
 /**
@@ -45,15 +49,26 @@ public class OntologyApplication extends Application<OntologyConfiguration> {
 	@Override
 	public void run(OntologyConfiguration configuration, Environment environment) throws Exception {
 		// Create the document search engine
-		DocumentSearch documentSearch = new SolrDocumentSearch(configuration.getSolr());
+		final DocumentSearch documentSearch;
+		if (configuration.getSolr() != null) {
+			documentSearch = new SolrDocumentSearch(configuration.getSolr());
+			// Add Solr healthcheck
+			environment.healthChecks().register("solr-documents", new SolrHealthCheck(documentSearch));
+		} else if (configuration.getElasticsearch().isValidConfig()) {
+			// Create the ElasticSearch client
+			final ManagedEsClient esClient = new ManagedEsClient(configuration.getElasticsearch());
+			environment.lifecycle().manage(esClient);
+			documentSearch = new ElasticDocumentSearch(esClient.getClient(), configuration.getElasticsearch());
+			// Add ES healthcheck
+			environment.healthChecks().register("ES cluster health", new EsClusterHealthCheck(esClient.getClient()));
+		} else {
+			throw new RuntimeException("No valid search engine details supplied");
+		}
 
 		// Add resources
 		environment.jersey().register(new DocumentTermSearchResource(documentSearch));
 		environment.jersey().register(new SearchResource(documentSearch));
 		environment.jersey().register(new DynamicLabelFieldLookupResource(documentSearch));
-
-		// Add healthchecks
-		environment.healthChecks().register("solr-documents", new SolrHealthCheck(documentSearch));
 	}
 
 	public static void main(String[] args) throws Exception {

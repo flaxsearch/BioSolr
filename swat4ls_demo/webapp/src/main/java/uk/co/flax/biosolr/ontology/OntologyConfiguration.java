@@ -17,6 +17,8 @@ package uk.co.flax.biosolr.ontology;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
+import io.dropwizard.elasticsearch.config.EsConfiguration;
+import uk.co.flax.biosolr.ontology.config.ElasticSearchConfiguration;
 import uk.co.flax.biosolr.ontology.config.SolrConfiguration;
 
 /**
@@ -30,8 +32,15 @@ public class OntologyConfiguration extends Configuration {
 	@JsonProperty("solr")
 	private SolrConfiguration solr;
 
+	@JsonProperty("elasticsearch")
+	private ElasticSearchConfiguration elasticsearch = new ElasticSearchConfiguration();
+
 	public SolrConfiguration getSolr() {
 		return solr;
+	}
+
+	public ElasticSearchConfiguration getElasticsearch() {
+		return elasticsearch;
 	}
 
 }
