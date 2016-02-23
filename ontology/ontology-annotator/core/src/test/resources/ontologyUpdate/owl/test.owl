@@ -76,4 +76,10 @@
         </rdfs:subClassOf>
     </owl:Class>
 
+	<owl:Class rdf:about="http://www.ebi.ac.uk/efo/PARENTS_001">
+        <rdfs:subClassOf rdf:resource="http://www.ebi.ac.uk/efo/EFO_0000001"/>
+        <rdfs:subClassOf rdf:resource="http://www.ifomis.org/bfo/1.1/snap#MaterialEntity"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">two parents</rdfs:label>
+    </owl:Class>
+
 </rdf:RDF>

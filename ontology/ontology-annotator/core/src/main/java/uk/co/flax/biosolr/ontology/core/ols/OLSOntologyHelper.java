@@ -18,7 +18,9 @@ package uk.co.flax.biosolr.ontology.core.ols;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.flax.biosolr.ontology.core.AbstractOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.ols.graph.Edge;
 import uk.co.flax.biosolr.ontology.core.ols.graph.Graph;
@@ -38,7 +40,7 @@ import java.util.stream.Collectors;
  *
  * @author mlp
  */
-public class OLSOntologyHelper implements OntologyHelper {
+public class OLSOntologyHelper extends AbstractOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
@@ -110,6 +112,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		relatedIris.clear();
 		graphs.clear();
 		graphLabels.clear();
+	}
+
+	@Override
+	protected OntologyHelperConfiguration getConfiguration() {
+		return new OntologyHelperConfiguration();
 	}
 
 	/**

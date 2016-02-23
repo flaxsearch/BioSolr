@@ -23,6 +23,7 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,9 +44,12 @@ public class OWLOntologyHelperMethodsTest {
 
 	@BeforeClass
 	public static void setup() throws URISyntaxException, OWLOntologyCreationException {
-		URI testOntologyUri = OWLOntologyHelperMethodsTest.class.getClassLoader()
-				.getResource(OWLOntologyHelperTest.TEST_ONTOLOGY).toURI();
-		helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+		URL testResource = OWLOntologyHelperMethodsTest.class.getClassLoader()
+				.getResource(OWLOntologyHelperTest.TEST_ONTOLOGY);
+		if (testResource != null) {
+			URI testOntologyUri = testResource.toURI();
+			helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+		}
 	}
 
 	@AfterClass
@@ -188,6 +192,22 @@ public class OWLOntologyHelperMethodsTest {
 		Collection<String> synonyms = helper.findDefinitions(TEST_IRI);
 		assertNotNull(synonyms);
 		assertEquals(1, synonyms.size());
+	}
+
+	@Test
+	public void findParentPaths_noParents() throws Exception {
+		String iri = TEST_IRI;
+		Collection<String> parentPaths = ((OWLOntologyHelper)helper).getParentPaths(iri, true);
+		assertNotNull(parentPaths);
+		assertEquals(1, parentPaths.size());
+	}
+
+	@Test
+	public void findParentPaths_multiplePaths() throws Exception {
+		String iri = "http://www.ebi.ac.uk/efo/PARENTS_001";
+		Collection<String> parentPaths = ((OWLOntologyHelper)helper).getParentPaths(iri, true);
+		assertNotNull(parentPaths);
+		assertEquals(2, parentPaths.size());
 	}
 
 }

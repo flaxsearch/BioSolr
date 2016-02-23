@@ -21,7 +21,9 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.co.flax.biosolr.ontology.core.AbstractOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
 import java.net.URI;
@@ -35,7 +37,7 @@ import java.util.stream.Collectors;
  *
  * Created by mlp on 20/10/15.
  */
-public class OWLOntologyHelper implements OntologyHelper {
+public class OWLOntologyHelper extends AbstractOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyHelper.class);
 
@@ -110,6 +112,11 @@ public class OWLOntologyHelper implements OntologyHelper {
 		labels.clear();
 		synonyms.clear();
 		definitions.clear();
+	}
+
+	@Override
+	protected OntologyHelperConfiguration getConfiguration() {
+		return config;
 	}
 
 	@Override
@@ -338,4 +345,5 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 		return restrictions;
 	}
+
 }

@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.core.owl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -32,7 +33,7 @@ import java.util.*;
  *
  * @author mlp
  */
-public class OWLOntologyConfiguration {
+public class OWLOntologyConfiguration extends OntologyHelperConfiguration {
 	
 	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
