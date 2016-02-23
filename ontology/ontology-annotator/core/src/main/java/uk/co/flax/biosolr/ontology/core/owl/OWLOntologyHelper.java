@@ -173,7 +173,8 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 		// For every property URI, find the annotations for this entry
 		propertyUris.stream()
-				.map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
+				.map(IRI::create)
+				.map(odf::getOWLAnnotationProperty)
 				.map(prop -> findAnnotationNames(ontology, iri, prop))
 				.forEach(classNames::addAll);
 
@@ -201,7 +202,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 		if (value instanceof IRI) {
 			Optional<String> shortForm = getShortForm((IRI) value);
 			if (shortForm.isPresent()) {
-				return Optional.of(shortForm.get());
+				return shortForm;
 			}
 		} else if (value instanceof OWLLiteral) {
 			return Optional.of(((OWLLiteral) value).getLiteral());
@@ -209,7 +210,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 		return Optional.empty();
 	}
 
-	private Optional<String> getShortForm(IRI entityIRI) {
+	private static Optional<String> getShortForm(IRI entityIRI) {
 		LOGGER.trace("Attempting to extract fragment name of URI '" + entityIRI + "'");
 		String termURI = entityIRI.toString();
 		URI entUri = entityIRI.toURI();

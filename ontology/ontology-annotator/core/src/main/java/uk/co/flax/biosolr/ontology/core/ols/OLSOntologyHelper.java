@@ -42,6 +42,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
+	@SuppressWarnings("unused")
 	public static final int THREADPOOL_SIZE = 8;
 	public static final int PAGE_SIZE = 100;
 
@@ -179,15 +180,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public Collection<String> findLabels(String iri) throws OntologyHelperException {
-		Collection<String> ret;
-		if (graphLabels.containsKey(iri)) {
-			ret = Collections.singletonList(graphLabels.get(iri));
-		} else if (isIriInOntology(iri)) {
-			ret = Collections.singletonList(terms.get(iri).getLabel());
-		} else {
-			ret = Collections.emptyList();
-		}
-		return ret;
+		return findLabelsForIRIs(Collections.singletonList(iri));
 	}
 
 	@Override
