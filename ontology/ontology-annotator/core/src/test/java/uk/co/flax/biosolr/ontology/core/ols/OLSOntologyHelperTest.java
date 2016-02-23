@@ -47,7 +47,9 @@ public class OLSOntologyHelperTest {
 		OLSHttpClient client = mock(OLSHttpClient.class);
 		when(client.callOLS(isA(Collection.class), eq(OntologyTerm.class))).thenReturn(Collections.emptyList());
 
-		OLSOntologyHelper helper = new OLSOntologyHelper(BASE_URL, ONTOLOGY, client);
+		OLSOntologyConfiguration config = new OLSOntologyConfiguration(BASE_URL, ONTOLOGY, OLSOntologyHelper.PAGE_SIZE);
+
+		OLSOntologyHelper helper = new OLSOntologyHelper(config, client);
 		assertFalse(helper.isIriInOntology(BAD_IRI));
 		assertFalse(helper.isIriInOntology(BAD_IRI));
 
@@ -62,7 +64,8 @@ public class OLSOntologyHelperTest {
 		OLSHttpClient client = mock(OLSHttpClient.class);
 		when(client.callOLS(isA(Collection.class), eq(OntologyTerm.class))).thenReturn(Collections.singletonList(term));
 
-		OLSOntologyHelper helper = new OLSOntologyHelper(BASE_URL, ONTOLOGY, client);
+		OLSOntologyConfiguration config = new OLSOntologyConfiguration(BASE_URL, ONTOLOGY, OLSOntologyHelper.PAGE_SIZE);
+		OLSOntologyHelper helper = new OLSOntologyHelper(config, client);
 		assertTrue(helper.isIriInOntology(TEST_IRI));
 		assertTrue(helper.isIriInOntology(TEST_IRI));
 

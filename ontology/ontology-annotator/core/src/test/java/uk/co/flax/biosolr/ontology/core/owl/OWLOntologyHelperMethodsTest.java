@@ -76,7 +76,7 @@ public class OWLOntologyHelperMethodsTest {
 
 	@Test
 	public void getChildUris_noChildren() throws Exception {
-		Collection<String> childUris = helper.getChildIris(TEST_CHILD_IRI);
+		Collection<String> childUris = helper.getChildIris("http://www.ebi.ac.uk/efo/PARENTS_001");
 		assertNotNull(childUris);
 		assertEquals(0, childUris.size());
 	}
@@ -85,7 +85,7 @@ public class OWLOntologyHelperMethodsTest {
 	public void getChildUris() throws Exception {
 		Collection<String> childUris = helper.getChildIris(TEST_IRI);
 		assertNotNull(childUris);
-		assertEquals(1, childUris.size());
+		assertEquals(2, childUris.size());
 		assertTrue(childUris.contains(TEST_CHILD_IRI));
 	}
 
@@ -96,7 +96,7 @@ public class OWLOntologyHelperMethodsTest {
 
 	@Test
 	public void getDescendantUris_noDescendants() throws Exception {
-		Collection<String> descendantUris = helper.getDescendantIris(TEST_CHILD_IRI);
+		Collection<String> descendantUris = helper.getDescendantIris("http://www.ebi.ac.uk/efo/PARENTS_001");
 		assertNotNull(descendantUris);
 		assertEquals(0, descendantUris.size());
 	}
@@ -105,7 +105,7 @@ public class OWLOntologyHelperMethodsTest {
 	public void getDescendantUris() throws Exception {
 		Collection<String> descendantUris = helper.getDescendantIris(TEST_IRI);
 		assertNotNull(descendantUris);
-		assertEquals(1, descendantUris.size());
+		assertEquals(2, descendantUris.size());
 		assertTrue(descendantUris.contains(TEST_CHILD_IRI));
 	}
 

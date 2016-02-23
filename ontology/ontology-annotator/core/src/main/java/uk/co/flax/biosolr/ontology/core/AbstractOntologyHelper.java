@@ -19,6 +19,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 /**
+ * Abstract base variant of the OntologyHelper interface,
+ * implementing methods which are common to the concrete
+ * implementations.
+ *
  * Created by mlp on 23/02/16.
  * @author mlp
  */
@@ -47,8 +51,8 @@ public abstract class AbstractOntologyHelper implements OntologyHelper {
 		if (includeLabels) {
 			Collection<String> labels = findLabels(iri);
 			if (!labels.isEmpty()) {
-				pathBuilder.append(getConfiguration().getNodeLabelSeparator());
-				pathBuilder.append(labels.iterator().next());
+				pathBuilder.append(getConfiguration().getNodeLabelSeparator())
+						.append(labels.iterator().next());
 			}
 		}
 
@@ -57,6 +61,7 @@ public abstract class AbstractOntologyHelper implements OntologyHelper {
 			// No more parents
 			paths.add(pathBuilder.toString());
 		} else {
+			// Recurse upwards through tree
 			for (String parentIri : parentIris) {
 				buildParentPath(parentIri, pathBuilder.toString(), paths, includeLabels);
 			}

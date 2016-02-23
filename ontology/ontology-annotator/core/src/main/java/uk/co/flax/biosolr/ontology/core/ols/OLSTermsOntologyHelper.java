@@ -43,12 +43,8 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	// Cache of terms with no defining ontology
 	private Map<String, Set<SingleTermResult>> nonDefinitiveTerms = new HashMap<>();
 
-	public OLSTermsOntologyHelper(String baseUrl, OLSHttpClient olsClient) {
-		super(baseUrl, null, olsClient);
-	}
-
-	public OLSTermsOntologyHelper(String baseUrl, int pageSize, OLSHttpClient olsClient) {
-		super(baseUrl, null, pageSize, olsClient);
+	public OLSTermsOntologyHelper(OLSOntologyConfiguration config, OLSHttpClient olsClient) {
+		super(config, olsClient);
 	}
 
 	@Override
