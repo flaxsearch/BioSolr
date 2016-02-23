@@ -21,6 +21,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptService;
@@ -43,8 +44,10 @@ import uk.co.flax.biosolr.ontology.search.SearchEngineException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -87,12 +90,8 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 		}
 
 		TopHitsBuilder topHitsBuilder = AggregationBuilders.topHits(HITS_AGGREGATION)
-				.setFetchSource(true)
 				.setFrom(0)
 				.setSize(1);
-		// Add the annotated fields we need
-		ANNOTATED_FIELDS.forEach(fdf -> topHitsBuilder.addFieldDataField(getAnnotationField() + "." + fdf));
-		getDynamicFieldNames().forEach(fdf -> topHitsBuilder.addFieldDataField(getAnnotationField() + "." + fdf));
 
 		/* Build the terms aggregation, since we need a result set grouped by study ID.
 		 * The "top_score" sub-agg allows us to sort by the top score of the results;
@@ -126,7 +125,10 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 		if (total == 0) {
 			docs = new ArrayList<>();
 		} else {
-			docs = new ArrayList<>(rows);
+			// Build a map - need to look up annotation data separately.
+			// This is because it's not in _source, and the fields() method
+			// is not visible for a TopHitsBuilder.
+			Map<String, Document> documentMap = new LinkedHashMap<>(rows);
 			ObjectMapper mapper = buildObjectMapper();
 
 			int lastIdx = (int)(start + rows <= total ? start + rows : total);
@@ -134,9 +136,14 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 			List<Terms.Bucket> termBuckets = terms.getBuckets().subList(start, lastIdx);
 			for (Terms.Bucket bucket : termBuckets) {
 				TopHits hits = bucket.getAggregations().get(HITS_AGGREGATION);
-				Document doc = extractDocument(mapper, hits.getHits().getAt(0));
-				docs.add(doc);
+				SearchHit hit = hits.getHits().getAt(0);
+				documentMap.put(hit.getId(), extractDocument(mapper, hit));
 			}
+
+			// Populate annotation data for the document
+			lookupAnnotationFields(documentMap);
+
+			docs = new ArrayList<>(documentMap.values());
 		}
 
 		return new ResultsList<>(docs, start, (start / rows), total);
@@ -175,7 +182,30 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 
 		try {
 			doc = mapper.readValue(hit.getSourceAsString(), Document.class);
+		} catch (IOException e) {
+			LOGGER.error("Error reading document from source: {}", e.getMessage());
+			throw new SearchEngineException(e);
+		}
 
+		return doc;
+	}
+
+	private void lookupAnnotationFields(Map<String, Document> idMap) {
+		QueryBuilder qb = QueryBuilders.idsQuery(getDocumentType()).addIds(idMap.keySet());
+		SearchRequestBuilder srb = getClient().prepareSearch(getIndexName())
+				.addFields("*")
+				.setQuery(qb)
+				.setSize(idMap.size());
+		LOGGER.debug("Annotation field lookup query: {}", srb.toString());
+
+		SearchResponse response = srb.execute().actionGet();
+		for (SearchHit hit : response.getHits().getHits()) {
+			populateAnnotationFields(hit, idMap.get(hit.getId()));
+		}
+	}
+
+	private void populateAnnotationFields(SearchHit hit, Document doc) {
+		if (doc != null && hit.fields().size() > 0) {
 			for (Map.Entry<String, SearchHitField> fieldEntry : hit.fields().entrySet()) {
 				if (fieldEntry.getKey().startsWith(getAnnotationField())) {
 					String fieldName = fieldEntry.getKey();
@@ -203,12 +233,7 @@ public class ElasticDocumentSearch extends ElasticSearchEngine implements Docume
 					}
 				}
 			}
-		} catch (IOException e) {
-			LOGGER.error("Error reading document from source: {}", e.getMessage());
-			throw new SearchEngineException(e);
 		}
-
-		return doc;
 	}
 
 	private List<String> getStringValues(List<Object> fieldValues) {
