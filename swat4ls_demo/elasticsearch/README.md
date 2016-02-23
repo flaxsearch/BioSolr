@@ -107,9 +107,9 @@ Now we can open up our example application by browsing to [http://localhost:8080
 Let's try some example searches.  Most of the GWAS data is concerned with the links between SNPs and diseases - so let's try a search for `Lung cancer`.
 Looks like we get 31 results, all containing lung cancer in the title or the association line, so for example:
 
-> 1.    **Deciphering the impact of common genetic variation on lung cancer risk: a genome-wide association study.**  
->       Broderick P - Cancer Res.  
->       *rs4254535* is associated with *Lung cancer*  
+> 1.    **Lung cancer susceptibility locus at 5p15.33.**  
+>       McKay JD - Nat Genet  
+>       *rs402710* is associated with *Lung cancer*  
 
 But what if we want all lung diseases? We could try searching for `lung disease` - but this only gives us 4 results, probably not what we want.  We can try just searching for `lung`, which looks a little better - 49 results this time, some of them are lung cancer but there's also stuff about lung function, so this isn't ideal either.
 
@@ -199,24 +199,24 @@ You'll straight away notice something new - lots of additional checkboxes (you m
 
 Now let's go back to our earlier searches.  If you remember, we tried looking for `lung cancer` and we got 31 results.  We should be able to do the same search again, and get the same results.
 
-Then, we tried `lung disease` and only got 3 results.  Again, we should be able to verify this. But now let's check the box to use ontology expansion:
+Then, we tried `lung disease` and only got 4 results.  Again, we should be able to verify this. But now let's check the box to use ontology expansion:
 - [x] Include parent labels
-Now if we rerun the search, we should see 53 results, across a whole variety of lung disease.  Our top hit, for example, should look like this:
+Now if we rerun the search, we should see 44 results, across a whole variety of lung disease.  Our top hit, for example, should look like this:
 
-> 1.    **Variants in FAM13A are associated with chronic obstructive pulmonary disease.**  
->       Cho MH - Nat Genet.  
->       *rs7671167* is associated with *Chronic obstructive pulmonary disease.*   
->       **Annotation** chronic obstructive pulmonary disease [http://www.ebi.ac.uk/efo/EFO_0000341].  
->       **Children** chronic bronchitis.  
+> 1.    **Genome-wide association study identifies multiple susceptibility loci for pulmonary fibrosis.**  
+>       Fingerlin TE - Nat Genet.  
+>       *rs2076295* is associated with *Interstitial lung disease.*   
+>       **Annotation** interstitial lung disease [http://www.ebi.ac.uk/efo/EFO_0004244].  
+>       **Children** bronchiolitis obliterans.  
 >       **Parent(s)** lung disease.  
->       **Has disease location** trachea lung.  
+>       **Has disease location** lung.  
 
 This looks much more like it! But we can even go one better than this - let's try searching for `lung` again. Uncheck all the boxes so we get 49 results.
 This time, though, let's also include diseases which are located in the lung...
 - [x] "Has disease location"
 Now you should see that we have 75 results; we're using relationships in the ontology to improve our results.  For example, one of our results looks like this:
 
-> 10.   **Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.**  
+> 4.    **Genome-wide association study identifies BICD1 as a susceptibility gene for emphysema.**  
 >       Kong X - Am J Respir Crit Care Med.  
 >       *rs641525* is associated with *Emphysema-related traits.*  
 >       **Annotation** emphysema [http://www.ebi.ac.uk/efo/EFO_0000464].  
@@ -225,9 +225,9 @@ Now you should see that we have 75 results; we're using relationships in the ont
 
 If you look closely, you'll see that "lung" is not mentioned anywhere in our data, only the extra fields that have come from the ontology.  We'd actually have picked this result up by including parents (`lung disease`), but this is only because EFO nicely defines hierarchy.  If we were using a different ontology with a different hierarchy (maybe one which doesn't use hierarchy in the ways we'd like), we can use a relationship other than `is a` to find this result.
 
-Next, we tried searching for `schizophrenia`.  Let's try this again - yep, still 51 results.  You'll notice if we include parent terms, we still get 51 results - our order might shuffle around a bit though. 
+Next, we tried searching for `schizophrenia`.  Let's try this again - yep, still 52 results.  You'll notice if we include parent terms, we still get 51 results - our order might shuffle around a bit though. 
 This isn't unexpected - most of our data about schizophrenia should be nicely mapped to a specific term and would include the text "schizophrenia" in the title or the annotation line.
-But last time we tried to search for other `mental disorders` and found no results at all.  Now, if we search including child labels, we got 150 results! This covers a wide range of disorders, like "schizophrenia", "bipolar disorder" and many more.  For example:
+But last time we tried to search for other `mental disorder` and found no results at all.  Now, if we search including child labels, we got 150 results! This covers a wide range of disorders, like "schizophrenia", "bipolar disorder" and many more.  For example:
 
 > 1.    **Cross-disorder genomewide analysis of schizophrenia, bipolar disorder, and depression.**  
 >       Huang J - Am J Psychiatry  
