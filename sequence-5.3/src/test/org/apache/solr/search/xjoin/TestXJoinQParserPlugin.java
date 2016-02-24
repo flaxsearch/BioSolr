@@ -54,7 +54,7 @@ public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
 
   private static void initComponent(SolrCore core, Map<Object, Object> context, String componentName) throws IOException {
     XJoinSearchComponent xjsc = (XJoinSearchComponent)core.getSearchComponent(componentName);
-    SimpleXJoinResultsFactory xjrf = (SimpleXJoinResultsFactory)xjsc.getResultsFactory();
+    DummyXJoinResultsFactory xjrf = (DummyXJoinResultsFactory)xjsc.getResultsFactory();
     XJoinResults<?> results = xjrf.getResults(null);
     context.put(xjsc.getResultsTag(), results);    
   }

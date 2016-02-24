@@ -20,6 +20,7 @@ package org.apache.solr.search.xjoin;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.common.util.NamedList;
@@ -92,26 +93,41 @@ public class FieldAppender {
   public NamedList addNamedList(NamedList target, String name, Object object) {
     NamedList<Object> list = new SimpleOrderedMap<>();
     target.add(name, list);
-    
-    for (Method method : object.getClass().getMethods()) {
-      if (method.getParameterTypes().length > 0) continue;
-      String fieldName = NameConverter.getFieldName(method.getName());
-      if (fieldName == null) continue;
-      if (fieldNames == null) {
-        // return all get methods except getClass()
-        if (fieldName.equals("class")) continue;
-      } else {
-        // return named methods only
-        if (! fieldNames.contains(fieldName)) continue;
+
+    if (object instanceof Map) {
+      Map map = (Map)object;
+      for (Object field : map.keySet()) {
+        String fieldName = field.toString();
+        if (! includeField(fieldName)) continue;
+        list.add(fieldName, map.get(field));
       }
-      try {
-        list.add(fieldName, method.invoke(object));
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-        throw new RuntimeException(e.getClass().getName() + " (" + fieldName + ": " + e.getMessage() + ")", e.getCause());
+    } else {
+      for (Method method : object.getClass().getMethods()) {
+        if (method.getParameterTypes().length > 0) continue;
+        String fieldName = NameConverter.getFieldName(method.getName());
+        if (! includeField(fieldName)) continue;
+        try {
+          list.add(fieldName, method.invoke(object));
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          throw new RuntimeException(e.getClass().getName() + " (" + fieldName + ": " + e.getMessage() + ")", e.getCause());
+        }
       }
     }
     
     return list;
+  }
+  
+  // whether to include a particular object field based on fieldNames
+  private boolean includeField(String fieldName) {
+    if (fieldName == null) return false;
+    if (fieldNames == null) {
+      // return all get methods except getClass()
+      if (fieldName.equals("class")) return false;
+    } else {
+      // return named methods only
+      if (! fieldNames.contains(fieldName)) return false;
+    }
+    return true; 
   }
 
 }

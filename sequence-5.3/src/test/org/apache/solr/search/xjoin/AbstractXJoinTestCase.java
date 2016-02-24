@@ -18,6 +18,17 @@ package org.apache.solr.search.xjoin;
  */
 
 import org.apache.solr.SolrTestCaseJ4;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
+import org.apache.solr.core.SolrCore;
+import org.apache.solr.handler.component.SearchComponent;
+import org.apache.solr.request.LocalSolrQueryRequest;
+import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.request.SolrRequestHandler;
+import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.search.QParserPlugin;
+import org.apache.solr.search.xjoin.simple.TestSimple;
 import org.junit.BeforeClass;
 
 /**
@@ -25,9 +36,11 @@ import org.junit.BeforeClass;
  */
 public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
   protected static int numberOfDocs = 0;
-
+  
   @BeforeClass
   public static void beforeClass() throws Exception {
+    System.setProperty("simple-test-file", TestSimple.class.getResource("results.json").toString());
+    
     initCore("solrconfig.xml", "schema.xml", "xjoin/solr");
     
     numberOfDocs = 0;
@@ -44,5 +57,30 @@ public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
     { "blue", "delta", "gamma" },
     { "pink", "theta", "gamma" },
     { "blue", "epsilon", "zeta" } };
+  
+  @SuppressWarnings("rawtypes")
+  protected NamedList test(ModifiableSolrParams params, String componentName) {
+    SolrCore core = h.getCore();
+
+    SearchComponent sc = core.getSearchComponent(componentName);
+    assertTrue("XJoinSearchComponent not found in solrconfig", sc != null);
+      
+    QParserPlugin qp = core.getQueryPlugin("xjoin");
+    assertTrue("XJoinQParserPlugin not found in solrconfig", qp != null);
+    
+    params.add("q", "*:*");
+    params.add("fq", "{!xjoin}" + componentName);
+
+    SolrQueryResponse rsp = new SolrQueryResponse();
+    rsp.add("responseHeader", new SimpleOrderedMap<>());
+    SolrQueryRequest req = new LocalSolrQueryRequest(core, params);
+
+    SolrRequestHandler handler = core.getRequestHandler("standard");
+    handler.handleRequest(req, rsp);
+    req.close();
+    assertNull(rsp.getException());
+      
+    return rsp.getValues();
+  }
 
 }
