@@ -35,6 +35,7 @@ import org.junit.BeforeClass;
  * Test case for XJoin, setting up a core containing test documents.
  */
 public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
+  
   protected static int numberOfDocs = 0;
   
   @BeforeClass
