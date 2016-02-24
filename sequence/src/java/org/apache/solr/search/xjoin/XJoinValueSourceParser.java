@@ -49,6 +49,9 @@ public class XJoinValueSourceParser extends ValueSourceParser {
   // the default value if the results don't have an entry
   private double defaultValue;
   
+  // the default value if a result exists but does not have the required field
+  private double fieldDefaultValue;
+  
   /**
    * Initialise from configuration.
    */
@@ -61,9 +64,10 @@ public class XJoinValueSourceParser extends ValueSourceParser {
     attribute = (String)args.get(XJoinParameters.INIT_ATTRIBUTE);
     
     Double defaultValue = (Double)args.get(XJoinParameters.INIT_DEFAULT_VALUE);
-    if (defaultValue != null) {
-      this.defaultValue = defaultValue;
-    }
+    this.defaultValue = defaultValue != null ? defaultValue : 0.0d;
+    
+    Double fieldDefaultValue = (Double)args.get(XJoinParameters.INIT_FIELD_DEFAULT_VALUE);
+    this.fieldDefaultValue = fieldDefaultValue != null ? fieldDefaultValue : 0.0d;
     
     if (componentName == null && attribute == null) {
       throw new RuntimeException("At least one of " + XJoinParameters.INIT_XJOIN_COMPONENT_NAME +
@@ -153,12 +157,14 @@ public class XJoinValueSourceParser extends ValueSourceParser {
     @SuppressWarnings("rawtypes")
     private double getValue(Object result) {
       if (result instanceof Map) {
-        return (Double)((Map)result).get(attribute);
+        Object value = ((Map)result).get(attribute);
+        return value != null ? (Double)value : fieldDefaultValue;
       } else {
         try {
           String methodName = NameConverter.getMethodName(attribute);
           Method method = result.getClass().getMethod(methodName);
-          return (Double)method.invoke(result);
+          Object value = method.invoke(result);
+          return value != null ? (Double)value : fieldDefaultValue;
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           throw new RuntimeException(e);
         }
