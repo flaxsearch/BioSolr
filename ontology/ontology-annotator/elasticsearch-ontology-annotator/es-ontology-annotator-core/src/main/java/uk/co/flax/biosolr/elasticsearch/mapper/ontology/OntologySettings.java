@@ -16,8 +16,8 @@
 
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,17 +51,10 @@ public class OntologySettings {
 
 	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
-	/*
-	 * Default property annotation values.
-	 */
-	private static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
-	private static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
-	private static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
-
 	private String ontologyUri;
-	private List<String> labelPropertyUris = Collections.singletonList(LABEL_PROPERTY_URI);
-	private List<String> synonymPropertyUris = Collections.singletonList(SYNONYM_PROPERTY_URI);
-	private List<String> definitionPropertyUris = Collections.singletonList(DEFINITION_PROPERTY_URI);
+	private List<String> labelPropertyUris = Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI);
+	private List<String> synonymPropertyUris = Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI);
+	private List<String> definitionPropertyUris = Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI);
 	private boolean includeIndirect = true;
 	private boolean includeRelations = true;
 
