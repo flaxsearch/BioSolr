@@ -3,11 +3,13 @@
   "hits": [
     {
       "id": "a3e5bd",
-      "colour": "blue"
+      "colour": "blue",
+      "testid": 2,
     },
     {
       "id": "252ae1",
-      "colour": "red"
+      "colour": "red",
+      "testid": 0
     },
     {
       "id": "912151",
@@ -17,6 +19,7 @@
   "meta": [
     {
       "id": "252ae1",
+      "testid": 0,
       "value": 10.5
     }
   ]

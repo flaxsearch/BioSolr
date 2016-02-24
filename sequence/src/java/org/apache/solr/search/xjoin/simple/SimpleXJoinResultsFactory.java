@@ -156,7 +156,8 @@ public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
         results.put(joinId.toString(), result);
         for (String fieldName : resultFieldPaths.keySet()) {
           String path = resultFieldPaths.get(fieldName);
-          Object value = doc.getPathValue(path.replace(joinIdToken, joinId.toString()));
+          path = path.replace(joinIdToken, joinId.toString());
+          Object value = doc.getPathValue(path);
           if (value != null) {
             result.put(fieldName, value);
           }

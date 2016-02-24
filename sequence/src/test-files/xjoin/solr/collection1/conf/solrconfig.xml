@@ -268,6 +268,11 @@
     <double name="defaultValue">1.0</double>
   </valueSourceParser>
 
+  <valueSourceParser name="xjoin5" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="xJoinSearchComponent">xjoin5</str>
+    <double name="defaultValue">1.0</double>
+  </valueSourceParser>
+
   <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin">
     <str name="xJoinSearchComponent">xjoin</str>
   </queryParser>
@@ -318,15 +323,19 @@
     </lst>
   </searchComponent>
 
-  <searchComponent name="xjoin_rest" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.simple.RestHttpFactory</str>
+  <searchComponent name="xjoin5" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.simple.SimpleXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="type">JSON</str>
-      <str name="rootUrl">file:///hahahahaha.json</str>
-      <lst name="globalFields">
-        <str name="prop1">/path/to/prop1</str>
-        <str name="prop2">/path/to/prop2</str>
+      <str name="rootUrl">${simple-test-file}</str>
+      <lst name="globalFieldPaths">
+        <str name="total">$.count</str>
+      </lst>
+      <str name="joinIdPath">$.hits[*].testid</str>
+      <lst name="resultFieldPaths">
+        <str name="colour">$.hits[?(@.testid == JOINID)].colour</str>
+        <str name="value">$.meta[?(@.testid == JOINID)].value</str>
       </lst>
     </lst>
   </searchComponent>
@@ -345,14 +354,17 @@
       <str name="echoParams">explicit</str>
       <bool name="xjoin">true</bool>
       <bool name="xjoin4">false</bool>
+      <bool name="xjoin5">false</bool>
     </lst>
     <arr name="first-components">
       <str>xjoin</str>
       <str>xjoin4</str>
+      <str>xjoin5</str>
     </arr>
     <arr name="last-components">
       <str>xjoin</str>
       <str>xjoin4</str>
+      <str>xjoin5</str>
     </arr>
   </requestHandler> 
 
