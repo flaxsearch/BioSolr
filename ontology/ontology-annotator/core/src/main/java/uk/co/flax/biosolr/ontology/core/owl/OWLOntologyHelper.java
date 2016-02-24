@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.flax.biosolr.ontology.core.AbstractOntologyHelper;
-import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
@@ -54,16 +53,15 @@ public class OWLOntologyHelper extends AbstractOntologyHelper {
 	 * Construct a new ontology helper instance with a string representing the
 	 * ontology URI.
 	 *
-	 * @param ontologyUriString the URI.
 	 * @param config            the ontology configuration, containing the property URIs
 	 *                          for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read for
 	 *                                      some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException           if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(String ontologyUriString, OWLOntologyConfiguration config) throws OWLOntologyCreationException,
+	public OWLOntologyHelper(OWLOntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
-		this(new URI(ontologyUriString), config);
+		this(new URI(config.getOntologyUri()), config);
 	}
 
 	/**

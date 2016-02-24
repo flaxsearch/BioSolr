@@ -15,6 +15,8 @@
  */
 package uk.co.flax.biosolr.ontology.core;
 
+import java.util.List;
+
 /**
  * Base configuration details for the OntologyHelper
  * implementations.

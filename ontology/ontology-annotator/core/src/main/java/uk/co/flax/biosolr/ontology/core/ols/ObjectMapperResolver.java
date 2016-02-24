@@ -18,7 +18,6 @@ package uk.co.flax.biosolr.ontology.core.ols;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.MapperConfig;
 
 import javax.ws.rs.ext.ContextResolver;
 

@@ -41,7 +41,7 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSTermsOntologyHelper.class);
 
 	// Cache of terms with no defining ontology
-	private Map<String, Set<SingleTermResult>> nonDefinitiveTerms = new HashMap<>();
+	private final Map<String, Set<SingleTermResult>> nonDefinitiveTerms = new HashMap<>();
 
 	public OLSTermsOntologyHelper(OLSOntologyConfiguration config, OLSHttpClient olsClient) {
 		super(config, olsClient);

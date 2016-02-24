@@ -15,20 +15,19 @@
  */
 package uk.co.flax.biosolr.ontology.core.owl;
 
+import static org.junit.Assert.*;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * Unit tests for the OWL Ontology Helper methods.
@@ -36,6 +35,7 @@ import static org.junit.Assert.*;
  * Created by mlp on 20/10/15.
  */
 public class OWLOntologyHelperMethodsTest {
+
 	private static OntologyHelper helper;
 
 	public static final String ROOT_IRI = "http://www.w3.org/2002/07/owl#Thing";
@@ -47,8 +47,12 @@ public class OWLOntologyHelperMethodsTest {
 		URL testResource = OWLOntologyHelperMethodsTest.class.getClassLoader()
 				.getResource(OWLOntologyHelperTest.TEST_ONTOLOGY);
 		if (testResource != null) {
-			URI testOntologyUri = testResource.toURI();
-			helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+			OWLOntologyConfiguration config = new OWLOntologyConfiguration(testResource.toExternalForm(),
+					Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+					Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+					Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+					Collections.emptyList());
+			helper = new OWLOntologyHelper(config);
 		}
 	}
 
@@ -197,7 +201,7 @@ public class OWLOntologyHelperMethodsTest {
 	@Test
 	public void findParentPaths_noParents() throws Exception {
 		String iri = TEST_IRI;
-		Collection<String> parentPaths = ((OWLOntologyHelper)helper).getParentPaths(iri, true);
+		Collection<String> parentPaths = helper.getParentPaths(iri, true);
 		assertNotNull(parentPaths);
 		assertEquals(1, parentPaths.size());
 	}
@@ -205,7 +209,7 @@ public class OWLOntologyHelperMethodsTest {
 	@Test
 	public void findParentPaths_multiplePaths() throws Exception {
 		String iri = "http://www.ebi.ac.uk/efo/PARENTS_001";
-		Collection<String> parentPaths = ((OWLOntologyHelper)helper).getParentPaths(iri, true);
+		Collection<String> parentPaths = helper.getParentPaths(iri, true);
 		assertNotNull(parentPaths);
 		assertEquals(2, parentPaths.size());
 	}
