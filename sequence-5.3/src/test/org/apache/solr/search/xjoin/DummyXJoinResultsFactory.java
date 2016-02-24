@@ -22,7 +22,9 @@ import java.util.Arrays;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.junit.Ignore;
 
+@Ignore
 public class DummyXJoinResultsFactory implements XJoinResultsFactory<String> {
   
   private String string;

@@ -30,10 +30,12 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.xjoin.simple.TestSimple;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 /**
  * Test case for XJoin, setting up a core containing test documents.
  */
+@Ignore
 public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
   
   protected static int numberOfDocs = 0;
