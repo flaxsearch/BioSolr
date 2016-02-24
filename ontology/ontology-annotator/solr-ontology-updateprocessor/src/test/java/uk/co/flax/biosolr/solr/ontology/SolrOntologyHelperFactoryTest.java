@@ -17,22 +17,16 @@ package uk.co.flax.biosolr.solr.ontology;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Test;
-
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
-import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
-import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Unit tests for the SolrOntologyHelperFactory.
@@ -45,14 +39,6 @@ public class SolrOntologyHelperFactoryTest {
 	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
 	public static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
 
-	public static String getFilePath(String file) throws URISyntaxException {
-		URL fileUrl = SolrOntologyHelperFactoryTest.class.getClassLoader().getResource(file);
-		if (fileUrl == null) {
-			throw new URISyntaxException(file, "Cannot build file URL");
-		}
-		return new File(fileUrl.toURI()).getAbsolutePath();
-	}
-
 	@Test(expected = org.apache.solr.common.SolrException.class)
 	public void construct_noParameters() throws Exception {
 		SolrParams params = new MapSolrParams(Collections.emptyMap());
@@ -63,7 +49,7 @@ public class SolrOntologyHelperFactoryTest {
 	public void construct_missingOLSOntology() throws Exception {
 		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put(SolrOntologyHelperFactory.OLS_BASE_URL, "http://www.ebi.ac.uk/ols/beta/api");
-		OntologyHelperFactory factory = new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
+		SolrOntologyHelperFactory factory = new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
 		OntologyHelper helper = factory.buildOntologyHelper();
 		assertTrue(helper instanceof OLSTermsOntologyHelper);
 	}
@@ -73,25 +59,6 @@ public class SolrOntologyHelperFactoryTest {
 		Map<String, String> paramMap = new HashMap<>();
 		paramMap.put(SolrOntologyHelperFactory.OLS_ONTOLOGY_NAME, "efo");
 		new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
-	}
-
-	@Test
-	public void buildOntologyHelper_defaultOwlConfig() throws Exception {
-		Map<String, String> paramMap = new HashMap<>();
-		paramMap.put(SolrOntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
-		SolrOntologyHelperFactory factory = new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
-		OntologyHelper helper = factory.buildOntologyHelper();
-		assertTrue(helper instanceof OWLOntologyHelper);
-	}
-
-	@Test
-	public void buildOntologyHelper_fileOwlConfig() throws Exception {
-		Map<String, String> paramMap = new HashMap<>();
-		paramMap.put(SolrOntologyHelperFactory.ONTOLOGY_URI_PARAM, TEST_ONTOLOGY);
-		paramMap.put(SolrOntologyHelperFactory.CONFIG_FILE_PARAM, getFilePath(COMPLETE_PROPFILE_PATH));
-		SolrOntologyHelperFactory factory = new SolrOntologyHelperFactory(new MapSolrParams(paramMap));
-		OntologyHelper helper = factory.buildOntologyHelper();
-		assertTrue(helper instanceof OWLOntologyHelper);
 	}
 
 	@Test

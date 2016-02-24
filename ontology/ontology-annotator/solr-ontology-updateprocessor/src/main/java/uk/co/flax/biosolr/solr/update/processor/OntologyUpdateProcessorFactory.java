@@ -207,7 +207,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String synonymsField;
 	private String definitionField;
 
-	private OntologyHelperFactory helperFactory;
+	private SolrOntologyHelperFactory helperFactory;
 	private OntologyHelper helper;
 	private ScheduledThreadPoolExecutor executor;
 
