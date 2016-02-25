@@ -32,7 +32,7 @@ public interface OntologyHelper {
 	void updateLastCallTime();
 
 	/**
-	 * Return the last time this helper was called.
+	 * @return the last time this helper was called.
 	 */
 	long getLastCallTime();
 
@@ -48,6 +48,8 @@ public interface OntologyHelper {
 	 * @param iri the IRI to look for.
 	 * @return <code>true</code> if the class corresponding to this IRI can be found,
 	 * <code>false</code> if not.
+	 * @throws OntologyHelperException if problems occur finding the IRI in the
+	 * ontology.
 	 */
 	boolean isIriInOntology(String iri) throws OntologyHelperException;
 
@@ -56,6 +58,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose labels are required.
 	 * @return a collection of labels for the class. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> findLabels(String iri) throws OntologyHelperException;
 
@@ -64,6 +68,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iris the IRIs whose labels should be looked up.
 	 * @return a collection of labels. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> findLabelsForIRIs(Collection<String> iris) throws OntologyHelperException;
 
@@ -72,6 +78,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose synonyms are required.
 	 * @return the collection of synonyms. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> findSynonyms(String iri) throws OntologyHelperException;
 
@@ -80,6 +88,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose definitions are required.
 	 * @return the definitions. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> findDefinitions(String iri) throws OntologyHelperException;
 
@@ -88,6 +98,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose child IRIs are required.
 	 * @return the child IRIs, as strings. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> getChildIris(String iri) throws OntologyHelperException;
 
@@ -96,6 +108,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose descendant IRIs are required.
 	 * @return the descendant IRIs, as strings. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> getDescendantIris(String iri) throws OntologyHelperException;
 
@@ -104,6 +118,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose parent IRIs are required.
 	 * @return the parent IRIs, as strings. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> getParentIris(String iri) throws OntologyHelperException;
 
@@ -112,6 +128,8 @@ public interface OntologyHelper {
 	 *
 	 * @param iri the IRI of the class whose ancestor IRIs are required.
 	 * @return the ancestor IRIs, as strings. Never <code>null</code>.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Collection<String> getAncestorIris(String iri) throws OntologyHelperException;
 
@@ -121,9 +139,20 @@ public interface OntologyHelper {
 	 * @param iri the IRI of the class whose relations are required.
 	 * @return a map of relation type to a list of IRIs for nodes with that
 	 * relationship.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * ontology.
 	 */
 	Map<String, Collection<String>> getRelations(String iri) throws OntologyHelperException;
 
+	/**
+	 * Get the paths to the root node for a particular class.
+	 * @param iri the IRI of the class whose parent paths are required.
+	 * @param includeLabels should the parent class labels be included.
+	 * @return a collection of strings, each containing one full path to
+	 * the root node.
+	 * @throws OntologyHelperException if problems occur retrieving the
+	 * parent nodes.
+	 */
 	Collection<String> getParentPaths(String iri, boolean includeLabels) throws OntologyHelperException;
 
 }

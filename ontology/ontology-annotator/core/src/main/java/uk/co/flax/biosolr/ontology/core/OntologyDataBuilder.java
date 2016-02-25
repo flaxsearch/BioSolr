@@ -124,6 +124,8 @@ public class OntologyDataBuilder {
 	 * Build the OntologyData item.
 	 * @return the OntologyData item required, or <code>null</code> if the
 	 * item does not exist in the ontology.
+	 * @throws OntologyHelperException if problems occur accessing the data
+	 * via the OntologyHelper implementation.
 	 */
 	public OntologyData build() throws OntologyHelperException {
 		OntologyData ret = null;

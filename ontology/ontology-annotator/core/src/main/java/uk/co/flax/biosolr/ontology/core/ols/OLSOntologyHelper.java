@@ -285,7 +285,7 @@ public class OLSOntologyHelper extends AbstractOntologyHelper {
 	/**
 	 * Extract the URL for a particular type of link from an OntologyTerm.
 	 *
-	 * @param term     the term.
+	 * @param term the term.
 	 * @param linkType the type of link required.
 	 * @return the URL, or <code>null</code> if the term is null, or doesn't
 	 * have a link of the required type.
@@ -333,9 +333,11 @@ public class OLSOntologyHelper extends AbstractOntologyHelper {
 	 * Find the IRIs of all terms referenced by a related URL.
 	 *
 	 * @param baseUrl the base URL to look up, from a Link or similar
-	 *                query-type URL.
+	 * query-type URL.
 	 * @return a set of IRIs referencing the terms found for the
 	 * given URL.
+	 * @throws OntologyHelperException if problems occur accessing the
+	 * web service.
 	 */
 	protected Set<String> queryWebServiceForTerms(String baseUrl) throws OntologyHelperException {
 		Set<String> retList;
@@ -372,10 +374,10 @@ public class OLSOntologyHelper extends AbstractOntologyHelper {
 	/**
 	 * Build a list of URLs for a range of pages.
 	 *
-	 * @param baseUrl   the base URL; the page size and page number will be appended to
-	 *                  this as query parameters.
+	 * @param baseUrl the base URL; the page size and page number will be appended to
+	 * this as query parameters.
 	 * @param firstPage the first page in the range, inclusive.
-	 * @param lastPage  the last page in the range, exclusive.
+	 * @param lastPage the last page in the range, exclusive.
 	 * @return the list of generated URLs.
 	 */
 	protected List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
