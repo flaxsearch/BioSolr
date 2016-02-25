@@ -53,46 +53,58 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		Set<String> callIris = iris.stream()
 				.filter(i -> !nonDefinitiveTerms.containsKey(i))
 				.collect(Collectors.toSet());
-		Collection<String> termsUrls = createTermsURLs(callIris, 0, 1);
-		List<SingleTermResult> callResults = olsClient.callOLS(termsUrls, SingleTermResult.class);
+		// Look up the first page of results for all of the IRIs
+		List<SingleTermResult> callResults = olsClient.callOLS(createTermsURLs(callIris, 0, 1), SingleTermResult.class);
 		List<OntologyTerm> terms = new ArrayList<>(iris.size());
 
 		Map<String, Set<SingleTermResult>> lookupMap = new HashMap<>();
-		callResults.stream().filter(SingleTermResult::hasTerms).forEach(r -> {
-			if (r.isDefinitiveResult()) {
-				terms.add(r.getDefinitiveResult());
-			} else if (r.isSinglePage()) {
-				// Single page and non-definitive - add to the ndt list, resolve later
-				nonDefinitiveTerms.put(r.getIri(), Collections.singleton(r));
-			} else {
-				// Need to look up more pages - hold on to this result
-				Set<SingleTermResult> lookupSet = new TreeSet<>(
-						(SingleTermResult r1, SingleTermResult r2) -> r1.getPage().compareTo(r2.getPage()));
-				lookupSet.add(r);
-				lookupMap.put(r.getIri(), lookupSet);
-			}
-		});
+		Collection<String> lookupUrls = new ArrayList<>();
+		// For each first page, check whether we have a definitive result,
+		// if we have no definitive result and no more pages, or if we need
+		// to load more pages. Skip any pages with no terms.
+		callResults.stream()
+				.filter(SingleTermResult::hasTerms)
+				.forEach(r -> {
+					if (r.isDefinitiveResult()) {
+						// We have a definitive result - use that
+						terms.add(r.getDefinitiveResult());
+					} else if (r.isSinglePage()) {
+						// Single page and non-definitive - add to the ndt list, resolve later
+						nonDefinitiveTerms.put(r.getIri(), Collections.singleton(r));
+					} else {
+						// Need to look up more pages - hold on to this page
+						lookupMap.put(r.getIri(), buildPageOrderedSet(r));
+						// Add the URLs for the remaining pages to the lookup list
+						lookupUrls.addAll(
+								createTermsURLs(Collections.singletonList(r.getIri()), 1, r.getPage().getTotalPages()));
+					}
+				});
 
+		// For any results where we haven't found a definitive result,
+		// look up the remaining pages, and see if we can find a definitive
+		// result there.
 		if (!lookupMap.isEmpty()) {
-			List<String> lookupUrls = new ArrayList<>(lookupMap.size());
-			lookupMap.values().stream().flatMap(Set::stream)
-					.map(r -> createTermsURLs(Collections.singletonList(r.getIri()), 1, r.getPage().getTotalPages()))
-					.forEach(lookupUrls::addAll);
 			List<SingleTermResult> lookupResults = olsClient.callOLS(lookupUrls, SingleTermResult.class);
 			lookupResults.stream()
 					.filter(SingleTermResult::hasTerms)
 					.forEach(r -> {
-						if (lookupMap.containsKey(r.getIri()) && r.isDefinitiveResult()) {
-							terms.add(r.getDefinitiveResult());
-							lookupMap.remove(r.getIri());
-						} else {
-							// Still non-definitive - add page to lookup map
-							lookupMap.get(r.getIri()).add(r);
+						// Check that the lookup map still contains the IRI - if we've
+						// found a result already, it will have been removed.
+						if (lookupMap.containsKey(r.getIri())) {
+							if (r.isDefinitiveResult()) {
+								// Found a definitive result - store it and remove IRI from the lookup map
+								terms.add(r.getDefinitiveResult());
+								lookupMap.remove(r.getIri());
+							} else {
+								// Still non-definitive - add page to lookup map, keep looking
+								lookupMap.get(r.getIri()).add(r);
+							}
 						}
 					});
 
+			// Check for any remaining results in the lookup map - these will
+			// all be non-definitive, so add them to the cache.
 			if (!lookupMap.isEmpty()) {
-				// These are now all non-definitive - add to the cache
 				nonDefinitiveTerms.putAll(lookupMap);
 			}
 		}
@@ -110,6 +122,14 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		return terms;
 	}
 
+	/**
+	 * Build a collection of lookup URLs for a set of IRIs between a common
+	 * start and end page.
+	 * @param iris the IRIs to look up.
+	 * @param startPage the starting page.
+	 * @param endPage the end page.
+	 * @return a collection of URLs.
+	 */
 	private Collection<String> createTermsURLs(Collection<String> iris, int startPage, int endPage) {
 		// Build a list of URLs we need to call
 		List<String> urls = new ArrayList<>(iris.size());
@@ -136,6 +156,13 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 		// IRI is double encoded in the URL
 		final String dblEncodedIri = URLEncoder.encode(URLEncoder.encode(iri, ENCODING), ENCODING);
 		return getBaseUrl() + TERMS_URL_SUFFIX + "/" + dblEncodedIri;
+	}
+
+	private static Set<SingleTermResult> buildPageOrderedSet(SingleTermResult first) {
+		Set<SingleTermResult> lookupSet = new TreeSet<>(
+				(SingleTermResult r1, SingleTermResult r2) -> r1.getPage().compareTo(r2.getPage()));
+		lookupSet.add(first);
+		return lookupSet;
 	}
 
 	@Override
