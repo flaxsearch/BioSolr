@@ -24,17 +24,9 @@ import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.common.util.SimpleOrderedMap;
-import org.apache.solr.core.SolrCore;
-import org.apache.solr.handler.component.SearchComponent;
-import org.apache.solr.request.LocalSolrQueryRequest;
-import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.ResultContext;
-import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocList;
-import org.apache.solr.search.QParserPlugin;
 import org.junit.Test;
 
 public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
@@ -127,31 +119,6 @@ public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
     assertEquals(list.get(2).get("joinId"), "gamma");
     assertEquals(list.get(3).get("joinId"), "delta");
     assertEquals(list.get(4).get("joinId"), "theta");
-  }
-  
-  @SuppressWarnings("rawtypes")
-  private NamedList test(ModifiableSolrParams params, String componentName) {
-    SolrCore core = h.getCore();
-
-    SearchComponent sc = core.getSearchComponent(componentName);
-    assertTrue("XJoinSearchComponent not found in solrconfig", sc != null);
-      
-    QParserPlugin qp = core.getQueryPlugin("xjoin");
-    assertTrue("XJoinQParserPlugin not found in solrconfig", qp != null);
-    
-    params.add("q", "*:*");
-    params.add("fq", "{!xjoin}" + componentName);
-
-    SolrQueryResponse rsp = new SolrQueryResponse();
-    rsp.add("responseHeader", new SimpleOrderedMap<>());
-    SolrQueryRequest req = new LocalSolrQueryRequest(core, params);
-
-    SolrRequestHandler handler = core.getRequestHandler(requestHandler);
-    handler.handleRequest(req, rsp);
-    req.close();
-    assertNull(rsp.getException());
-      
-    return rsp.getValues();
   }
   
   @SuppressWarnings({ "unchecked", "rawtypes" })

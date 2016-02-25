@@ -268,12 +268,17 @@
     <double name="defaultValue">1.0</double>
   </valueSourceParser>
 
+  <valueSourceParser name="xjoin5" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
+    <str name="xJoinSearchComponent">xjoin5</str>
+    <double name="defaultValue">1.0</double>
+  </valueSourceParser>
+
   <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin">
     <str name="xJoinSearchComponent">xjoin</str>
   </queryParser>
 
   <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="string">component with no results</str>
@@ -281,7 +286,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="values">1,3,8</str>
@@ -291,7 +296,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin2" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">id</str>
     <lst name="external">
       <str name="values">3,8</str>
@@ -301,7 +306,7 @@
   </searchComponent>
 
   <searchComponent name="xjoin3" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">colour</str>
     <lst name="external">
       <str name="values">red,pink</str>
@@ -310,11 +315,28 @@
   </searchComponent>
 
   <searchComponent name="xjoin4" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
-    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
+    <str name="factoryClass">org.apache.solr.search.xjoin.DummyXJoinResultsFactory</str>
     <str name="joinField">letter</str>
     <lst name="external">
       <str name="values">alpha,gamma</str>
       <str name="string">component with a multi-valued join field</str>
+    </lst>
+  </searchComponent>
+
+  <searchComponent name="xjoin5" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
+    <str name="factoryClass">org.apache.solr.search.xjoin.simple.SimpleXJoinResultsFactory</str>
+    <str name="joinField">id</str>
+    <lst name="external">
+      <str name="type">JSON</str>
+      <str name="rootUrl">${simple-test-file}</str>
+      <lst name="globalFieldPaths">
+        <str name="total">$.count</str>
+      </lst>
+      <str name="joinIdPath">$.hits[*].testid</str>
+      <lst name="resultFieldPaths">
+        <str name="colour">$.hits[?(@.testid == JOINID)].colour</str>
+        <str name="value">$.meta[?(@.testid == JOINID)].value</str>
+      </lst>
     </lst>
   </searchComponent>
       
@@ -332,14 +354,17 @@
       <str name="echoParams">explicit</str>
       <bool name="xjoin">true</bool>
       <bool name="xjoin4">false</bool>
+      <bool name="xjoin5">false</bool>
     </lst>
     <arr name="first-components">
       <str>xjoin</str>
       <str>xjoin4</str>
+      <str>xjoin5</str>
     </arr>
     <arr name="last-components">
       <str>xjoin</str>
       <str>xjoin4</str>
+      <str>xjoin5</str>
     </arr>
   </requestHandler> 
 
