@@ -172,6 +172,9 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
 	private static final String DEFINITION_FIELD_PARAM = "definitionField";
 	private static final String FIELDNAME_PREFIX_PARAM = "fieldPrefix";
+	private static final String PARENT_PATHS_PARAM = "includeParentPaths";
+	private static final String PARENT_PATHS_LABEL_PARAM = "includeParentPathLabels";
+	private static final String PARENT_PATHS_FIELD_PARAM = "parentPathsField";
 
 
 	/*
@@ -187,6 +190,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String SYNONYMS_FIELD_DEFAULT = "synonyms_t";
 	private static final String DEFINITION_FIELD_DEFAULT = "definition_t";
 	private static final String RELATION_FIELD_INDICATOR = "_rel";
+	private static final String PARENT_PATHS_FIELD_DEFAULT = "parent_paths_t";
 
 	private boolean enabled;
 	private String annotationField;
@@ -206,8 +210,11 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private boolean includeRelations;
 	private String synonymsField;
 	private String definitionField;
+	private boolean includeParentPaths;
+	private boolean includeParentPathLabels;
+	private String parentPathsField;
 
-	private OntologyHelperFactory helperFactory;
+	private SolrOntologyHelperFactory helperFactory;
 	private OntologyHelper helper;
 	private ScheduledThreadPoolExecutor executor;
 
@@ -242,6 +249,9 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.includeRelations = params.getBool(INCLUDE_RELATIONS_PARAM, true);
 			this.synonymsField = params.get(SYNONYMS_FIELD_PARAM, fieldPrefix + SYNONYMS_FIELD_DEFAULT);
 			this.definitionField = params.get(DEFINITION_FIELD_PARAM, fieldPrefix + DEFINITION_FIELD_DEFAULT);
+			this.includeParentPaths = params.getBool(PARENT_PATHS_PARAM, false);
+			this.includeParentPathLabels = params.getBool(PARENT_PATHS_LABEL_PARAM, false);
+			this.parentPathsField = params.get(PARENT_PATHS_FIELD_PARAM, PARENT_PATHS_FIELD_DEFAULT);
 		}
 	}
 
@@ -369,6 +379,18 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return StringUtils.isNotBlank(definitionField);
 	}
 
+	public boolean isIncludeParentPaths() {
+		return includeParentPaths;
+	}
+
+	public boolean isIncludeParentPathLabels() {
+		return includeParentPathLabels;
+	}
+
+	public String getParentPathsField() {
+		return parentPathsField;
+	}
+
 	public synchronized OntologyHelper initialiseHelper() throws OntologyHelperException {
 		if (helper == null) {
 			helper = helperFactory.buildOntologyHelper();
@@ -435,6 +457,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 						.includeDefinitions(includeDefinitions())
 						.includeIndirect(isIncludeIndirect())
 						.includeRelations(isIncludeRelations())
+						.includeParentPaths(isIncludeParentPaths())
+						.includeParentPathLabels(isIncludeParentPathLabels())
 						.build();
 			} catch (OntologyHelperException e) {
 				LOGGER.error("Problem building ontology data for {}: {}", iri, e.getMessage());
@@ -470,6 +494,10 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 					doc.addField(buildRelationUriFieldName(relation), data.getRelationIris().get(relation));
 					doc.addField(buildRelationLabelFieldName(relation), data.getRelationLabels().get(relation));
 				}
+			}
+
+			if (isIncludeParentPaths()) {
+				doc.addField(getParentPathsField(), data.getParentPaths());
 			}
 		}
 

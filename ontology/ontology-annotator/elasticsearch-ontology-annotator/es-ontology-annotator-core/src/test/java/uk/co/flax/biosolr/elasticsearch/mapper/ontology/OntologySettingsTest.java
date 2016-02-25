@@ -15,16 +15,12 @@
  */
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.Test;
-import org.mockserver.matchers.BooleanMatcher;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by mlp on 26/01/16.
@@ -38,7 +34,11 @@ public class OntologySettingsTest {
 		settings.setIncludeIndirect(true);
 
 		List<FieldMappings> mappings = settings.getFieldMappings();
-		assertThat(mappings.size(), equalTo(FieldMappings.values().length));
+		for (FieldMappings fm : FieldMappings.values()) {
+			if (fm.isIndirect()) {
+				assertTrue(mappings.contains(fm));
+			}
+		}
 	}
 
 	@Test
@@ -49,7 +49,17 @@ public class OntologySettingsTest {
 		List<FieldMappings> mappings = settings.getFieldMappings();
 		for (FieldMappings fm : mappings) {
 			assertFalse(fm.isIndirect());
+			assertFalse(fm == FieldMappings.PARENT_PATHS);
 		}
+	}
+
+	@Test
+	public void getFieldMappings_includeParentPaths() {
+		OntologySettings settings = new OntologySettings();
+		settings.setIncludeParentPaths(true);
+
+		List<FieldMappings> mappings = settings.getFieldMappings();
+		assertTrue(mappings.contains(FieldMappings.PARENT_PATHS));
 	}
 
 }

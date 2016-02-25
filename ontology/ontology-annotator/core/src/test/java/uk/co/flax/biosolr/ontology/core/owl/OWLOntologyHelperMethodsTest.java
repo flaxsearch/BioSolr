@@ -15,19 +15,19 @@
  */
 package uk.co.flax.biosolr.ontology.core.owl;
 
+import static org.junit.Assert.*;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * Unit tests for the OWL Ontology Helper methods.
@@ -35,6 +35,7 @@ import static org.junit.Assert.*;
  * Created by mlp on 20/10/15.
  */
 public class OWLOntologyHelperMethodsTest {
+
 	private static OntologyHelper helper;
 
 	public static final String ROOT_IRI = "http://www.w3.org/2002/07/owl#Thing";
@@ -43,9 +44,16 @@ public class OWLOntologyHelperMethodsTest {
 
 	@BeforeClass
 	public static void setup() throws URISyntaxException, OWLOntologyCreationException {
-		URI testOntologyUri = OWLOntologyHelperMethodsTest.class.getClassLoader()
-				.getResource(OWLOntologyHelperTest.TEST_ONTOLOGY).toURI();
-		helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+		URL testResource = OWLOntologyHelperMethodsTest.class.getClassLoader()
+				.getResource(OWLOntologyHelperTest.TEST_ONTOLOGY);
+		if (testResource != null) {
+			OWLOntologyConfiguration config = new OWLOntologyConfiguration(testResource.toExternalForm(),
+					Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+					Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+					Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+					Collections.emptyList());
+			helper = new OWLOntologyHelper(config);
+		}
 	}
 
 	@AfterClass
@@ -72,7 +80,7 @@ public class OWLOntologyHelperMethodsTest {
 
 	@Test
 	public void getChildUris_noChildren() throws Exception {
-		Collection<String> childUris = helper.getChildIris(TEST_CHILD_IRI);
+		Collection<String> childUris = helper.getChildIris("http://www.ebi.ac.uk/efo/PARENTS_001");
 		assertNotNull(childUris);
 		assertEquals(0, childUris.size());
 	}
@@ -81,7 +89,7 @@ public class OWLOntologyHelperMethodsTest {
 	public void getChildUris() throws Exception {
 		Collection<String> childUris = helper.getChildIris(TEST_IRI);
 		assertNotNull(childUris);
-		assertEquals(1, childUris.size());
+		assertEquals(2, childUris.size());
 		assertTrue(childUris.contains(TEST_CHILD_IRI));
 	}
 
@@ -92,7 +100,7 @@ public class OWLOntologyHelperMethodsTest {
 
 	@Test
 	public void getDescendantUris_noDescendants() throws Exception {
-		Collection<String> descendantUris = helper.getDescendantIris(TEST_CHILD_IRI);
+		Collection<String> descendantUris = helper.getDescendantIris("http://www.ebi.ac.uk/efo/PARENTS_001");
 		assertNotNull(descendantUris);
 		assertEquals(0, descendantUris.size());
 	}
@@ -101,7 +109,7 @@ public class OWLOntologyHelperMethodsTest {
 	public void getDescendantUris() throws Exception {
 		Collection<String> descendantUris = helper.getDescendantIris(TEST_IRI);
 		assertNotNull(descendantUris);
-		assertEquals(1, descendantUris.size());
+		assertEquals(2, descendantUris.size());
 		assertTrue(descendantUris.contains(TEST_CHILD_IRI));
 	}
 
@@ -188,6 +196,22 @@ public class OWLOntologyHelperMethodsTest {
 		Collection<String> synonyms = helper.findDefinitions(TEST_IRI);
 		assertNotNull(synonyms);
 		assertEquals(1, synonyms.size());
+	}
+
+	@Test
+	public void findParentPaths_noParents() throws Exception {
+		String iri = TEST_IRI;
+		Collection<String> parentPaths = helper.getParentPaths(iri, true);
+		assertNotNull(parentPaths);
+		assertEquals(1, parentPaths.size());
+	}
+
+	@Test
+	public void findParentPaths_multiplePaths() throws Exception {
+		String iri = "http://www.ebi.ac.uk/efo/PARENTS_001";
+		Collection<String> parentPaths = helper.getParentPaths(iri, true);
+		assertNotNull(parentPaths);
+		assertEquals(2, parentPaths.size());
 	}
 
 }

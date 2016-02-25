@@ -21,7 +21,8 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.AbstractOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
 import java.net.URI;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  *
  * Created by mlp on 20/10/15.
  */
-public class OWLOntologyHelper implements OntologyHelper {
+public class OWLOntologyHelper extends AbstractOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OWLOntologyHelper.class);
 
@@ -52,16 +53,15 @@ public class OWLOntologyHelper implements OntologyHelper {
 	 * Construct a new ontology helper instance with a string representing the
 	 * ontology URI.
 	 *
-	 * @param ontologyUriString the URI.
 	 * @param config            the ontology configuration, containing the property URIs
 	 *                          for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read for
 	 *                                      some reason - internal inconsistencies, etc.
 	 * @throws URISyntaxException           if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(String ontologyUriString, OWLOntologyConfiguration config) throws OWLOntologyCreationException,
+	public OWLOntologyHelper(OWLOntologyConfiguration config) throws OWLOntologyCreationException,
 			URISyntaxException {
-		this(new URI(ontologyUriString), config);
+		this(new URI(config.getOntologyUri()), config);
 	}
 
 	/**
@@ -110,6 +110,11 @@ public class OWLOntologyHelper implements OntologyHelper {
 		labels.clear();
 		synonyms.clear();
 		definitions.clear();
+	}
+
+	@Override
+	protected OntologyHelperConfiguration getConfiguration() {
+		return config;
 	}
 
 	@Override
@@ -173,7 +178,8 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 		// For every property URI, find the annotations for this entry
 		propertyUris.stream()
-				.map(uri -> odf.getOWLAnnotationProperty(IRI.create(uri)))
+				.map(IRI::create)
+				.map(odf::getOWLAnnotationProperty)
 				.map(prop -> findAnnotationNames(ontology, iri, prop))
 				.forEach(classNames::addAll);
 
@@ -201,7 +207,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 		if (value instanceof IRI) {
 			Optional<String> shortForm = getShortForm((IRI) value);
 			if (shortForm.isPresent()) {
-				return Optional.of(shortForm.get());
+				return shortForm;
 			}
 		} else if (value instanceof OWLLiteral) {
 			return Optional.of(((OWLLiteral) value).getLiteral());
@@ -209,7 +215,7 @@ public class OWLOntologyHelper implements OntologyHelper {
 		return Optional.empty();
 	}
 
-	private Optional<String> getShortForm(IRI entityIRI) {
+	private static Optional<String> getShortForm(IRI entityIRI) {
 		LOGGER.trace("Attempting to extract fragment name of URI '" + entityIRI + "'");
 		String termURI = entityIRI.toString();
 		URI entUri = entityIRI.toURI();
@@ -337,4 +343,5 @@ public class OWLOntologyHelper implements OntologyHelper {
 
 		return restrictions;
 	}
+
 }

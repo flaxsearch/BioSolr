@@ -17,3 +17,16 @@ Version 0.3
 -----------
 
 - Add support for reading ontology data from the OLS without knowing the ontology.
+
+
+Version 0.4
+-----------
+
+- Use common ontology-annotator-core library, removing core classes from this module.
+
+
+Version 0.5
+-----------
+
+- Various updates related to Core library, making building OntologyHelper more generic.
+- Add optional parent paths to generated data.

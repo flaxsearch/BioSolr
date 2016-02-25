@@ -22,10 +22,9 @@ import org.apache.solr.util.DefaultSolrThreadFactory;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.ontology.core.OntologyHelper;
-import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
-import uk.co.flax.biosolr.ontology.core.OntologyHelperFactory;
+import uk.co.flax.biosolr.ontology.core.*;
 import uk.co.flax.biosolr.ontology.core.ols.OLSHttpClient;
+import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyConfiguration;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.ols.OLSTermsOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
@@ -35,13 +34,14 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.jar.Pack200;
 
 /**
  * Factory class to build OntologyHelper instances.
  *
  * Created by mlp on 20/10/15.
  */
-public class SolrOntologyHelperFactory implements OntologyHelperFactory {
+public class SolrOntologyHelperFactory {
 
     public static final String ONTOLOGY_URI_PARAM = "ontologyURI";
     public static final String CONFIG_FILE_PARAM = "configurationFile";
@@ -53,6 +53,8 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
     public static final String SYNONYM_PROPERTIES = "synonymProperties";
     public static final String DEFINITION_PROPERTIES = "definitionProperties";
     public static final String IGNORE_PROPERTIES = "ignoreProperties";
+	public static final String NODE_PATH_SEPARATOR_PARAM = "nodePathSeparator";
+	public static final String NODE_LABEL_SEPARATOR_PARAM = "nodeLabelSeparator";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrOntologyHelperFactory.class);
 
@@ -70,77 +72,21 @@ public class SolrOntologyHelperFactory implements OntologyHelperFactory {
 		}
 	}
 
-    @Override
     public OntologyHelper buildOntologyHelper() throws OntologyHelperException {
-        OntologyHelper helper = null;
-
-        String ontologyUri = params.get(ONTOLOGY_URI_PARAM);
-        if (StringUtils.isNotBlank(ontologyUri)) {
-            helper = buildOWLOntologyHelper(ontologyUri, params);
-        } else {
-            String olsPrefix = params.get(OLS_BASE_URL);
-			String ontology = params.get(OLS_ONTOLOGY_NAME);
-            int tpoolSize = params.getInt(OLS_THREADPOOL, OLSOntologyHelper.THREADPOOL_SIZE);
-			int pageSize = params.getInt(OLS_PAGE_SIZE, OLSOntologyHelper.PAGE_SIZE);
-			if (StringUtils.isNotBlank(olsPrefix)) {
-				if (StringUtils.isBlank(ontology)) {
-					// Build OLS terms ontology helper
-					helper = new OLSTermsOntologyHelper(olsPrefix, pageSize,
-                            new OLSHttpClient(tpoolSize, new DefaultSolrThreadFactory("olsTermsOntologyHelper")));
-				} else {
-					// Build OLS ontology helper
-					helper = new OLSOntologyHelper(olsPrefix, ontology, pageSize,
-                            new OLSHttpClient(tpoolSize, new DefaultSolrThreadFactory("olsOntologyHelper")));
-				}
-			}
-        }
-
-        if (helper == null) {
-            throw new OntologyHelperException("Could not build ontology helper!");
-        }
-
-        return helper;
+		return new OntologyHelperBuilder()
+				.ontologyUri(params.get(ONTOLOGY_URI_PARAM))
+				.labelPropertyUris(params.getParams(LABEL_PROPERTIES))
+				.synonymPropertyUris(params.getParams(SYNONYM_PROPERTIES))
+				.definitionPropertyUris(params.getParams(DEFINITION_PROPERTIES))
+				.ignorePropertyUris(params.getParams(IGNORE_PROPERTIES))
+				.olsBaseUrl(params.get(OLS_BASE_URL))
+				.ontology(params.get(OLS_ONTOLOGY_NAME))
+				.pageSize(params.getInt(OLS_PAGE_SIZE, OLSOntologyHelper.PAGE_SIZE))
+				.threadpoolSize(params.getInt(OLS_THREADPOOL, OLSOntologyHelper.THREADPOOL_SIZE))
+				.threadFactory(new DefaultSolrThreadFactory("olsOntologyHelper"))
+				.nodeLabelSeparator(params.get(NODE_LABEL_SEPARATOR_PARAM, OntologyHelperConfiguration.NODE_LABEL_SEPARATOR))
+				.nodePathSeparator(params.get(NODE_PATH_SEPARATOR_PARAM, OntologyHelperConfiguration.NODE_PATH_SEPARATOR))
+				.build();
     }
-
-    private OntologyHelper buildOWLOntologyHelper(String ontologyUri, SolrParams params) throws OntologyHelperException {
-        OntologyHelper helper;
-        try {
-            String[] labels = params.getParams(LABEL_PROPERTIES);
-            String[] synonyms = params.getParams(SYNONYM_PROPERTIES);
-            String[] definitions = params.getParams(DEFINITION_PROPERTIES);
-            String[] ignore = params.getParams(IGNORE_PROPERTIES);
-
-            OWLOntologyConfiguration config = new OWLOntologyConfiguration(
-					arrayToList(labels, OWLOntologyConfiguration.LABEL_PROPERTY_URI),
-					arrayToList(synonyms, OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
-					arrayToList(definitions, OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
-					arrayToList(ignore));
-            helper = new OWLOntologyHelper(ontologyUri, config);
-        } catch (URISyntaxException e) {
-            LOGGER.error("URI exception initialising ontology helper: {}", e.getMessage());
-            throw new OntologyHelperException(e);
-        } catch (OWLOntologyCreationException e) {
-            LOGGER.error("OWL exception initialising ontology helper: {}", e.getMessage());
-            throw new OntologyHelperException(e);
-        }
-
-        return helper;
-    }
-
-	private static List<String> arrayToList(String[] array, String... defaults) {
-		List<String> ret;
-
-		if (array == null || array.length == 0) {
-			ret = Arrays.asList(defaults);
-		} else {
-			ret = new ArrayList<>(array.length);
-			for (String entry : array) {
-				String[] parts = entry.split(",\\s*");
-				ret.addAll(Arrays.asList(parts));
-			}
-		}
-
-		return ret;
-	}
 
 }
