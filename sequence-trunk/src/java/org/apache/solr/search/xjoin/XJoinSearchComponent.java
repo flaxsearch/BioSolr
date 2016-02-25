@@ -28,6 +28,7 @@ import org.apache.lucene.document.Document;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.search.DocIterator;
@@ -157,7 +158,7 @@ public class XJoinSearchComponent extends SearchComponent {
     for (String joinId : joinIds) {
       Object object = results.getResult(joinId);
       if (object == null) continue;
-      NamedList external = new NamedList<>();
+      SimpleOrderedMap external = new SimpleOrderedMap<>();
       externalList.add(external);
       external.add("joinId", joinId);
       if (object instanceof Iterable) {

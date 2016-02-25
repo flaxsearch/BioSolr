@@ -1,0 +1,17 @@
+<results>
+  <count>312</count>
+  <hits>
+    <doc id="a3e5bd">
+      <colour>blue</colour>
+    </doc>
+    <doc id="252ae1">
+      <colour>red</colour>
+    </doc>
+    <doc id="912151">
+      <colour>green</colour>
+    </doc>
+  </hits>
+  <meta>
+    <doc id="252ae1" value="10.5" />
+  </meta>
+</results>

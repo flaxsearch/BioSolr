@@ -50,7 +50,7 @@ public class TestXJoinValueSourceParser extends AbstractXJoinTestCase {
     SolrCore core = h.getCore();
 
     XJoinSearchComponent xjsc = (XJoinSearchComponent)core.getSearchComponent(componentName);
-    SimpleXJoinResultsFactory xjrf = (SimpleXJoinResultsFactory)xjsc.getResultsFactory();
+    DummyXJoinResultsFactory xjrf = (DummyXJoinResultsFactory)xjsc.getResultsFactory();
     XJoinResults<?> results = xjrf.getResults(null);
     
     // mock SolrQueryRequest with join results in the context

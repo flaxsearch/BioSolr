@@ -41,7 +41,7 @@ public class TestCombinations {
   Integer[] ds = { 3, 5 };
   Integer[] xs = { 1, 2, 4, 6, 8, 9 };
   Integer[] ns = { 4, 6, 9 };
-
+  
   @Before
   public void setUp() {
     e = Arrays.asList(es).iterator();
