@@ -182,17 +182,17 @@ public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 
 	@Override
 	public Collection<String> getAncestorIris(String iri) throws OntologyHelperException {
-		Collection<String> parents;
+		Collection<String> ancestors;
 
 		checkTerm(iri);
 		if (!nonDefinitiveTerms.containsKey(iri)) {
-			parents = super.getParentIris(iri);
+			ancestors = super.getAncestorIris(iri);
 		} else {
 			// This IRI has no defining ontology - look up ancestors for all found terms
-			parents = findRelatedNonDefinitiveTerms(iri, TermLinkType.ANCESTORS);
+			ancestors = findRelatedNonDefinitiveTerms(iri, TermLinkType.ANCESTORS);
 		}
 
-		return parents;
+		return ancestors;
 	}
 
 	/**
