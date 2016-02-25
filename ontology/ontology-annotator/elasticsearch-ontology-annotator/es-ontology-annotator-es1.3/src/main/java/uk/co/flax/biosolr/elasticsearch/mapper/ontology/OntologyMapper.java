@@ -397,6 +397,11 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 								labelMapper);
 					}
 				}
+
+				if (ontologySettings.isIncludeParentPaths()) {
+					// Add the parent paths
+					addFieldData(context, getPredefinedMapper(FieldMappings.PARENT_PATHS, context), data.getParentPaths());
+				}
 			}
 
 			helper.updateLastCallTime();

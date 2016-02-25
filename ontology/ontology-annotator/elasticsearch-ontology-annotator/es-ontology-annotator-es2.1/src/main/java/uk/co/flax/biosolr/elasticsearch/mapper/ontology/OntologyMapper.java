@@ -366,6 +366,11 @@ public class OntologyMapper extends FieldMapper {
 						addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
+
+					if (ontologySettings.isIncludeParentPaths()) {
+						// Add the parent paths
+						addFieldData(context, getPredefinedMapper(FieldMappings.PARENT_PATHS, context), data.getParentPaths());
+					}
 				}
 			}
 

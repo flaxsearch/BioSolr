@@ -378,6 +378,11 @@ public class OntologyMapper extends FieldMapper implements Closeable {
 						addRelatedNodesWithLabels(context, relations.get(relation), uriMapper,
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
+
+					if (ontologySettings.isIncludeParentPaths()) {
+						// Add the parent paths
+						addFieldData(context, getPredefinedMapper(FieldMappings.PARENT_PATHS, context), data.getParentPaths());
+					}
 				}
 			}
 

@@ -87,6 +87,15 @@ public class OntologySettingsBuilder {
 					case OntologySettings.THREAD_CHECK_MS_PARAM:
 						settings.setThreadCheckMs(Long.parseLong(entry.getValue().toString()));
 						iterator.remove();
+						break;
+					case OntologySettings.INCLUDE_PARENT_PATHS_PARAM:
+						settings.setIncludeParentPaths(Boolean.parseBoolean(entry.getValue().toString()));
+						iterator.remove();
+						break;
+					case OntologySettings.INCLUDE_PARENT_PATH_LABELS_PARAM:
+						settings.setIncludeParentPathLabels(Boolean.parseBoolean(entry.getValue().toString()));
+						iterator.remove();
+						break;
 				}
 			}
 		}

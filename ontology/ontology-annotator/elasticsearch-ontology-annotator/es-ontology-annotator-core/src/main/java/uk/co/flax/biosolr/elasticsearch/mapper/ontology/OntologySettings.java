@@ -186,6 +186,8 @@ public class OntologySettings {
 		for (FieldMappings fm : FieldMappings.values()) {
 			if (!includeIndirect && fm.isIndirect()) {
 				continue;
+			} else if (fm == FieldMappings.PARENT_PATHS && !includeParentPaths) {
+				continue;
 			}
 			mappingsList.add(fm);
 		}
