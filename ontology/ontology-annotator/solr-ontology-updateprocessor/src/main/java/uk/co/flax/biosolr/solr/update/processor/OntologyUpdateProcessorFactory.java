@@ -172,8 +172,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String SYNONYMS_FIELD_PARAM = "synonymsField";
 	private static final String DEFINITION_FIELD_PARAM = "definitionField";
 	private static final String FIELDNAME_PREFIX_PARAM = "fieldPrefix";
-	private static final String PARENT_PATHS_PARAM = "isIncludeParentPaths";
-	private static final String PARENT_PATHS_LABEL_PARAM = "isIncludeParentPathLabels";
+	private static final String PARENT_PATHS_PARAM = "includeParentPaths";
+	private static final String PARENT_PATHS_LABEL_PARAM = "includeParentPathLabels";
 	private static final String PARENT_PATHS_FIELD_PARAM = "parentPathsField";
 
 

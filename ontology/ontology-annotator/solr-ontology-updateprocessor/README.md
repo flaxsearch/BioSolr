@@ -140,6 +140,14 @@ Defaults to the synonym properties value shown
 annotation(s). There may be multiple definitions of this property. 
 Defaults to the definition properties value shown 
 [below](#additional-configuration-owl-files).
+* **includeParentPaths** (boolean) - set to true to add a field 
+containing all parent paths up to the root node as a multi-valued text 
+field. Default: `false`
+* **includeParentPathLabels** (boolean) - should the parent paths field
+include the labels of the nodes as part of the stored data. Has no
+effect if `includeParentPaths` is set to `false`. Default: `false`
+* **parentPathsField** - the field to use to store the parent paths.
+Default: `parent_paths_t`
 
 
 ### Additional configuration (OWL files)
