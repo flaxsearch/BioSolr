@@ -49,6 +49,9 @@ public class OntologySettings {
 	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 
+	static final String INCLUDE_PARENT_PATHS_PARAM = "includeParentPaths";
+	static final String INCLUDE_PARENT_PATH_LABELS_PARAM = "includeParentPathLabels";
+
 	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
 	private String ontologyUri;
@@ -57,6 +60,8 @@ public class OntologySettings {
 	private List<String> definitionPropertyUris = Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI);
 	private boolean includeIndirect = true;
 	private boolean includeRelations = true;
+	private boolean includeParentPaths = false;
+	private boolean includeParentPathLabels = false;
 
 	private String olsBaseUrl;
 	private String olsOntology;
@@ -151,6 +156,22 @@ public class OntologySettings {
 
 	public void setThreadCheckMs(long threadCheckMs) {
 		this.threadCheckMs = threadCheckMs;
+	}
+
+	public boolean isIncludeParentPaths() {
+		return includeParentPaths;
+	}
+
+	public void setIncludeParentPaths(boolean includeParentPaths) {
+		this.includeParentPaths = includeParentPaths;
+	}
+
+	public boolean isIncludeParentPathLabels() {
+		return includeParentPathLabels;
+	}
+
+	public void setIncludeParentPathLabels(boolean includeParentPathLabels) {
+		this.includeParentPathLabels = includeParentPathLabels;
 	}
 
 	/**

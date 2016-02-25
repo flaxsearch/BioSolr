@@ -48,7 +48,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Mapper class to expand ontology details from an ontology
@@ -289,6 +288,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 		}
 		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
+		builder.field(OntologySettings.INCLUDE_PARENT_PATHS_PARAM, ontologySettings.isIncludeParentPaths());
+		builder.field(OntologySettings.INCLUDE_PARENT_PATH_LABELS_PARAM, ontologySettings.isIncludeParentPathLabels());
 		builder.endObject();
 
 		builder.startObject(ONTOLOGY_PROPERTIES);
@@ -421,6 +422,8 @@ public class OntologyMapper extends AbstractFieldMapper<OntologyData> {
 					.includeDefinitions(true)
 					.includeIndirect(ontologySettings.isIncludeIndirect())
 					.includeRelations(ontologySettings.isIncludeRelations())
+					.includeParentPaths(ontologySettings.isIncludeParentPaths())
+					.includeParentPathLabels(ontologySettings.isIncludeParentPathLabels())
 					.build();
 		} catch (OntologyHelperException e) {
 			logger.error("Problem building ontology data for {}: {}", iri, e.getMessage());
