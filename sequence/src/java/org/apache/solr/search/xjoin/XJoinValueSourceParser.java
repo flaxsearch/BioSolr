@@ -154,17 +154,33 @@ public class XJoinValueSourceParser extends ValueSourceParser {
       };
     }
 
+    // unbox numeric types for coercing into double, also handle null
+    // as a last resort, try to parse toString()
+    private double convertFieldValue(Object object) {
+      if (object == null) {
+        return fieldDefaultValue;
+      }
+      if (object instanceof Double) {
+        return (Double)object;
+      }
+      if (object instanceof Float) {
+        return (Float)object;
+      }
+      if (object instanceof Integer) {
+        return (Integer)object;
+      }
+      return Double.valueOf(object.toString());
+    }
+    
     @SuppressWarnings("rawtypes")
     private double getValue(Object result) {
       if (result instanceof Map) {
-        Object value = ((Map)result).get(attribute);
-        return value != null ? (Double)value : fieldDefaultValue;
+        return convertFieldValue(((Map)result).get(attribute));
       } else {
         try {
           String methodName = NameConverter.getMethodName(attribute);
           Method method = result.getClass().getMethod(methodName);
-          Object value = method.invoke(result);
-          return value != null ? (Double)value : fieldDefaultValue;
+          return convertFieldValue(method.invoke(result));
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           throw new RuntimeException(e);
         }

@@ -32,6 +32,8 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.xjoin.XJoinResults;
 import org.junit.Test;
 
+import com.jayway.jsonpath.PathNotFoundException;
+
 public class TestSimpleXJoinResultsFactory {
 
   @Test
@@ -104,7 +106,7 @@ public class TestSimpleXJoinResultsFactory {
     }
   }
   
-  @Test
+  @Test(expected=PathNotFoundException.class)
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public void testNoJoinIdsAtPath() throws IOException {
     NamedList args = new NamedList();
@@ -116,11 +118,6 @@ public class TestSimpleXJoinResultsFactory {
     globalPaths.add("total", "$.count");
     
     args.add(SimpleXJoinResultsFactory.INIT_PARAM_JOIN_ID_PATH, "$.no.ids.at.this.path");
-    
-    NamedList resultPaths = new NamedList();
-    args.add(SimpleXJoinResultsFactory.INIT_PARAM_RESULT_FIELD_PATHS, resultPaths);
-    resultPaths.add("colour", "$.hits[?(@.id == 'JOINID')].colour");
-    resultPaths.add("value", "$.meta[?(@.id == 'JOINID')].value");
     
     SimpleXJoinResultsFactory factory = new SimpleXJoinResultsFactory();
     factory.init(args);
