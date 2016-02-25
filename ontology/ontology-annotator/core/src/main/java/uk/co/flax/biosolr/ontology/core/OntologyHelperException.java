@@ -18,7 +18,8 @@ package uk.co.flax.biosolr.ontology.core;
 /**
  * Exception indicating issues with the OntologyHelper.
  *
- * Created by mlp on 20/10/15.
+ * <p>Created by Matt Pearce on 20/10/15.</p>
+ * @author Matt Pearce
  */
 public class OntologyHelperException extends Exception {
 

@@ -19,9 +19,10 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Class holding ontology data, ready to import to Solr.
+ * Class holding ontology data, ready to import to the search engine.
  *
- * Created by mlp on 21/10/15.
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ * @author Matt Pearce
  */
 public class OntologyData {
 

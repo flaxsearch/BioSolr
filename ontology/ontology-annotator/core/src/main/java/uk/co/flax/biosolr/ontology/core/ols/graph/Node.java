@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * POJO representing a Node, as returned in a graph OLS call.
  *
- * Created by mlp on 27/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ * @author Matt Pearce
  */
 public class Node {
 

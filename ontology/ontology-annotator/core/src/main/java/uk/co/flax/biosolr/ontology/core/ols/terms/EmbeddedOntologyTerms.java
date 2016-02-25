@@ -23,8 +23,8 @@ import java.util.List;
  * POJO wrapping terms returned in a {@link RelatedTermsResult} lookup
  * result.
  *
- * Created by mlp on 27/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ * @author Matt Pearce
  */
 public class EmbeddedOntologyTerms {
 
@@ -34,6 +34,9 @@ public class EmbeddedOntologyTerms {
 		this.terms = terms;
 	}
 
+	/**
+	 * @return the terms returned from the {@link RelatedTermsResult} lookup.
+	 */
 	public List<OntologyTerm> getTerms() {
 		return terms;
 	}

@@ -3,12 +3,14 @@ package uk.co.flax.biosolr.ontology.core.ols.terms;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
- * Enumeration representing the types of links returned in
- * {@link OntologyTerm} objects.
+ * Enumeration representing the basic types of links returned in
+ * {@link OntologyTerm} objects. The links returned from OLS may
+ * include additional types, depending on the relations stored
+ * for the term.
  *
- * Created by mlp on 27/10/15.
+ * <p>Created by Matt Pearce on 27/10/15.</p>
  *
- * @author mlp
+ * @author Matt Pearce
  */
 public enum TermLinkType {
 

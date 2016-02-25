@@ -22,10 +22,10 @@ import java.util.Map;
 
 /**
  * Object holding ontology terms, as read from OLS.
- * <p>
- * Created by mlp on 21/10/15.
  *
- * @author mlp
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ *
+ * @author Matt Pearce
  */
 public class OntologyTerm {
 
@@ -71,54 +71,99 @@ public class OntologyTerm {
 		this.links = links;
 	}
 
+	/**
+	 * @return the IRI of the term.
+	 */
 	public String getIri() {
 		return iri;
 	}
 
+	/**
+	 * @return the label.
+	 */
 	public String getLabel() {
 		return label;
 	}
 
+	/**
+	 * @return the description(s).
+	 */
 	public List<String> getDescription() {
 		return description;
 	}
 
+	/**
+	 * @return the synonym(s) for the term.
+	 */
 	public List<String> getSynonyms() {
 		return synonyms;
 	}
 
+	/**
+	 * @return the name of the ontology from which this term was retrieved.
+	 */
 	public String getOntologyName() {
 		return ontologyName;
 	}
 
+	/**
+	 * @return the prefix of the ontology - eg. EFO, GO.
+	 */
 	public String getOntologyPrefix() {
 		return ontologyPrefix;
 	}
 
+	/**
+	 * @return the root IRI for the ontology.
+	 */
 	public String getOntologyIri() {
 		return ontologyIri;
 	}
 
+	/**
+	 * @return <code>true</code> if this node is obsolete.
+	 */
 	public boolean isObsolete() {
 		return obsolete;
 	}
 
+	/**
+	 * Check if the ontology is the defining ontology for the term,
+	 * or if it contains the term from another ontology.
+	 * @return <code>true</code> if the ontology defines this term.
+	 */
 	public boolean isDefiningOntology() {
 		return definingOntology;
 	}
 
+	/**
+	 * @return <code>true</code> if the term has children.
+	 */
 	public boolean isHasChildren() {
 		return hasChildren;
 	}
 
+	/**
+	 * @return if the term is a root node in the ontology - eg.
+	 * OWL#Thing.
+	 */
 	public boolean isRoot() {
 		return root;
 	}
 
+	/**
+	 * @return the short form of the term's IRI.
+	 */
 	public String getShortForm() {
 		return shortForm;
 	}
 
+	/**
+	 * The links hold URLs allowing parents, children, and other related
+	 * terms to be looked up. The link types are a super-set of those defined
+	 * in {@link TermLinkType}.
+	 * @return the map of links.
+	 */
 	public Map<String, Link> getLinks() {
 		return links;
 	}

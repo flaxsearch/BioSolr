@@ -32,9 +32,9 @@ import java.net.URL;
 /**
  * Unit tests for the OWLDataManager.
  * <p>
- * Created by mlp on 18/02/16.
+ * <p>Created by Matt Pearce on 18/02/16.</p>
  *
- * @author mlp
+ * @author Matt Pearce
  */
 public class OWLDataManagerTest {
 

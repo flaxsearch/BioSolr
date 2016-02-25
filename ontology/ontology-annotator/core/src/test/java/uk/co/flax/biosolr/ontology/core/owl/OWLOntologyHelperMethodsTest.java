@@ -32,7 +32,7 @@ import java.util.Collections;
 /**
  * Unit tests for the OWL Ontology Helper methods.
  *
- * Created by mlp on 20/10/15.
+ * <p>Created by Matt Pearce on 20/10/15.</p>
  */
 public class OWLOntologyHelperMethodsTest {
 

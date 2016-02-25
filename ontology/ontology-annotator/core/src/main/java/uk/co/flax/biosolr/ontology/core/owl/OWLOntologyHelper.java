@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
 /**
  * OWL-specific implementation of OntologyHelper.
  *
- * Created by mlp on 20/10/15.
+ * <p>Created by Matt Pearce on 20/10/15.</p>
+ * @author Matt Pearce
  */
 public class OWLOntologyHelper extends AbstractOntologyHelper {
 
