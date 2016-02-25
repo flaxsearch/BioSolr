@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * Enumeration representing the types of links that may be returned in an
  * OLS query result (ie. {@link RelatedTermsResult}).
  *
- * Created by mlp on 21/10/15.
+ * <p>Created by Matt Pearce on 21/10/15.</p>
  *
- * @author mlp
+ * @author Matt Pearce
  */
 public enum ResultsLinkType {
 

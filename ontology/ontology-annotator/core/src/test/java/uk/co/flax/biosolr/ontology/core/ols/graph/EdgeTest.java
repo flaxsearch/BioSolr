@@ -24,8 +24,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit tests for the Edge object.
  *
- * Created by mlp on 03/11/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 03/11/15.</p>
+ * @author Matt Pearce
  */
 public class EdgeTest {
 

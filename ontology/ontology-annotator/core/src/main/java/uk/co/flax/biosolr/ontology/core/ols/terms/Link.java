@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Link entry, as supplied by OLS.
  *
- * Created by mlp on 21/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ * @author Matt Pearce
  */
 public class Link {
 
@@ -31,6 +31,9 @@ public class Link {
 		this.href = href;
 	}
 
+	/**
+	 * @return the destination URL for the link.
+	 */
 	public String getHref() {
 		return href;
 	}

@@ -20,8 +20,8 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 /**
  * OLS-specific configuration details.
  *
- * Created by mlp on 23/02/16.
- * @author mlp
+ * <p>Created by Matt Pearce on 23/02/16.</p>
+ * @author Matt Pearce
  */
 public class OLSOntologyConfiguration extends OntologyHelperConfiguration {
 
@@ -29,20 +29,36 @@ public class OLSOntologyConfiguration extends OntologyHelperConfiguration {
 	private final String ontology;
 	private final int pageSize;
 
+	/**
+	 * Build the configuration for an OLS OntologyHelper instance.
+	 * @param olsBaseUrl the base URL for the OLS API endpoint.
+	 * @param ontology the ontology being referenced, if known.
+	 * @param pageSize the number of items to fetch from the API at a time.
+	 */
 	public OLSOntologyConfiguration(String olsBaseUrl, String ontology, int pageSize) {
 		this.olsBaseUrl = olsBaseUrl;
 		this.ontology = ontology;
 		this.pageSize = pageSize;
 	}
 
+	/**
+	 * @return the base URL for the OLS API endpoint.
+	 */
 	public String getOlsBaseUrl() {
 		return olsBaseUrl;
 	}
 
+	/**
+	 * @return the name of the ontology being referenced, as used in an
+	 * OLS URL.
+	 */
 	public String getOntology() {
 		return ontology;
 	}
 
+	/**
+	 * @return the maximum number of items to retrieve in one call.
+	 */
 	public int getPageSize() {
 		return pageSize;
 	}

@@ -17,11 +17,13 @@ package uk.co.flax.biosolr.ontology.core.ols.terms;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Page metadata from a {@link RelatedTermsResult} lookup result.
  *
- * Created by mlp on 27/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ * @author Matt Pearce
  */
 public class Page implements Comparable<Page> {
 
@@ -56,7 +58,7 @@ public class Page implements Comparable<Page> {
 		return number;
 	}
 
-	public int compareTo(Page p) {
+	public int compareTo(@NotNull Page p) {
 		if (p == null) {
 			return 1;
 		} else {

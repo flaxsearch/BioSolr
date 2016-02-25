@@ -23,8 +23,8 @@ import java.util.LinkedList;
  * implementing methods which are common to the concrete
  * implementations.
  *
- * Created by mlp on 23/02/16.
- * @author mlp
+ * <p>Created by Matt Pearce on 23/02/16.</p>
+ * @author Matt Pearce
  */
 public abstract class AbstractOntologyHelper implements OntologyHelper {
 
@@ -42,6 +42,18 @@ public abstract class AbstractOntologyHelper implements OntologyHelper {
 		return paths;
 	}
 
+	/**
+	 * Recursively build a parent path, storing complete paths in a
+	 * collection.
+	 * @param iri the IRI of the current term.
+	 * @param path the path that has been built so far.
+	 * @param paths the collection of complete paths that have been built.
+	 * This will be modified by the building process.
+	 * @param includeLabels should the labels of the parent node be included
+	 * in the path.
+	 * @throws OntologyHelperException if problems occur retrieving the
+	 * parent terms from the ontology.
+	 */
 	private void buildParentPath(String iri, String path, Collection<String> paths, boolean includeLabels) throws OntologyHelperException {
 		StringBuilder pathBuilder = new StringBuilder(path);
 		if (path.length() > 0) {

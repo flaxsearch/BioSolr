@@ -16,27 +16,23 @@
 
 package uk.co.flax.biosolr.ontology.core.owl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.List;
 
 /**
- * Ontology configuration details, as read from a properties file
- * for each required ontology.
+ * Ontology configuration details for an OWL-based ontology.
  *
- * @author mlp
+ * @author Matt Pearce
  */
 public class OWLOntologyConfiguration extends OntologyHelperConfiguration {
-	
+
+	/** Default label property */
 	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
+	/** Default synonym property */
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
+	/** Default definition property */
 	public static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
 	
 	private final String ontologyUri;
@@ -45,7 +41,16 @@ public class OWLOntologyConfiguration extends OntologyHelperConfiguration {
 	private final List<String> synonymPropertyUris;
 	private final List<String> definitionPropertyUris;
 	private final List<String> ignorePropertyUris;
-	
+
+	/**
+	 * Build the OWL ontology configuration for an OWL OntologyHelper
+	 * instance.
+	 * @param ontologyUri the URI of the ontology.
+	 * @param labelUris the label property or properties that should be used.
+	 * @param synonymUris the synonym properties that should be used.
+	 * @param definitionUris the definition properties that should be used.
+	 * @param ignoreUris the properties that should be ignored. <b>Not used.</b>
+	 */
 	public OWLOntologyConfiguration(String ontologyUri, List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
 		this.ontologyUri = ontologyUri;
 		this.labelPropertyUris = labelUris;
@@ -54,18 +59,30 @@ public class OWLOntologyConfiguration extends OntologyHelperConfiguration {
 		this.ignorePropertyUris = ignoreUris;
 	}
 
+	/**
+	 * @return the URI of the ontology.
+	 */
 	public String getOntologyUri() {
 		return ontologyUri;
 	}
 
+	/**
+	 * @return the label property or properties for this ontology.
+	 */
 	public List<String> getLabelPropertyUris() {
 		return labelPropertyUris;
 	}
 
+	/**
+	 * @return the synonym properties for this ontology.
+	 */
 	public List<String> getSynonymPropertyUris() {
 		return synonymPropertyUris;
 	}
 
+	/**
+	 * @return the definition properties for this ontology.
+	 */
 	public List<String> getDefinitionPropertyUris() {
 		return definitionPropertyUris;
 	}

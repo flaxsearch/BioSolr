@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
  * terms lookups are searches, and need to be handled slightly
  * differently.
  *
- * Created by mlp on 10/11/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 10/11/15.</p>
+ * @author Matt Pearce
  */
 public class OLSTermsOntologyHelper extends OLSOntologyHelper {
 

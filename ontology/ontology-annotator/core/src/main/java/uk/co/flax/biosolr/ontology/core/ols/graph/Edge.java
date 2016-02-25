@@ -21,8 +21,8 @@ import org.semanticweb.owlapi.rdf.util.RDFConstants;
 /**
  * POJO representing an edge value, as returned from an OLS graph call.
  *
- * Created by mlp on 27/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ * @author Matt Pearce
  */
 public class Edge {
 

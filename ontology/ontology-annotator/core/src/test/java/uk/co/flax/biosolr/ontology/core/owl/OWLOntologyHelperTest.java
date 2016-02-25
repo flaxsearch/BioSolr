@@ -26,7 +26,7 @@ import java.util.Collections;
 /**
  * Unit tests for the OWLOntologyHelper, testing construction of the class.
  *
- * Created by mlp on 20/10/15.
+ * <p>Created by Matt Pearce on 20/10/15.</p>
  */
 public class OWLOntologyHelperTest {
 

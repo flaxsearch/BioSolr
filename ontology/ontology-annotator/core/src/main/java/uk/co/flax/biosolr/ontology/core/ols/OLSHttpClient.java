@@ -33,8 +33,8 @@ import java.util.concurrent.*;
 /**
  * HTTP Client class for calling OLS.
  *
- * Created by mlp on 10/12/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 10/12/15.</p>
+ * @author Matt Pearce
  */
 public class OLSHttpClient {
 
@@ -43,6 +43,12 @@ public class OLSHttpClient {
 	private final Client client;
 	private final ExecutorService executor;
 
+	/**
+	 * Construct an HTTP client for accessing the OLS web API.
+	 * @param threadPoolSize the size of the threadpool to use.
+	 * @param threadFactory the thread factory to use to build the client
+	 * threads.
+	 */
 	public OLSHttpClient(int threadPoolSize, ThreadFactory threadFactory) {
 		// Initialise the HTTP client
 		this.client = new JerseyClientBuilder()
@@ -57,6 +63,9 @@ public class OLSHttpClient {
 		LOGGER.trace("Initialising OLS HTTP client with threadpool size {}", threadPoolSize);
 	}
 
+	/**
+	 * Shut down the client.
+	 */
 	public void shutdown() {
 		executor.shutdown();
 		client.close();

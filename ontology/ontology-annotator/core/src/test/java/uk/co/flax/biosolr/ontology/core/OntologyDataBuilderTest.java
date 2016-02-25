@@ -33,7 +33,7 @@ import java.util.Collections;
 /**
  * Unit tests for the OntologyDataBuilder.
  * <p>
- * Created by mlp on 21/10/15.
+ * <p>Created by Matt Pearce on 21/10/15.</p>
  */
 public class OntologyDataBuilderTest {
 
