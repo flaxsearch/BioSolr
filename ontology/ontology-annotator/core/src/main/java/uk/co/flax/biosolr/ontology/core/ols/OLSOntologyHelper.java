@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 
 /**
  * OLS-specific implementation of OntologyHelper.
- * <p>
- * Created by mlp on 21/10/15.
  *
- * @author mlp
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ *
+ * @author Matt Pearce
  */
 public class OLSOntologyHelper extends AbstractOntologyHelper {
 

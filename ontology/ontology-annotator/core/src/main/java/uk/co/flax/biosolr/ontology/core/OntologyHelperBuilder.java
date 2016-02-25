@@ -35,8 +35,22 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Generic builder class for the OntologyHelper implementations.
  *
- * Created by mlp on 23/02/16.
- * @author mlp
+ * <p>
+ * This should be used instead of instantiating OntologyHelper
+ * implementations directly. Depending on the settings passed, it will
+ * determine the required implementation and build it with those
+ * settings. For example:
+ * </p>
+ *
+ * <pre>
+	OntologyHelper helper = new OntologyHelperBuilder()
+ 		.olsBaseUrl("http://www.ebi.ac.uk/ols/beta")
+ 		.ontology("efo")
+ 		.build();
+ * </pre>
+ *
+ * <p>Created by Matt Pearce on 23/02/16.</p>
+ * @author Matt Pearce
  */
 public class OntologyHelperBuilder {
 

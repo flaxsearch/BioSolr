@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 /**
  * POJO representing the returned structure from a graph OLS call.
  *
- * Created by mlp on 27/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ * @author Matt Pearce
  */
 public class Graph {
 

@@ -26,8 +26,8 @@ import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperTest;
 /**
  * Unit tests for the OntologyHelperBuilder.
  *
- * Created by mlp on 24/02/16.
- * @author mlp
+ * <p>Created by Matt Pearce on 24/02/16.</p>
+ * @author Matt Pearce
  */
 public class OntologyHelperBuilderTest {
 

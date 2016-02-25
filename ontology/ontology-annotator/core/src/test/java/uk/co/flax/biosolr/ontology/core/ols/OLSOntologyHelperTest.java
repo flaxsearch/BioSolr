@@ -29,8 +29,8 @@ import static uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest.
 /**
  * Unit tests for the OLS Ontology helper class.
  *
- * Created by mlp on 10/12/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 10/12/15.</p>
+ * @author Matt Pearce
  */
 public class OLSOntologyHelperTest {
 

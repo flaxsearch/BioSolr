@@ -20,12 +20,25 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Builder class for OntologyData objects.
- * Created by mlp on 21/10/15.
+ *
+ * <p>
+ * This class should be used with an {@link OntologyHelper} to
+ * retrieve and build the ontology data for a specific class.
+ * For example:
+ * </p>
+ *
+ * <pre>
+	OntologyData data = new OntologyBuilder(helper, iri)
+		.includeSynonyms(true)
+		.includeRelations(false)
+		.build();
+</pre>
+ *
+ * @author Matt Pearce
  */
 public class OntologyDataBuilder {
 

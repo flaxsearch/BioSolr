@@ -31,8 +31,8 @@ import java.util.Map;
  * Class to handle OWL data management, including managing the OWL
  * ontology, reasoner and class map.
  *
- * Created by mlp on 18/02/16.
- * @author mlp
+ * <p>Created by Matt Pearce on 18/02/16.</p>
+ * @author Matt Pearce
  */
 public class OWLDataManager {
 

@@ -15,18 +15,18 @@
  */
 package uk.co.flax.biosolr.ontology.core;
 
-import java.util.List;
-
 /**
  * Base configuration details for the OntologyHelper
  * implementations.
  *
- * Created by mlp on 23/02/16.
- * @author mlp
+ * <p>Created by Matt Pearce on 23/02/16.</p>
+ * @author Matt Pearce
  */
 public class OntologyHelperConfiguration {
 
+	/** Default separator to use in parent paths list between nodes. */
 	public static final String NODE_PATH_SEPARATOR = ",";
+	/** Default separator to use in parent paths list between IRIs and labels. */
 	public static final String NODE_LABEL_SEPARATOR = " => ";
 
 	private String nodePathSeparator = NODE_PATH_SEPARATOR;

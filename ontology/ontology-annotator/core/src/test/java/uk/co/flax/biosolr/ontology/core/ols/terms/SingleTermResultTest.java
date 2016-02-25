@@ -25,8 +25,8 @@ import static org.junit.Assert.*;
 /**
  * Unit tests for the single terms result class.
  *
- * Created by mlp on 03/12/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 03/12/15.</p>
+ * @author Matt Pearce
  */
 public class SingleTermResultTest {
 

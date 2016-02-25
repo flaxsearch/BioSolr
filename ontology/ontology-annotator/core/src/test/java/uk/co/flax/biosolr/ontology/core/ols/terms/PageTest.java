@@ -22,8 +22,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit tests for the Page class.
  *
- * Created by mlp on 24/11/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 24/11/15.</p>
+ * @author Matt Pearce
  */
 public class PageTest {
 
