@@ -15,13 +15,13 @@
  */
 package uk.co.flax.biosolr.ontology.core.owl;
 
-import org.junit.BeforeClass;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 
 import java.net.URI;
-
-import static org.junit.Assert.assertNotNull;
+import java.util.Collections;
 
 /**
  * Unit tests for the OWLOntologyHelper, testing construction of the class.
@@ -33,22 +33,25 @@ public class OWLOntologyHelperTest {
 	public static final String TEST_ONTOLOGY = "ontologyUpdate/owl/test.owl";
 	public static final String TEST_IRI = "http://www.ebi.ac.uk/efo/EFO_0000001";
 
-	private static URI testOntologyUri;
-
-	@BeforeClass
-	public static void setup() throws Exception {
-		testOntologyUri = OWLOntologyHelperTest.class.getClassLoader().getResource(TEST_ONTOLOGY).toURI();
-	}
-
 	@Test(expected = java.net.URISyntaxException.class)
 	public void constructString_withBadURI() throws Exception {
 		final String dummyUri = "http://blah<.com:8080/dummy.owl";
-		new OWLOntologyHelper(dummyUri, null);
+		OWLOntologyConfiguration config = new OWLOntologyConfiguration(dummyUri,
+				Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+				Collections.emptyList());
+		new OWLOntologyHelper(config);
 	}
 
 	@Test
 	public void constructString() throws Exception {
-		OntologyHelper helper = new OWLOntologyHelper(TEST_ONTOLOGY, OWLOntologyConfiguration.defaultConfiguration());
+		OWLOntologyConfiguration config = new OWLOntologyConfiguration(TEST_ONTOLOGY,
+				Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+				Collections.emptyList());
+		OntologyHelper helper = new OWLOntologyHelper(config);
 		assertNotNull(helper.findLabels(TEST_IRI));
 	}
 
@@ -60,7 +63,12 @@ public class OWLOntologyHelperTest {
 
 	@Test
 	public void construct() throws Exception {
-		OntologyHelper helper = new OWLOntologyHelper(testOntologyUri, OWLOntologyConfiguration.defaultConfiguration());
+		OWLOntologyConfiguration config = new OWLOntologyConfiguration(TEST_ONTOLOGY,
+				Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI),
+				Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
+				Collections.emptyList());
+		OntologyHelper helper = new OWLOntologyHelper(config);
 		assertNotNull(helper.findLabels(TEST_IRI));
 	}
 

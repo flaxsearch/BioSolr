@@ -23,8 +23,6 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 import static uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest.TEST_IRI;
 
@@ -47,7 +45,9 @@ public class OLSOntologyHelperTest {
 		OLSHttpClient client = mock(OLSHttpClient.class);
 		when(client.callOLS(isA(Collection.class), eq(OntologyTerm.class))).thenReturn(Collections.emptyList());
 
-		OLSOntologyHelper helper = new OLSOntologyHelper(BASE_URL, ONTOLOGY, client);
+		OLSOntologyConfiguration config = new OLSOntologyConfiguration(BASE_URL, ONTOLOGY, OLSOntologyHelper.PAGE_SIZE);
+
+		OLSOntologyHelper helper = new OLSOntologyHelper(config, client);
 		assertFalse(helper.isIriInOntology(BAD_IRI));
 		assertFalse(helper.isIriInOntology(BAD_IRI));
 
@@ -62,7 +62,8 @@ public class OLSOntologyHelperTest {
 		OLSHttpClient client = mock(OLSHttpClient.class);
 		when(client.callOLS(isA(Collection.class), eq(OntologyTerm.class))).thenReturn(Collections.singletonList(term));
 
-		OLSOntologyHelper helper = new OLSOntologyHelper(BASE_URL, ONTOLOGY, client);
+		OLSOntologyConfiguration config = new OLSOntologyConfiguration(BASE_URL, ONTOLOGY, OLSOntologyHelper.PAGE_SIZE);
+		OLSOntologyHelper helper = new OLSOntologyHelper(config, client);
 		assertTrue(helper.isIriInOntology(TEST_IRI));
 		assertTrue(helper.isIriInOntology(TEST_IRI));
 

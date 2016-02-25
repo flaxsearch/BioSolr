@@ -15,18 +15,20 @@
  */
 package uk.co.flax.biosolr.ontology.core;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.*;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import uk.co.flax.biosolr.ontology.core.ols.OLSHttpClientTest;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelper;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperMethodsTest;
 import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyHelperTest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Unit tests for the OntologyDataBuilder.
@@ -35,14 +37,16 @@ import static org.mockito.Mockito.*;
  */
 public class OntologyDataBuilderTest {
 
-	public static final String COMPLETE_PROPFILE_PATH = "ontologyUpdate/config/ontology_1.properties";
-
 	private static OntologyHelper helper;
 
 	@BeforeClass
 	public static void init() throws Exception {
-		helper = new OWLOntologyHelper(OWLOntologyHelperTest.TEST_ONTOLOGY,
-				OWLOntologyConfiguration.fromPropertiesFile(OLSHttpClientTest.getFile(COMPLETE_PROPFILE_PATH).getAbsolutePath()));
+		OWLOntologyConfiguration config = new OWLOntologyConfiguration(OWLOntologyHelperTest.TEST_ONTOLOGY,
+				Collections.singletonList("http://www.w3.org/2000/01/rdf-schema#label"),
+				Arrays.asList("http://www.ebi.ac.uk/efo/definition","http://purl.obolibrary.org/obo/IAO_0000115OWLOntologyConfiguration.SYNONYM_PROPERTY_URI"),
+				Arrays.asList("http://www.ebi.ac.uk/efo/alternative_term", "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"),
+				Collections.singletonList("http://www.geneontology.org/formats/oboInOwl#ObsoleteClass"));
+		helper = new OWLOntologyHelper(config);
 	}
 
 	@AfterClass

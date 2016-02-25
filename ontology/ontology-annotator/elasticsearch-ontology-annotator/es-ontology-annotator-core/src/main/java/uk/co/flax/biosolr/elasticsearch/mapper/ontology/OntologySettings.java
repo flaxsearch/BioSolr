@@ -16,8 +16,8 @@
 
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology;
 
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import uk.co.flax.biosolr.ontology.core.ols.OLSOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.owl.OWLOntologyConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,21 +49,19 @@ public class OntologySettings {
 	static final String INCLUDE_INDIRECT_PARAM = "includeIndirect";
 	static final String INCLUDE_RELATIONS_PARAM = "includeRelations";
 
+	static final String INCLUDE_PARENT_PATHS_PARAM = "includeParentPaths";
+	static final String INCLUDE_PARENT_PATH_LABELS_PARAM = "includeParentPathLabels";
+
 	static final String THREAD_CHECK_MS_PARAM = "threadCheckMs";
 
-	/*
-	 * Default property annotation values.
-	 */
-	private static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
-	private static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
-	private static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
-
 	private String ontologyUri;
-	private List<String> labelPropertyUris = Collections.singletonList(LABEL_PROPERTY_URI);
-	private List<String> synonymPropertyUris = Collections.singletonList(SYNONYM_PROPERTY_URI);
-	private List<String> definitionPropertyUris = Collections.singletonList(DEFINITION_PROPERTY_URI);
+	private List<String> labelPropertyUris = Collections.singletonList(OWLOntologyConfiguration.LABEL_PROPERTY_URI);
+	private List<String> synonymPropertyUris = Collections.singletonList(OWLOntologyConfiguration.SYNONYM_PROPERTY_URI);
+	private List<String> definitionPropertyUris = Collections.singletonList(OWLOntologyConfiguration.DEFINITION_PROPERTY_URI);
 	private boolean includeIndirect = true;
 	private boolean includeRelations = true;
+	private boolean includeParentPaths = false;
+	private boolean includeParentPathLabels = false;
 
 	private String olsBaseUrl;
 	private String olsOntology;
@@ -160,6 +158,22 @@ public class OntologySettings {
 		this.threadCheckMs = threadCheckMs;
 	}
 
+	public boolean isIncludeParentPaths() {
+		return includeParentPaths;
+	}
+
+	public void setIncludeParentPaths(boolean includeParentPaths) {
+		this.includeParentPaths = includeParentPaths;
+	}
+
+	public boolean isIncludeParentPathLabels() {
+		return includeParentPathLabels;
+	}
+
+	public void setIncludeParentPathLabels(boolean includeParentPathLabels) {
+		this.includeParentPathLabels = includeParentPathLabels;
+	}
+
 	/**
 	 * Get a list of the default field mappings appropriate for this ontology mapper. This
 	 * will exclude the ancestor and descendant mappings if includeIndirect is <code>false</code>.
@@ -171,6 +185,8 @@ public class OntologySettings {
 
 		for (FieldMappings fm : FieldMappings.values()) {
 			if (!includeIndirect && fm.isIndirect()) {
+				continue;
+			} else if (fm == FieldMappings.PARENT_PATHS && !includeParentPaths) {
 				continue;
 			}
 			mappingsList.add(fm);

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +38,8 @@ public class OntologyDataBuilder {
 	private boolean includeRelations;
 	private boolean includeSynonyms;
 	private boolean includeDefinitions;
+	private boolean includeParentPaths;
+	private boolean includeParentPathLabels;
 
 	/**
 	 * Construct an OntologyDataBuilder, supplying the {@link OntologyHelper}
@@ -95,6 +98,29 @@ public class OntologyDataBuilder {
 	}
 
 	/**
+	 * Should the builder include the parent paths when building the data object?
+	 * @param inc set <code>true</code> to include the parent paths.
+	 * @return the OntologyDataBuilder.
+	 */
+	public OntologyDataBuilder includeParentPaths(boolean inc) {
+		this.includeParentPaths = inc;
+		return this;
+	}
+
+	/**
+	 * Should the parent paths also include the labels for each entry?
+	 *
+	 * <p>Note that this has no effect unless {@code #includeParentPaths(<code>true</code>)}
+	 * has also been called.</p>
+	 * @param inc set <code>true</code> to include the parent paths labels.
+	 * @return the OntologyDataBuilder.
+	 */
+	public OntologyDataBuilder includeParentPathLabels(boolean inc) {
+		this.includeParentPathLabels = inc;
+		return this;
+	}
+
+	/**
 	 * Build the OntologyData item.
 	 * @return the OntologyData item required, or <code>null</code> if the
 	 * item does not exist in the ontology.
@@ -136,8 +162,16 @@ public class OntologyDataBuilder {
 				relationLabels = null;
 			}
 
+			Collection<String> parentPaths;
+			if (includeParentPaths) {
+				parentPaths = helper.getParentPaths(iri, includeParentPathLabels);
+			} else {
+				parentPaths = null;
+			}
+
 			ret = new OntologyData(labels, synonyms, definitions, childIris, childLabels, parentIris, parentLabels,
-					descendantIris, descendantLabels, ancestorIris, ancestorLabels, relationIris, relationLabels);
+					descendantIris, descendantLabels, ancestorIris, ancestorLabels, relationIris, relationLabels,
+					parentPaths);
 		}
 
 		// Update the last time the helper was used

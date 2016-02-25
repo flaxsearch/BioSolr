@@ -18,6 +18,7 @@ package uk.co.flax.biosolr.ontology.core.owl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -32,73 +33,29 @@ import java.util.*;
  *
  * @author mlp
  */
-public class OWLOntologyConfiguration {
+public class OWLOntologyConfiguration extends OntologyHelperConfiguration {
 	
 	public static final String LABEL_PROPERTY_URI = OWLRDFVocabulary.RDFS_LABEL.toString();
 	public static final String SYNONYM_PROPERTY_URI = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
 	public static final String DEFINITION_PROPERTY_URI = "http://purl.obolibrary.org/obo/IAO_0000115";
 	
-	public static final String LABEL_PROPERTY_KEY = "label_properties";
-	public static final String SYNONYM_PROPERTY_KEY = "synonym_properties";
-	public static final String DEFINITION_PROPERTY_KEY = "definition_properties";
-	public static final String IGNORE_PROPERTY_KEY = "ignore_properties";
+	private final String ontologyUri;
 
 	private final List<String> labelPropertyUris;
 	private final List<String> synonymPropertyUris;
 	private final List<String> definitionPropertyUris;
 	private final List<String> ignorePropertyUris;
 	
-	public OWLOntologyConfiguration(List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
+	public OWLOntologyConfiguration(String ontologyUri, List<String> labelUris, List<String> synonymUris, List<String> definitionUris, List<String> ignoreUris) {
+		this.ontologyUri = ontologyUri;
 		this.labelPropertyUris = labelUris;
 		this.synonymPropertyUris = synonymUris;
 		this.definitionPropertyUris = definitionUris;
 		this.ignorePropertyUris = ignoreUris;
 	}
 
-	/**
-	 * Build an ontology configuration using sensible defaults.
-	 * @return the default ontology configuration.
-	 */
-	public static OWLOntologyConfiguration defaultConfiguration() {
-		return new OWLOntologyConfiguration(Collections.singletonList(LABEL_PROPERTY_URI),
-				Collections.singletonList(SYNONYM_PROPERTY_URI),
-				Collections.singletonList(DEFINITION_PROPERTY_URI),
-				Collections.emptyList());
-	}
-	
-	/**
-	 * Build an ontology configuration using a properties file. Any missing
-	 * properties will be replaced with the equivalent default value(s).
-	 * @param propFile the properties file to read.
-	 * @return the ontology configuration for the properties file.
-	 * @throws IOException 
-	 */
-	public static OWLOntologyConfiguration fromPropertiesFile(String propFile) throws IOException {
-		Path path = FileSystems.getDefault().getPath(propFile);
-		Reader reader = Files.newBufferedReader(path);
-		ResourceBundle rb = new PropertyResourceBundle(reader);
-		
-		String labels = getResourceString(rb, LABEL_PROPERTY_KEY, LABEL_PROPERTY_URI);
-		String definitions = getResourceString( rb, DEFINITION_PROPERTY_KEY, DEFINITION_PROPERTY_URI);
-		String synonyms = getResourceString(rb, SYNONYM_PROPERTY_KEY, SYNONYM_PROPERTY_URI);
-		String ignores = getResourceString(rb, IGNORE_PROPERTY_KEY, "");
-		
-		List<String> labelUris = Arrays.asList(labels.split(",\\s*"));
-		List<String> definitionUris = Arrays.asList(definitions.split(",\\s*"));
-		List<String> synonymUris = Arrays.asList(synonyms.split(",\\s*"));
-		List<String> ignoreUris = StringUtils.isNotBlank(ignores) ? Arrays.asList(ignores.split(",\\s*")) : Collections.emptyList();
-		
-		return new OWLOntologyConfiguration(labelUris, synonymUris, definitionUris, ignoreUris);
-	}
-	
-	private static String getResourceString(ResourceBundle rb, String key, String defaultValue) {
-		String ret;
-		try {
-			ret = rb.getString(key);
-		} catch (MissingResourceException mre) {
-			ret = defaultValue == null ? "" : defaultValue;
-		}
-		return ret;
+	public String getOntologyUri() {
+		return ontologyUri;
 	}
 
 	public List<String> getLabelPropertyUris() {

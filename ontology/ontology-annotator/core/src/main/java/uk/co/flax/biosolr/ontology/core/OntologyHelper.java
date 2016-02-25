@@ -124,4 +124,6 @@ public interface OntologyHelper {
 	 */
 	Map<String, Collection<String>> getRelations(String iri) throws OntologyHelperException;
 
+	Collection<String> getParentPaths(String iri, boolean includeLabels) throws OntologyHelperException;
+
 }

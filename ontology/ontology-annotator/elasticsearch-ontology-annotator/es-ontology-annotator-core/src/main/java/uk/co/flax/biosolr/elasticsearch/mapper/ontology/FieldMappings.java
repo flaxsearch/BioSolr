@@ -37,7 +37,8 @@ public enum FieldMappings {
 	DESCENDANT_URI("descendant_uris", true),
 	DESCENDANT_LABEL("descendant_labels", true),
 	ANCESTOR_URI("ancestor_uris", true),
-	ANCESTOR_LABEL("ancestor_labels", true)
+	ANCESTOR_LABEL("ancestor_labels", true),
+	PARENT_PATHS("parent_paths")
 	;
 	
 	private final String fieldName;

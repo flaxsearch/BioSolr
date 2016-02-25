@@ -18,7 +18,8 @@ package uk.co.flax.biosolr.ontology.core.ols;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.co.flax.biosolr.ontology.core.OntologyHelper;
+import uk.co.flax.biosolr.ontology.core.AbstractOntologyHelper;
+import uk.co.flax.biosolr.ontology.core.OntologyHelperConfiguration;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 import uk.co.flax.biosolr.ontology.core.ols.graph.Edge;
 import uk.co.flax.biosolr.ontology.core.ols.graph.Graph;
@@ -38,10 +39,11 @@ import java.util.stream.Collectors;
  *
  * @author mlp
  */
-public class OLSOntologyHelper implements OntologyHelper {
+public class OLSOntologyHelper extends AbstractOntologyHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OLSOntologyHelper.class);
 
+	@SuppressWarnings("unused")
 	public static final int THREADPOOL_SIZE = 8;
 	public static final int PAGE_SIZE = 100;
 
@@ -52,9 +54,9 @@ public class OLSOntologyHelper implements OntologyHelper {
 	static final String SIZE_PARAM = "size";
 	static final String PAGE_PARAM = "page";
 
+	private final OLSOntologyConfiguration configuration;
+
 	private final String baseUrl;
-	private final String ontology;
-	private final int pageSize;
 
 	protected final OLSHttpClient olsClient;
 
@@ -70,14 +72,9 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	private long lastCallTime;
 
-	public OLSOntologyHelper(String baseUrl, String ontology, OLSHttpClient olsClient) {
-		this(baseUrl, ontology, PAGE_SIZE, olsClient);
-	}
-
-	public OLSOntologyHelper(String baseUrl, String ontology, int pageSize, OLSHttpClient olsClient) {
-		this.baseUrl = buildBaseUrl(baseUrl, ontology);
-		this.ontology = ontology;
-		this.pageSize = pageSize;
+	public OLSOntologyHelper(OLSOntologyConfiguration config, OLSHttpClient olsClient) {
+		this.configuration = config;
+		this.baseUrl = buildBaseUrl(config.getOlsBaseUrl(), config.getOntology());
 		this.olsClient = olsClient;
 	}
 
@@ -101,7 +98,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public void dispose() {
-		LOGGER.info("Disposing of OLS ontology helper for {}", ontology);
+		LOGGER.info("Disposing of OLS ontology helper for {}", configuration.getOntology());
 		olsClient.shutdown();
 
 		// Clear caches
@@ -109,6 +106,11 @@ public class OLSOntologyHelper implements OntologyHelper {
 		relatedIris.clear();
 		graphs.clear();
 		graphLabels.clear();
+	}
+
+	@Override
+	protected OntologyHelperConfiguration getConfiguration() {
+		return new OntologyHelperConfiguration();
 	}
 
 	/**
@@ -179,15 +181,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 
 	@Override
 	public Collection<String> findLabels(String iri) throws OntologyHelperException {
-		Collection<String> ret;
-		if (graphLabels.containsKey(iri)) {
-			ret = Collections.singletonList(graphLabels.get(iri));
-		} else if (isIriInOntology(iri)) {
-			ret = Collections.singletonList(terms.get(iri).getLabel());
-		} else {
-			ret = Collections.emptyList();
-		}
-		return ret;
+		return findLabelsForIRIs(Collections.singletonList(iri));
 	}
 
 	@Override
@@ -386,7 +380,7 @@ public class OLSOntologyHelper implements OntologyHelper {
 	 */
 	protected List<String> buildPageUrls(String baseUrl, int firstPage, int lastPage) {
 		UriBuilder builder = UriBuilder.fromUri(baseUrl)
-				.queryParam(SIZE_PARAM, pageSize)
+				.queryParam(SIZE_PARAM, configuration.getPageSize())
 				.queryParam(PAGE_PARAM, "{pageNum}");
 
 		List<String> pageUrls = new ArrayList<>(lastPage - firstPage);

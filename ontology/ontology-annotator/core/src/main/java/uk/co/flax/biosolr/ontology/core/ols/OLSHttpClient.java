@@ -15,7 +15,6 @@
  */
 package uk.co.flax.biosolr.ontology.core.ols;
 
-import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.Collection;

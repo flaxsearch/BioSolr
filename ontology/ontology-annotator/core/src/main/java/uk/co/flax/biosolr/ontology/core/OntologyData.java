@@ -44,12 +44,15 @@ public class OntologyData {
 	private final Map<String, Collection<String>> relationIris;
 	private final Map<String, Collection<String>> relationLabels;
 
+	private final Collection<String> parentPaths;
+
 	public OntologyData(Collection<String> labels, Collection<String> synonyms, Collection<String> definitions,
 						Collection<String> childIris, Collection<String> childLabels,
 						Collection<String> parentIris, Collection<String> parentLabels,
 						Collection<String> descendantIris, Collection<String> descendantLabels,
 						Collection<String> ancestorIris, Collection<String> ancestorLabels,
-						Map<String, Collection<String>> relationIris, Map<String, Collection<String>> relationLabels) {
+						Map<String, Collection<String>> relationIris, Map<String, Collection<String>> relationLabels,
+						Collection<String> parentPaths) {
 		this.labels = labels;
 		this.synonyms = synonyms;
 		this.definitions = definitions;
@@ -63,6 +66,7 @@ public class OntologyData {
 		this.ancestorLabels = ancestorLabels;
 		this.relationIris = relationIris;
 		this.relationLabels = relationLabels;
+		this.parentPaths = parentPaths;
 	}
 
 	public Collection<String> getLabels() {
@@ -125,4 +129,7 @@ public class OntologyData {
 		return definitions != null && !definitions.isEmpty();
 	}
 
+	public Collection<String> getParentPaths() {
+		return parentPaths;
+	}
 }

@@ -24,24 +24,19 @@ import org.elasticsearch.common.collect.CopyOnWriteHashMap;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.mapper.*;
 import org.elasticsearch.index.mapper.core.StringFieldMapper;
-import org.elasticsearch.threadpool.ThreadPool;
 import uk.co.flax.biosolr.elasticsearch.OntologyHelperBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyData;
 import uk.co.flax.biosolr.ontology.core.OntologyDataBuilder;
 import uk.co.flax.biosolr.ontology.core.OntologyHelper;
 import uk.co.flax.biosolr.ontology.core.OntologyHelperException;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
 
 import static org.elasticsearch.index.mapper.core.TypeParsers.parseField;
 
@@ -252,6 +247,8 @@ public class OntologyMapper extends FieldMapper {
 		}
 		builder.field(OntologySettings.INCLUDE_INDIRECT_PARAM, ontologySettings.isIncludeIndirect());
 		builder.field(OntologySettings.INCLUDE_RELATIONS_PARAM, ontologySettings.isIncludeRelations());
+		builder.field(OntologySettings.INCLUDE_PARENT_PATHS_PARAM, ontologySettings.isIncludeParentPaths());
+		builder.field(OntologySettings.INCLUDE_PARENT_PATH_LABELS_PARAM, ontologySettings.isIncludeParentPathLabels());
 		builder.endObject();
 
 		if (!mappers.isEmpty()) {
@@ -367,6 +364,11 @@ public class OntologyMapper extends FieldMapper {
 								helper.findLabelsForIRIs(relations.get(relation)), labelMapper);
 					}
 				}
+
+				if (ontologySettings.isIncludeParentPaths()) {
+					// Add the parent paths
+					addFieldData(context, getPredefinedMapper(FieldMappings.PARENT_PATHS, context), data.getParentPaths());
+				}
 			}
 
 			helper.updateLastCallTime();
@@ -393,6 +395,8 @@ public class OntologyMapper extends FieldMapper {
 					.includeDefinitions(true)
 					.includeIndirect(ontologySettings.isIncludeIndirect())
 					.includeRelations(ontologySettings.isIncludeRelations())
+					.includeParentPaths(ontologySettings.isIncludeParentPaths())
+					.includeParentPathLabels(ontologySettings.isIncludeParentPathLabels())
 					.build();
 		} catch (OntologyHelperException e) {
 			logger.error("Problem building ontology data for {}: {}", iri, e.getMessage());
