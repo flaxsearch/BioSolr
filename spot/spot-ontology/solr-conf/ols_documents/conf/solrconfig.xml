@@ -625,6 +625,9 @@
       <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api</str>
       <!-- OLS ontology name -->
       <str name="olsOntology">efo</str>
+
+      <str name="includeParentPaths">true</str>
+      <str name="includeParentPathLabels">true</str>
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />

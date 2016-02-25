@@ -45,6 +45,7 @@
     <field name="efo_parent_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels" type="text_general" indexed="true" stored="true" multiValued="true" />
     <field name="efo_child_labels_str" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="efo_parent_paths" type="string" indexed="false" stored="true" multiValued="true" />
     
     <field name="facet_labels" type="string" indexed="true" stored="true" multiValued="true" />
 
