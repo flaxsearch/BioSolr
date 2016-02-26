@@ -54,14 +54,11 @@ public class OWLOntologyHelper extends AbstractOntologyHelper {
 	 * Construct a new ontology helper instance with a string representing the
 	 * ontology URI.
 	 *
-	 * @param config            the ontology configuration, containing the property URIs
-	 *                          for labels, synonyms, etc.
-	 * @throws OWLOntologyCreationException if the ontology cannot be read for
-	 *                                      some reason - internal inconsistencies, etc.
-	 * @throws URISyntaxException           if the URI cannot be parsed.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
+	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(OWLOntologyConfiguration config) throws OWLOntologyCreationException,
-			URISyntaxException {
+	public OWLOntologyHelper(OWLOntologyConfiguration config) throws URISyntaxException {
 		this(new URI(config.getOntologyUri()), config);
 	}
 
@@ -69,14 +66,11 @@ public class OWLOntologyHelper extends AbstractOntologyHelper {
 	 * Construct a new ontology helper instance.
 	 *
 	 * @param ontologyUri the URI giving the location of the ontology.
-	 * @param config      the ontology configuration, containing the property URIs
-	 *                    for labels, synonyms, etc.
-	 * @throws OWLOntologyCreationException if the ontology cannot be read for
-	 *                                      some reason - internal inconsistencies, etc.
-	 * @throws URISyntaxException           if the URI cannot be parsed.
+	 * @param config the ontology configuration, containing the property URIs
+	 * for labels, synonyms, etc.
+	 * @throws URISyntaxException if the URI cannot be parsed.
 	 */
-	public OWLOntologyHelper(URI ontologyUri, OWLOntologyConfiguration config) throws OWLOntologyCreationException,
-			URISyntaxException {
+	public OWLOntologyHelper(URI ontologyUri, OWLOntologyConfiguration config) throws URISyntaxException {
 		this.config = config;
 
 		if (!ontologyUri.isAbsolute()) {
