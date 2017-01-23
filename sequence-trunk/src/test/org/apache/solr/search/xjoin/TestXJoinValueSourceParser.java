@@ -85,7 +85,7 @@ public class TestXJoinValueSourceParser extends AbstractXJoinTestCase {
     XJoinValueSourceParser vsp = new XJoinValueSourceParser();
     vsp.init(initArgs);
     ValueSource vs = vsp.parse(fqp);
-    return vs.getValues(null, searcher.getLeafReader().getContext());
+    return vs.getValues(null, searcher.getSlowAtomicReader().getContext());
   }
 
   @Test

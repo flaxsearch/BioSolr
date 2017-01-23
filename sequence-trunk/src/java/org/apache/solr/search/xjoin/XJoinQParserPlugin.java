@@ -23,12 +23,12 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.collections.iterators.TransformIterator;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.search.AutomatonQuery;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DocValuesTermsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
@@ -67,14 +67,13 @@ public class XJoinQParserPlugin extends QParserPlugin {
       @Override
       @SuppressWarnings("unchecked")
       Query makeQuery(String fname, Iterator<BytesRef> it) {
-        return new TermsQuery(fname, IteratorUtils.toList(it));
+        return new TermInSetQuery(fname, IteratorUtils.toList(it));
       }
     },
     booleanQuery {
       @Override
       Query makeQuery(String fname, Iterator<BytesRef> it) {
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
-        bq.setDisableCoord(true);
         while (it.hasNext()) {
           bq.add(new TermQuery(new Term(fname, it.next())), BooleanClause.Occur.SHOULD);
         }

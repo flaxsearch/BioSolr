@@ -128,11 +128,11 @@ public class XJoinValueSourceParser extends ValueSourceParser {
       return new DoubleDocValues(this) {
 
         @Override
-        public double doubleVal(int doc) {
-          BytesRef joinValue = joinValues.get(doc);
-          if (joinValue == null) {
+        public double doubleVal(int doc) throws IOException {
+          if (! joinValues.advanceExact(doc)) {
             throw new RuntimeException("No such doc: " + doc);
           }
+          BytesRef joinValue = joinValues.binaryValue();
           Object result = results.getResult(joinValue.utf8ToString());
           if (result == null) {
             return defaultValue;
@@ -156,8 +156,11 @@ public class XJoinValueSourceParser extends ValueSourceParser {
         //FIXME TODO What is the calling convention? Can we cache the BytesRef in exists() for doubleVal()?
         
         @Override
-        public boolean exists(int doc) {
-          BytesRef joinValue = joinValues.get(doc);
+        public boolean exists(int doc) throws IOException {
+          if (! joinValues.advanceExact(doc)) {
+            throw new RuntimeException("No such doc: " + doc);
+          }
+          BytesRef joinValue = joinValues.binaryValue();
           return joinValue != null;
         }
         
