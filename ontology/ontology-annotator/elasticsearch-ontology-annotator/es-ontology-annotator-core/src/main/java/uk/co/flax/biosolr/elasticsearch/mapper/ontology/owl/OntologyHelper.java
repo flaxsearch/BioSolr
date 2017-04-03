@@ -16,43 +16,21 @@
 
 package uk.co.flax.biosolr.elasticsearch.mapper.ontology.owl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.co.flax.biosolr.elasticsearch.mapper.ontology.OntologySettings;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.*;
 
 /**
  * Helper class for loading an ontology and making its properties easily
@@ -84,7 +62,6 @@ public class OntologyHelper {
 	 * Construct a new ontology helper instance with a string representing the
 	 * ontology URI.
 	 * 
-	 * @param ontologyUriString the URI.
 	 * @param config the ontology configuration, containing the property URIs
 	 * for labels, synonyms, etc.
 	 * @throws OWLOntologyCreationException if the ontology cannot be read for
@@ -265,7 +242,7 @@ public class OntologyHelper {
 	/**
 	 * Get the direct child URIs for an OWL class.
 	 * 
-	 * @param owlClass
+	 * @param owlClass the OWL class.
 	 * @return the child URIs, as strings. Never <code>null</code>.
 	 */
 	public Collection<String> getChildUris(OWLClass owlClass) {
@@ -275,7 +252,7 @@ public class OntologyHelper {
 	/**
 	 * Get all descendant URIs for an OWL class, including direct children.
 	 * 
-	 * @param owlClass
+	 * @param owlClass the OWL class.
 	 * @return the descendant URIs, as strings. Never <code>null</code>.
 	 */
 	public Collection<String> getDescendantUris(OWLClass owlClass) {
@@ -285,7 +262,7 @@ public class OntologyHelper {
 	/**
 	 * Get direct parent URIs for an OWL class.
 	 * 
-	 * @param owlClass
+	 * @param owlClass the OWL class.
 	 * @return the parent URIs, as strings. Never <code>null</code>.
 	 */
 	public Collection<String> getParentUris(OWLClass owlClass) {
@@ -295,7 +272,7 @@ public class OntologyHelper {
 	/**
 	 * Get all ancestor URIs for an OWL class, including direct parents.
 	 * 
-	 * @param owlClass
+	 * @param owlClass the OWL class.
 	 * @return the ancestor URIs, as strings. Never <code>null</code>.
 	 */
 	public Collection<String> getAncestorUris(OWLClass owlClass) {
@@ -331,7 +308,7 @@ public class OntologyHelper {
 	/**
 	 * Retrieve a map of related classes for a particular class.
 	 * 
-	 * @param owlClass
+	 * @param owlClass the OWL class.
 	 * @return a map of relation type to a list of IRIs for nodes with that
 	 * relationship.
 	 */
@@ -363,7 +340,7 @@ public class OntologyHelper {
 				IRI iri = exp.asOWLClass().getIRI();
 
 				if (!restrictions.containsKey(shortForm)) {
-					restrictions.put(shortForm, new ArrayList<String>());
+					restrictions.put(shortForm, new ArrayList<>());
 				}
 				restrictions.get(shortForm).add(iri.toString());
 			}
