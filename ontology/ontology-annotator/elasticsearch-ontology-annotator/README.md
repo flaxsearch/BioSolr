@@ -106,7 +106,9 @@ Example mappings for using an ontology file are:
 							"http://purl.obolibrary.org/obo/IAO_0000115"
 						],
 						"includeIndirect": true,
-						"includeRelations": true
+						"includeRelations": true,
+						"includeParentPaths": false,
+						"includeParentPathLabels": true
 					}
 				}
 			}
@@ -134,6 +136,13 @@ The `includeRelations` property indicates whether or not additional
 relationships between nodes should be included with the data. If
 `true`, relationships such as "has disease location", "participates in",
 etc., will be included with the annotation data.
+
+The `includeParentPaths` property indicates whether or not the parent
+paths from the annotated node to the root should be generated and
+added to the data. If this is set to `true`, you can also set the
+`includeParentPathLabels` property to add the parent node labels to the
+parent paths string. These will be added to a sub-field called 
+`parent_paths`. Note that this property is set to `false` by default.
 
 
 ### Using the Ontology Lookup Service

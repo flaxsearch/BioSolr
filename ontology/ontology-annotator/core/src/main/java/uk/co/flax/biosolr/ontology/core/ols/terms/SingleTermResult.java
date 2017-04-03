@@ -22,8 +22,8 @@ import java.util.Map;
 /**
  * Result object wrapping the results for a single-term lookup.
  *
- * Created by mlp on 03/12/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 03/12/15.</p>
+ * @author Matt Pearce
  */
 public class SingleTermResult extends RelatedTermsResult {
 

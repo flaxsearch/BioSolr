@@ -22,10 +22,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.ws.rs.ext.ContextResolver;
 
 /**
- * Context resolver implementation for Jackson mappings.
- * Created by mlp on 21/10/15.
+ * Context resolver implementation for OLS mappings.
  *
- * @author mlp
+ * <p>
+ * This specifically disables failing on unknown properties when
+ * deserializing objects from OLS.
+ * </p>
+ *
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ *
+ * @author Matt Pearce
  */
 public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 

@@ -28,8 +28,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit tests for the OntologyTerm object.
  *
- * Created by mlp on 21/10/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 21/10/15.</p>
+ * @author Matt Pearce
  */
 public class OntologyTermTest {
 

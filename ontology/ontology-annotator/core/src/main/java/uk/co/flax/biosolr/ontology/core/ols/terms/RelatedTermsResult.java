@@ -24,10 +24,10 @@ import java.util.Map;
 /**
  * POJO wrapping the results of a related terms lookup, such as a child
  * or parent terms query.
- * <p>
- * Created by mlp on 27/10/15.
  *
- * @author mlp
+ * <p>Created by Matt Pearce on 27/10/15.</p>
+ *
+ * @author Matt Pearce
  */
 public class RelatedTermsResult {
 

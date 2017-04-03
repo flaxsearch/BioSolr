@@ -47,8 +47,8 @@ import static org.mockserver.verify.VerificationTimes.exactly;
 /**
  * Unit tests for the OLS HTTP client class.
  *
- * Created by mlp on 10/12/15.
- * @author mlp
+ * <p>Created by Matt Pearce on 10/12/15.</p>
+ * @author Matt Pearce
  */
 public class OLSHttpClientTest {
 

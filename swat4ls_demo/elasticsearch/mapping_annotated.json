@@ -8,7 +8,9 @@
             "olsBaseURL": "http://www.ebi.ac.uk/ols/beta/api",
             "olsOntology": "efo",
             "includeIndirect": true,
-            "includeRelations": true
+            "includeRelations": true,
+	    "includeParentPaths": true,
+	    "includeParentPathLabels": true
           }
         },
         "study_id": {

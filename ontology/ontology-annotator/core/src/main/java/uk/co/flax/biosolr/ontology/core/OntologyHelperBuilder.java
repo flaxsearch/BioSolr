@@ -35,8 +35,22 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Generic builder class for the OntologyHelper implementations.
  *
- * Created by mlp on 23/02/16.
- * @author mlp
+ * <p>
+ * This should be used instead of instantiating OntologyHelper
+ * implementations directly. Depending on the settings passed, it will
+ * determine the required implementation and build it with those
+ * settings. For example:
+ * </p>
+ *
+ * <pre>
+	OntologyHelper helper = new OntologyHelperBuilder()
+ 		.olsBaseUrl("http://www.ebi.ac.uk/ols/beta")
+ 		.ontology("efo")
+ 		.build();
+ * </pre>
+ *
+ * <p>Created by Matt Pearce on 23/02/16.</p>
+ * @author Matt Pearce
  */
 public class OntologyHelperBuilder {
 
@@ -61,66 +75,137 @@ public class OntologyHelperBuilder {
 	private ThreadFactory threadFactory;
 
 
+	/**
+	 * Set the separator to use between nodes in a parentPath string.
+	 * @param separator the separator.
+	 * @return the current object.
+	 */
 	public OntologyHelperBuilder nodePathSeparator(String separator) {
 		this.nodePathSeparator = separator;
 		return this;
 	}
 
+	/**
+	 * Set the separator to use between IRIs and labels in a parentPath string.
+	 * @param separator the separator.
+	 * @return the current object.
+	 */
 	public OntologyHelperBuilder nodeLabelSeparator(String separator) {
 		this.nodeLabelSeparator = separator;
 		return this;
 	}
 
+	/**
+	 * Set the ontology URI to use. This implies that the required
+	 * OntologyHelper will be for OWL.
+	 * @param uri the ontology URI, either a file URI or URL.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder ontologyUri(String uri) {
 		this.ontologyUri = uri;
 		return this;
 	}
 
+	/**
+	 * Set the label property URIs (used by OWL).
+	 * @param uris the URIs.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder labelPropertyUris(String[] uris) {
 		this.labelPropertyUris = uris;
 		return this;
 	}
 
+	/**
+	 * Set the synonym property URIs (used by OWL).
+	 * @param uris the URIs.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder synonymPropertyUris(String[] uris) {
 		this.synonymPropertyUris = uris;
 		return this;
 	}
 
+	/**
+	 * Set the definition property URIs (used by OWL).
+	 * @param uris the URIs.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder definitionPropertyUris(String[] uris) {
 		this.definitionPropertyUris = uris;
 		return this;
 	}
 
+	/**
+	 * Set the ignore property URIs (used by OWL).
+	 * @param uris the URIs.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder ignorePropertyUris(String[] uris) {
 		this.ignorePropertyUris = uris;
 		return this;
 	}
 
+	/**
+	 * Set the OLS base URL (required for an OLS OntologyHelper).
+	 * @param url the URL.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder olsBaseUrl(String url) {
 		this.olsBaseUrl = url;
 		return this;
 	}
 
+	/**
+	 * Set the OLS ontology in use (used by OLS, optional).
+	 * @param ontology the ontology.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder ontology(String ontology) {
 		this.ontology = ontology;
 		return this;
 	}
 
+	/**
+	 * Set the maximum page size to use when calling OLS (OLS only).
+	 * @param pageSize the page size.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder pageSize(int pageSize) {
 		this.pageSize = pageSize;
 		return this;
 	}
 
+	/**
+	 * Set the maximum number of threads to use when calling OLS (OLS only).
+	 * @param tpSize the thread pool size.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder threadpoolSize(int tpSize) {
 		this.threadpoolSize = tpSize;
 		return this;
 	}
 
+	/**
+	 * Set the thread factory to use when calling OLS (OLS only).
+	 * @param tf the thread factory.
+	 * @return the current OntologyHelperBuilder object.
+	 */
 	public OntologyHelperBuilder threadFactory(ThreadFactory tf) {
 		this.threadFactory = tf;
 		return this;
 	}
 
+	/**
+	 * Build the appropriate OntologyHelper instance, dependent on which
+	 * properties have been supplied. Note that if both an ontologyURI and
+	 * an OLS base URL have been given, the returned helper will be for
+	 * OWL.
+	 * @return an OntologyHelper implementation.
+	 * @throws OntologyHelperException if there are not enough properties
+	 * to decide which type of helper to build, or the ontology URI is not
+	 * in a valid format.
+	 */
 	public OntologyHelper build() throws OntologyHelperException {
 		validateParameters();
 
@@ -135,9 +220,6 @@ public class OntologyHelperBuilder {
 						arrayToList(definitionPropertyUris, OWLOntologyConfiguration.DEFINITION_PROPERTY_URI),
 						arrayToList(ignorePropertyUris));
 				helper = new OWLOntologyHelper((OWLOntologyConfiguration) configuration);
-			} catch (OWLOntologyCreationException e) {
-				LOGGER.error("Could not create OWL ontology: {}", e.getMessage());
-				throw new OntologyHelperException(e);
 			} catch (URISyntaxException e) {
 				LOGGER.error("Invalid ontology URI {}: {}", ontologyUri, e.getMessage());
 				throw new OntologyHelperException(e);
@@ -160,6 +242,10 @@ public class OntologyHelperBuilder {
 		return helper;
 	}
 
+	/**
+	 * Validate that we have enough parameters to build an OntologyHelper.
+	 * @throws OntologyHelperException if the validation fails.
+	 */
 	private void validateParameters() throws OntologyHelperException {
 		if (StringUtils.isBlank(ontologyUri) &&
 				StringUtils.isBlank(olsBaseUrl)) {
