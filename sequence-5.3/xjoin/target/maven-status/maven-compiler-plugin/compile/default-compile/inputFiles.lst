@@ -1,0 +1,15 @@
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/FieldAppender.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/simple/XmlDocumentFactory.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinValueSourceParser.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/JoinSpec.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/Combinations.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinParameters.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinResultsFactory.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinQParserPlugin.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/simple/SimpleXJoinResultsFactory.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinSearchComponent.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/NameConverter.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/simple/JsonDocumentFactory.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/XJoinResults.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/simple/PathDocument.java
+/Users/tom/work/BioSolr/sequence-5.3/xjoin/src/main/java/org/apache/solr/search/xjoin/simple/Connection.java
