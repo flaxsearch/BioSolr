@@ -1,0 +1,50 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>uk.co.flax.biosolr</groupId>
+  <artifactId>xjoin-pdbe</artifactId>
+  <version>6.5.1-0.1</version>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!--  local dependency on XJoin -->
+    <dependency>
+      <groupId>uk.co.flax.biosolr</groupId>
+      <artifactId>xjoin</artifactId>
+      <version>6.5.1-0.1</version>
+    </dependency>
+    
+    <!-- local dependency on installed EBI JAR file -->
+    <dependency>
+      <groupId>uk.ac.ebi.webservices</groupId>
+      <artifactId>axis1</artifactId>
+      <version>2017.2.5</version>
+    </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.apache.axis/axis -->
+    <!--  required by axis1 -->
+    <dependency>
+      <groupId>org.apache.axis</groupId>
+      <artifactId>axis</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.glassfish/javax.xml.rpc -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.xml.rpc</artifactId>
+      <version>10.0-b28</version>
+    </dependency>
+    
+  </dependencies>
+</project>
