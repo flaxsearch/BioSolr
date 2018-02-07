@@ -74,7 +74,7 @@ public class XJoinQParserPlugin extends QParserPlugin {
       @Override
       Query makeQuery(String fname, Iterator<BytesRef> it) {
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
-        bq.setDisableCoord(true);
+//        bq.setDisableCoord(true);
         while (it.hasNext()) {
           bq.add(new TermQuery(new Term(fname, it.next())), BooleanClause.Occur.SHOULD);
         }

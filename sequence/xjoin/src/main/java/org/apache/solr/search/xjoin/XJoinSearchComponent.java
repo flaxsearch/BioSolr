@@ -208,9 +208,9 @@ public class XJoinSearchComponent extends SearchComponent {
     return "$description$";
   }
 
-  @Override
-  public String getSource() {
-    return "$source$";
-  }
+//  @Override
+//  public String getSource() {
+//    return "$source$";
+//  }
 
 }
