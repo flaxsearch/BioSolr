@@ -1,7 +1,7 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.co.flax.biosolr</groupId>
-  <artifactId>xjoin-fasta</artifactId>
+  <artifactId>xjoin-phmmer</artifactId>
   <version>6.5.1-0.1</version>
 
   <properties>

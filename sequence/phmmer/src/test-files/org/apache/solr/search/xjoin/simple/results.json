@@ -1,0 +1,26 @@
+{
+  "count": 312,
+  "hits": [
+    {
+      "id": "a3e5bd",
+      "colour": "blue",
+      "testid": 2,
+    },
+    {
+      "id": "252ae1",
+      "colour": "red",
+      "testid": 0
+    },
+    {
+      "id": "912151",
+      "colour": "green"
+    }
+  ],
+  "meta": [
+    {
+      "id": "252ae1",
+      "testid": 0,
+      "value": 10.5
+    }
+  ]
+}
