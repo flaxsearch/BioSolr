@@ -26,12 +26,12 @@ public class PhmmerClient {
 
   public JsonObject getResults(String database, String sequence) throws IOException {
     String respUrl = getResultsUrl(database, sequence);
-    LOG.fine("response URL=" + respUrl);
+    LOG.info("response URL=" + respUrl);
     return getResultsJson(respUrl);
   }
   
   private String getResultsUrl(String database, String sequence) throws IOException {
-    LOG.fine("getting PHMMER data for seqdb=" + database + "; sequence=" + sequence);
+    LOG.info("getting PHMMER data for seqdb=" + database + "; sequence=" + sequence);
     try (HttpConnection http = new HttpConnection(phmmerUrl)) {
       http.post("seqdb=" + database + "&seq=>Seq%0D%0" + sequence);
       return http.getHeader("Location");

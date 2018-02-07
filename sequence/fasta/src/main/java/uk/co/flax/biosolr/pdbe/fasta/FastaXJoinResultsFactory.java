@@ -78,9 +78,24 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
     }
 
     email = (String) args.get(INIT_EMAIL);
+    if (email == null || email.isEmpty()) {
+        throw new RuntimeException("external email parameter is required");
+    }
+
     program = (String) args.get(INIT_PROGRAM);
+    if (program == null || program.isEmpty()) {
+        throw new RuntimeException("external program parameter is required");
+    }
+
     database = (String) args.get(INIT_DATABASE);
+    if (database == null || database.isEmpty()) {
+        throw new RuntimeException("external database parameter is required");
+    }
+
     sType = (String) args.get(INIT_STYPE);
+    if (sType == null || sType.isEmpty()) {
+        throw new RuntimeException("external stype parameter is required");
+    }
   }
 
   private String getParam(SolrParams params, String name) {

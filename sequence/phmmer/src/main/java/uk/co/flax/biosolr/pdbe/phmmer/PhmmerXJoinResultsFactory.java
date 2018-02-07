@@ -60,12 +60,18 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
         throw new UnsupportedOperationException("debug file not supported");
     } 
     else {
-      String url = (String) args.get(PHMMER_URL);    
+      String url = (String) args.get(PHMMER_URL);
+      if (url == null || url.isEmpty()) {
+          throw new RuntimeException("external url parameter is required");
+      }
       LOG.info("creating PHMMER client with URL " + url);
       client = new PhmmerClient(url);
     }
 
     database = (String)args.get(INIT_DATABASE);
+    if (database == null || database.isEmpty()) {
+        throw new RuntimeException("external database parameter is required");        
+    }
     LOG.info("PHMMER database is " + database);
   }
 
