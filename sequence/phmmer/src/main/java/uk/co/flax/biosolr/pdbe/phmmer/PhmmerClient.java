@@ -6,18 +6,20 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 //import uk.co.flax.biosolr.pdbe.fasta.FastaJob;
 
 public class PhmmerClient {
 
-  private static final Logger LOG = Logger.getLogger(PhmmerClient.class.getName());
-    
+  private static final Logger LOG = LoggerFactory.getLogger(PhmmerClient.class);
+  
   private String phmmerUrl;
   
   public PhmmerClient(String phmmerUrl) {
@@ -26,14 +28,14 @@ public class PhmmerClient {
 
   public JsonObject getResults(String database, String sequence) throws IOException {
     String respUrl = getResultsUrl(database, sequence);
-    LOG.info("response URL=" + respUrl);
+    LOG.debug("response URL=" + respUrl);
     return getResultsJson(respUrl);
   }
   
   private String getResultsUrl(String database, String sequence) throws IOException {
     LOG.info("getting PHMMER data for seqdb=" + database + "; sequence=" + sequence);
     try (HttpConnection http = new HttpConnection(phmmerUrl)) {
-      http.post("seqdb=" + database + "&seq=>Seq%0D%0" + sequence);
+      http.post("seqdb=" + database + "&seq=>Seq%0D%0A" + sequence);
       return http.getHeader("Location");
     }
   }
@@ -50,10 +52,12 @@ public class PhmmerClient {
     private HttpURLConnection http;
     
     private HttpConnection(String url) throws IOException {
+      LOG.debug("opening connection to " + url);
       http = (HttpURLConnection)new URL(url).openConnection();
     }
     
     private void post(String params) throws IOException {
+      LOG.debug("POSTing \"" + params + "\"");
       http.setRequestMethod("POST");
       http.setDoOutput(true);
       http.setInstanceFollowRedirects(false);
@@ -62,6 +66,8 @@ public class PhmmerClient {
       try (OutputStream out = http.getOutputStream()) {
         out.write(params.getBytes());
       }
+      
+      LOG.debug("response is " + http.getResponseCode() + " " + http.getResponseMessage());
     }
     
     private String getHeader(String key) {

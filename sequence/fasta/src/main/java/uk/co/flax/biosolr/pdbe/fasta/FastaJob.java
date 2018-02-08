@@ -6,17 +6,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import uk.ac.ebi.webservices.axis1.stubs.fasta.InputParameters;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_PortType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class FastaJob implements Runnable {
 
-  private static final Logger LOG = Logger.getLogger(FastaJob.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(FastaJob.class);
 
   private JDispatcherService_PortType fasta;
 
@@ -101,16 +103,18 @@ public class FastaJob implements Runnable {
 
   public void run() {
     try {
+      LOG.debug("FastaJob.run");
       jobId = fasta.run(email, "", params);
+      LOG.debug("jobId=" + jobId);
 
       do {
         Thread.sleep(200);
         status = fasta.getStatus(jobId);
-        LOG.log(Level.FINE, status);
+        LOG.debug("status=" + status);
       } while (status.equals(FastaStatus.RUNNING));
 
       if (!status.equals(FastaStatus.DONE)) {
-        LOG.log(Level.SEVERE, "Error with job: " + jobId + " (" + status + ")");
+        LOG.error("Error with job: " + jobId + " (" + status + ")");
       }
     } catch (InterruptedException e) {
       interrupted = true;

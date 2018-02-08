@@ -24,11 +24,17 @@ import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_Service;
 import uk.ac.ebi.webservices.axis1.stubs.fasta.JDispatcherService_ServiceLocator;
 //import uk.ac.ebi.webservices.axis1.stubs.fasta.WsResultType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 /**
  * Connect to FASTA service and generate a PDB id filter based on a user
  * supplied sequence.
  */
 public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(FastaXJoinResultsFactory.class);
 
   // initialisation parameters
   public static final String INIT_EMAIL = "email";
@@ -54,6 +60,8 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
   @Override
   @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
+    LOG.info("initialising FastaXJoinResultsFactory");
+    
     String debugFile = (String) args.get(INIT_DEBUG_FILE);
     if (debugFile != null) {
 //      try {
@@ -81,21 +89,25 @@ public class FastaXJoinResultsFactory implements XJoinResultsFactory<String> {
     if (email == null || email.isEmpty()) {
         throw new RuntimeException("external email parameter is required");
     }
+    LOG.info("email=" + email);
 
     program = (String) args.get(INIT_PROGRAM);
     if (program == null || program.isEmpty()) {
         throw new RuntimeException("external program parameter is required");
     }
+    LOG.info("program=" + program);
 
     database = (String) args.get(INIT_DATABASE);
     if (database == null || database.isEmpty()) {
         throw new RuntimeException("external database parameter is required");
     }
+    LOG.info("database=" + database);
 
     sType = (String) args.get(INIT_STYPE);
     if (sType == null || sType.isEmpty()) {
         throw new RuntimeException("external stype parameter is required");
     }
+    LOG.info("sType=" + sType);
   }
 
   private String getParam(SolrParams params, String name) {

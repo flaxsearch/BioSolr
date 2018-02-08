@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 //import javax.json.Json;
 //import javax.json.JsonObject;
@@ -23,9 +22,13 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.xjoin.XJoinResults;
 import org.apache.solr.search.xjoin.XJoinResultsFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
   
-  private static final Logger LOG = Logger.getLogger(PhmmerXJoinResultsFactory.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(PhmmerXJoinResultsFactory.class);
 
   // initialisation parameters
   public static final String INIT_DATABASE = "database";
@@ -42,6 +45,7 @@ public class PhmmerXJoinResultsFactory implements XJoinResultsFactory<String> {
   @Override
   @SuppressWarnings("rawtypes")
   public void init(NamedList args) {
+    LOG.info("initialising PhmmerXJoinResultsFactory");
     String debugFile = (String) args.get(INIT_DEBUG_FILE);
     if (debugFile != null) {
 //      try {
