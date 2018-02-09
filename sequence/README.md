@@ -131,3 +131,9 @@ handler, add the following fragment to the handler in `solrconfig.xml`:
 ```
 
 An example `solrconfig.xml` is provided in `sequence/solr-conf`.
+
+To enable logging of these components, add the following line to your Solr `log4j.properties` file:
+```
+    log4j.logger.uk.co.flax.biosolr=DEBUG
+```
+(replacing DEBUG with the desired logging level.)
