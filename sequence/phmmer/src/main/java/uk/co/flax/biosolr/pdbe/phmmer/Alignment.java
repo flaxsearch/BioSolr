@@ -102,6 +102,10 @@ public class Alignment {
     }
   }
 
+  public double getSignificanceThreshold() {
+    return SIGNIFICANCE_THRESHOLD;
+  }
+
   public String getTarget() {
     return target;
   }

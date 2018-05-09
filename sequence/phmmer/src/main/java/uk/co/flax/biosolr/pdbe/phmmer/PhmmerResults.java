@@ -17,13 +17,19 @@ public class PhmmerResults {
   
   /*package*/ void addAlignment(Alignment alignment) {
     String[] bits = alignment.getTarget().split("_"); // split out the pdb id from e.g. 1cms_A
+    Double significanceValue = alignment.getEValueInd();
+    Double significanceThreshold = alignment.getSignificanceThreshold();
     Map<String, Alignment> map = alignments.get(bits[0]);
     if (map == null) {
       map = new HashMap<>();
-      alignments.put(bits[0], map);
+      if (significanceValue <= significanceThreshold){
+          alignments.put(bits[0], map);
+      }
     }
-    if (map.put(bits[1], alignment) == null) {
-      ++numChains;
+    if (significanceValue <= significanceThreshold){
+        if (map.put(bits[1], alignment) == null) {
+            ++numChains;
+        }
     }
   }
   
