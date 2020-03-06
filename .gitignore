@@ -2,6 +2,7 @@
 *.iml
 *.ipr
 *.iws
+.idea/
 
 # Eclipse project files
 .project
@@ -12,5 +13,10 @@ bin/
 
 # Maven files
 dependency-reduced-pom.xml
+target/
+
+# Java build output
+*.jar
+*.class
 
 .DS_Store
