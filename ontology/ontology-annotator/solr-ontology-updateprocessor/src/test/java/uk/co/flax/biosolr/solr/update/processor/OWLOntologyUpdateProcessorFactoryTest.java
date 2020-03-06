@@ -16,7 +16,9 @@
 
 package uk.co.flax.biosolr.solr.update.processor;
 
+import org.apache.solr.request.SolrQueryRequest;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Unit tests for the OntologyUpdateProcessorFactory, using SolrTestCaseJ4
@@ -32,4 +34,29 @@ public class OWLOntologyUpdateProcessorFactoryTest extends OntologyUpdateProcess
 		initCore("solrconfig.xml", "schema.xml", "ontologyUpdate/solr", "documents");
 	}
 
+	@Test
+	public void addDoc_checkChildren() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find child", req, "//result[@numFound=1]",
+				"//arr[@name='annotation_uri_child_uris_s']/str[1][.='" + TEST_CHILD_IRI + "']",
+				"//arr[@name='annotation_uri_child_labels_t']/str[1][.='material entity']");
+	}
+
+	@Test
+	public void addDoc_checkParents() throws Exception {
+		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_CHILD_IRI),
+				ONTOLOGY_UPDATE_CHAIN);
+		assertU(commit());
+		checkNumDocs(1);
+
+		SolrQueryRequest req = req("id:1");
+		assertQ("Could not find parent", req, "//result[@numFound=1]",
+				"//arr[@name='annotation_uri_parent_uris_s']/str[1][.='" + TEST_IRI + "']",
+				"//arr[@name='annotation_uri_parent_labels_t']/str[1][.='experimental factor']");
+	}
 }
