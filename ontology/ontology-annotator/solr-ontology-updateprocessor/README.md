@@ -148,6 +148,8 @@ include the labels of the nodes as part of the stored data. Has no
 effect if `includeParentPaths` is set to `false`. Default: `false`
 * **parentPathsField** - the field to use to store the parent paths.
 Default: `parent_paths_t`
+* **includeDescendants** - Set to `false` to skip descendant references. Default: `true`
+* **includeChildren** - Set to `false` to skip child document references. Default: `true`
 
 
 ### Additional configuration (OWL files)

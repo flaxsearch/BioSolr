@@ -176,6 +176,8 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private static final String PARENT_PATHS_LABEL_PARAM = "includeParentPathLabels";
 	private static final String PARENT_PATHS_FIELD_PARAM = "parentPathsField";
 
+	private static final String INCLUDE_CHILDREN_PARAM = "includeChildren";
+	private static final String INCLUDE_DESCENDANTS_PARAM = "includeDescendants";
 
 	/*
 	 * Default field values
@@ -198,11 +200,13 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 	private String labelField;
 	private String uriFieldSuffix;
 	private String labelFieldSuffix;
+	private boolean includeChildren;
 	private String childUriField;
 	private String childLabelField;
 	private String parentUriField;
 	private String parentLabelField;
 	private boolean includeIndirect;
+	private boolean includeDescendants;
 	private String descendantUriField;
 	private String descendantLabelField;
 	private String ancestorUriField;
@@ -233,6 +237,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.labelField = params.get(LABEL_FIELD_PARAM, fieldPrefix + LABEL_FIELD_DEFAULT);
 			this.uriFieldSuffix = params.get(URI_FIELD_SUFFIX_PARAM, URI_FIELD_SUFFIX);
 			this.labelFieldSuffix = params.get(LABEL_FIELD_SUFFIX_PARAM, LABEL_FIELD_SUFFIX);
+			this.includeChildren = params.getBool(INCLUDE_CHILDREN_PARAM, true);
 			String childField = params.get(CHILD_FIELD_PARAM, fieldPrefix + CHILD_FIELD_DEFAULT);
 			this.childUriField = childField + uriFieldSuffix;
 			this.childLabelField = childField + labelFieldSuffix;
@@ -240,6 +245,7 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			this.parentUriField = parentField + uriFieldSuffix;
 			this.parentLabelField = parentField + labelFieldSuffix;
 			this.includeIndirect = params.getBool(INCLUDE_INDIRECT_PARAM, true);
+			this.includeDescendants = params.getBool(INCLUDE_DESCENDANTS_PARAM, true);
 			String descendentField = params.get(DESCENDANT_FIELD_PARAM, fieldPrefix + DESCENDANT_FIELD_DEFAULT);
 			this.descendantUriField = descendentField + uriFieldSuffix;
 			this.descendantLabelField = descendentField + labelFieldSuffix;
@@ -391,6 +397,14 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 		return parentPathsField;
 	}
 
+	public boolean isIncludeChildren() {
+		return includeChildren;
+	}
+
+	public boolean isIncludeDescendants() {
+		return includeDescendants;
+	}
+
 	public synchronized OntologyHelper initialiseHelper() throws OntologyHelperException {
 		if (helper == null) {
 			helper = helperFactory.buildOntologyHelper();
@@ -476,15 +490,19 @@ public class OntologyUpdateProcessorFactory extends UpdateRequestProcessorFactor
 			}
 
 			// Add child and parent URIs and labels
-			doc.addField(getChildUriField(), data.getChildIris());
-			doc.addField(getChildLabelField(), data.getChildLabels());
+			if (isIncludeChildren()) {
+				doc.addField(getChildUriField(), data.getChildIris());
+				doc.addField(getChildLabelField(), data.getChildLabels());
+			}
 			doc.addField(getParentUriField(), data.getParentIris());
 			doc.addField(getParentLabelField(), data.getParentLabels());
 
 			if (isIncludeIndirect()) {
 				// Add descendant and ancestor URIs and labels
-				doc.addField(getDescendantUriField(), data.getDescendantIris());
-				doc.addField(getDescendantLabelField(), data.getDescendantLabels());
+				if (isIncludeDescendants()) {
+					doc.addField(getDescendantUriField(), data.getDescendantIris());
+					doc.addField(getDescendantLabelField(), data.getDescendantLabels());
+				}
 				doc.addField(getAncestorUriField(), data.getAncestorIris());
 				doc.addField(getAncestorLabelField(), data.getAncestorLabels());
 			}
