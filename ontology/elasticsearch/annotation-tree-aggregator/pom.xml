@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<randomizedtesting-runner.version>2.1.14</randomizedtesting-runner.version>
-		<elasticsearch.version>1.7.1</elasticsearch.version>
+		<elasticsearch.version>6.8.13</elasticsearch.version>
 	</properties>
 
 	<build>
