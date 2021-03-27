@@ -15,16 +15,7 @@
  */
 package uk.co.flax.biosolr;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrException.ErrorCode;
 import org.apache.solr.common.util.NamedList;
@@ -35,9 +26,16 @@ import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RefCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.co.flax.biosolr.builders.FacetTreeBuilder;
 import uk.co.flax.biosolr.pruning.Pruner;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * Class to generate a facet tree.
@@ -59,7 +57,7 @@ public class FacetTreeGenerator {
 	}
 	
 	public List<SimpleOrderedMap<Object>> generateTree(ResponseBuilder rb, NamedList<Integer> facetValues) throws IOException {
-		List<SimpleOrderedMap<Object>> retVal = null;
+		List<SimpleOrderedMap<Object>> retVal;
 		
 		// First get the searcher for the required collection
 		RefCounted<SolrIndexSearcher> searcherRef = getSearcherReference(rb);
@@ -99,7 +97,7 @@ public class FacetTreeGenerator {
 			searcherRef = currentCore.getSearcher();
 		} else {
 			// Using an alternative core - find it
-			SolrCore reqCore = currentCore.getCoreDescriptor().getCoreContainer().getCore(collection);
+			SolrCore reqCore = currentCore.getCoreContainer().getCore(collection);
 			if (reqCore == null) {
 				throw new SolrException(ErrorCode.BAD_REQUEST, "Collection \"" + collection
 						+ "\" cannot be found");
@@ -117,8 +115,7 @@ public class FacetTreeGenerator {
 	 */
 	private Map<String, Integer> extractFacetValues(NamedList<Integer> facetValues) {
 		Map<String, Integer> facetMap = new LinkedHashMap<>();
-		for (Iterator<Entry<String, Integer>> it = facetValues.iterator(); it.hasNext(); ) {
-			Entry<String, Integer> entry = it.next();
+		for (Entry<String, Integer> entry : facetValues) {
 			if (entry.getValue() > 0) {
 				facetMap.put(entry.getKey(), entry.getValue());
 			}

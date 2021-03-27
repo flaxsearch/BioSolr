@@ -1,5 +1,6 @@
 package uk.co.flax.biosolr;
 
+import java.net.URL;
 import java.util.List;
 
 import org.apache.solr.SolrTestCaseJ4;
@@ -27,7 +28,7 @@ public class SimpleTreeFacetComponentTest extends SolrTestCaseJ4 {
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		// Initialise a single Solr core
-		initCore("solrconfig.xml", "schema.xml", "facetTree/solr", "hierarchy");
+		initCore("solrconfig.xml", "schema.xml", "src/test/resources/facetTree/solr", "hierarchy");
 		
 		// Add some records
 		assertNull(h.validateUpdate(adoc("id", "0", "node_id", "A", "child_ids", "AA", "child_ids", "AB", "child_ids", "AC", "name", "nodeA", "label", "nodeA")));
