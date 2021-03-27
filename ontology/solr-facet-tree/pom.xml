@@ -14,7 +14,7 @@
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<solr.version>5.3.1</solr.version>
+		<solr.version>8.4.1</solr.version>
 	</properties>
 	
 	<build>
@@ -44,6 +44,12 @@
 			<artifactId>solr-test-framework</artifactId>
 			<version>${solr.version}</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.9</version>
 		</dependency>
 		
 		<dependency>
