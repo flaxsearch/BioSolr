@@ -32,6 +32,8 @@ import org.junit.Test;
  * 
  * @author mlp
  */
+// Ignoring - needs re-writing to use a dummy Solr core
+@Ignore
 public class FacetTreeProcessorTest {
 	
 	@Test
