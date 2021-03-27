@@ -19,7 +19,7 @@ package uk.co.flax.biosolr.pruning;
 import static uk.co.flax.biosolr.FacetTreeParameters.DATAPOINTS_PARAM;
 import static uk.co.flax.biosolr.FacetTreeParameters.PRUNE_PARAM;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SyntaxError;
 

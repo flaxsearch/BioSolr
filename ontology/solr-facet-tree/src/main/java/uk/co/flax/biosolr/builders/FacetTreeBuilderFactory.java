@@ -16,7 +16,7 @@
 
 package uk.co.flax.biosolr.builders;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.SyntaxError;
 
