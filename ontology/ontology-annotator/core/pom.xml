@@ -35,7 +35,7 @@
 		<jersey.version>2.22.1</jersey.version>
 		<owlapi.version>3.5.2</owlapi.version>
 		<randomizedtesting-runner.version>2.1.16</randomizedtesting-runner.version>
-		<jackson.version>2.7.1</jackson.version>
+		<jackson.version>2.12.1</jackson.version>
 
 		<!-- Compile for Java 8 -->
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -58,7 +58,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -71,7 +71,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -81,6 +81,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
@@ -106,6 +107,7 @@
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
 			</plugin>
+			-->
 		</plugins>
 	</build>
 

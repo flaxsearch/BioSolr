@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<solr.version>8.4.1</solr.version>
 		<owlapi.version>3.5.2</owlapi.version>
-		<jackson.version>2.5.4</jackson.version>
+		<jackson.version>2.12.1</jackson.version>
 		<guava.version>18.0</guava.version>
 	</properties>
 
@@ -55,7 +55,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>uk.co.flax</groupId>
+			<groupId>uk.co.flax.biosolr</groupId>
 			<artifactId>ontology-annotator-core</artifactId>
 			<version>1.1</version>
 		</dependency>
@@ -128,7 +128,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

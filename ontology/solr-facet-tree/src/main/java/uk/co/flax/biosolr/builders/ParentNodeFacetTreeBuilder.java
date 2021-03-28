@@ -30,7 +30,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -191,7 +191,7 @@ public class ParentNodeFacetTreeBuilder extends AbstractFacetTreeBuilder {
 	 * @return a filter string.
 	 */
 	private Query buildFilterQuery(String field, Collection<String> values) {
-		BooleanQuery.Builder builder = new BooleanQuery.Builder().setDisableCoord(true);
+		BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
 		values.stream()
 			.map(v -> new TermQuery(new Term(field, v)))

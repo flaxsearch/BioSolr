@@ -71,32 +71,6 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 	}
 
 	@Test
-	public void addDoc_checkChildren() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
-				ONTOLOGY_UPDATE_CHAIN);
-		assertU(commit());
-		checkNumDocs(1);
-
-		SolrQueryRequest req = req("id:1");
-		assertQ("Could not find child", req, "//result[@numFound=1]",
-				"//arr[@name='annotation_uri_child_uris_s']/str[1][.='" + TEST_CHILD_IRI + "']",
-		"//arr[@name='annotation_uri_child_labels_t']/str[1][.='material entity']");
-	}
-
-	@Test
-	public void addDoc_checkParents() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_CHILD_IRI),
-				ONTOLOGY_UPDATE_CHAIN);
-		assertU(commit());
-		checkNumDocs(1);
-
-		SolrQueryRequest req = req("id:1");
-		assertQ("Could not find parent", req, "//result[@numFound=1]",
-				"//arr[@name='annotation_uri_parent_uris_s']/str[1][.='" + TEST_IRI + "']",
-				"//arr[@name='annotation_uri_parent_labels_t']/str[1][.='experimental factor']");
-	}
-
-	@Test
 	public void addDoc_checkSynonyms() throws Exception {
 		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
 				ONTOLOGY_UPDATE_CHAIN);

@@ -1,0 +1,27 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>uk.co.flax.biosolr</groupId>
+  <artifactId>test-xjoin</artifactId>
+  <version>7.2.1-0.1</version>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>uk.co.flax.biosolr</groupId>
+      <artifactId>xjoin</artifactId>
+      <version>7.2.1-0.1</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+
+  </dependencies>
+</project>
