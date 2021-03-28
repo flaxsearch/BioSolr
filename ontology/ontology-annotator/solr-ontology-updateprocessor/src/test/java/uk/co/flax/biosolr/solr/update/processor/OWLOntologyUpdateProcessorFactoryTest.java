@@ -31,12 +31,12 @@ public class OWLOntologyUpdateProcessorFactoryTest extends OntologyUpdateProcess
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		// Initialise a single Solr core
-		initCore("solrconfig.xml", "schema.xml", "ontologyUpdate/solr", "documents");
+		initCore("solrconfig.xml", "schema.xml", "src/test/resources/ontologyUpdate/solr", "documents");
 	}
 
 	@Test
 	public void addDoc_checkChildren() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
+		addDocWithUpdateChain(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
 		checkNumDocs(1);
@@ -49,7 +49,7 @@ public class OWLOntologyUpdateProcessorFactoryTest extends OntologyUpdateProcess
 
 	@Test
 	public void addDoc_checkParents() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_CHILD_IRI),
+		addDocWithUpdateChain(adoc("id", "1", "name", "name1", "annotation_uri", TEST_CHILD_IRI),
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
 		checkNumDocs(1);
