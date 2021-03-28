@@ -60,7 +60,7 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 
 	@Test
 	public void addDoc_checkLabel() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
+		addDocWithUpdateChain(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
 		checkNumDocs(1);
@@ -72,7 +72,7 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 
 	@Test
 	public void addDoc_checkSynonyms() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
+		addDocWithUpdateChain(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
 		checkNumDocs(1);
@@ -84,7 +84,7 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 
 	@Test
 	public void addDoc_checkDefinition() throws Exception {
-		addDoc(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
+		addDocWithUpdateChain(adoc("id", "1", "name", "name1", "annotation_uri", TEST_IRI),
 				ONTOLOGY_UPDATE_CHAIN);
 		assertU(commit());
 		checkNumDocs(1);
@@ -94,7 +94,7 @@ public abstract class OntologyUpdateProcessorFactoryTest extends SolrTestCaseJ4 
 				"//arr[@name='annotation_uri_definition_t']/str[1][.='An experimental factor in Array Express which are essentially the variable aspects of an experiment design which can be used to describe an experiment, or set of experiments, in an increasingly detailed manner. This upper level class is really used to give a root class from which applications can rely on and not be tied to upper ontology classses which do change.']");
 	}
 
-	static void addDoc(String doc, String chain) throws Exception {
+	static void addDocWithUpdateChain(String doc, String chain) throws Exception {
 		Map<String, String[]> params = new HashMap<>();
 		MultiMapSolrParams mmparams = new MultiMapSolrParams(params);
 		params.put(UpdateParams.UPDATE_CHAIN, new String[] { chain });
