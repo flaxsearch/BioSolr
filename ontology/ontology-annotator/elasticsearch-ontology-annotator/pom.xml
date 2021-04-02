@@ -50,7 +50,7 @@
 	<dependencies>
 		<!-- Core module -->
 		<dependency>
-			<groupId>uk.co.flax</groupId>
+			<groupId>uk.co.flax.biosolr</groupId>
 			<artifactId>ontology-annotator-core</artifactId>
 			<version>1.1</version>
 		</dependency>
