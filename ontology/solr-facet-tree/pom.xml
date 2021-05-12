@@ -14,7 +14,7 @@
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<solr.version>8.4.1</solr.version>
+		<solr.version>8.8.2</solr.version>
 	</properties>
 	
 	<build>
