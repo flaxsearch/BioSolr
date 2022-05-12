@@ -18,7 +18,7 @@ package uk.co.flax.biosolr.solr.ontology;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.util.DefaultSolrThreadFactory;
+import org.apache.solr.common.util.SolrjNamedThreadFactory;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class SolrOntologyHelperFactory {
 				.ontology(params.get(OLS_ONTOLOGY_NAME))
 				.pageSize(params.getInt(OLS_PAGE_SIZE, OLSOntologyHelper.PAGE_SIZE))
 				.threadpoolSize(params.getInt(OLS_THREADPOOL, OLSOntologyHelper.THREADPOOL_SIZE))
-				.threadFactory(new DefaultSolrThreadFactory("olsOntologyHelper"))
+				.threadFactory(new SolrjNamedThreadFactory("olsOntologyHelper"))
 				.nodeLabelSeparator(params.get(NODE_LABEL_SEPARATOR_PARAM, OntologyHelperConfiguration.NODE_LABEL_SEPARATOR))
 				.nodePathSeparator(params.get(NODE_PATH_SEPARATOR_PARAM, OntologyHelperConfiguration.NODE_PATH_SEPARATOR))
 				.build();
