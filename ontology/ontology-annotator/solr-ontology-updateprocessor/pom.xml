@@ -16,7 +16,7 @@
 		<solr.version>8.4.1</solr.version>
 		<owlapi.version>3.5.2</owlapi.version>
 		<!-- Jackson version 2.12 is incompatible with Solr 8.x -->
-		<jackson.version>2.10.1</jackson.version>
+		<jackson.version>2.12.6.1</jackson.version>
 		<guava.version>18.0</guava.version>
 	</properties>
 
