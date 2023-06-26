@@ -111,7 +111,7 @@ public class FastaJob implements Runnable {
         Thread.sleep(200);
         status = fasta.getStatus(jobId);
         LOG.debug("status=" + status);
-      } while (status.equals(FastaStatus.RUNNING));
+      } while (status.equals(FastaStatus.RUNNING) || status.equals(FastaStatus.QUEUED));
 
       if (!status.equals(FastaStatus.DONE)) {
         LOG.error("Error with job: " + jobId + " (" + status + ")");
