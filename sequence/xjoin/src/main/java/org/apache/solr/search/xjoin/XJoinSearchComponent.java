@@ -220,11 +220,25 @@ public class XJoinSearchComponent extends SearchComponent {
         // Loop through the shard requests and gather the join IDs
         for (ShardRequest sreq : rb.finished) {
           for (ShardResponse sresp : sreq.responses) {
-            LOGGER.info("Dealing with response from shard {}", sresp.getShardAddress());
+            String shardAddress = sresp.getShardAddress();
+            LOGGER.info("Dealing with response from shard {}", shardAddress);
             SolrResponse solrResponse = sresp.getSolrResponse();
-            for (Iterator<SolrDocument> it = distDocIterator(rb, solrResponse.getResponse(), joinFields); it.hasNext(); ) {
+
+            NamedList<Object> response = solrResponse.getResponse();
+            if (response == null) {
+              LOGGER.warn("Solr response is null for shard {}", shardAddress);
+              continue;
+            }
+            Iterator<SolrDocument> it = distDocIterator(rb, solrResponse.getResponse(), joinFields);
+            while (it.hasNext()) {
               SolrDocument doc = it.next();
-              for (Object joinId : doc.getFieldValues(joinField)) {
+              Collection<Object> fieldValues = doc.getFieldValues(joinField);
+              if (fieldValues == null) {
+                LOGGER.debug("Field values are null for joinField {} in document {}", joinField, doc);
+                continue;
+              }
+              for (Object joinId : fieldValues) {
+                LOGGER.debug("JoinId found {} for {}", joinId.toString(), joinField);
                 joinIds.add(joinId.toString());
               }
             }
