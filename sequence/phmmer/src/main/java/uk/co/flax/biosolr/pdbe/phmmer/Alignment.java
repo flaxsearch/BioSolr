@@ -2,6 +2,7 @@ package uk.co.flax.biosolr.pdbe.phmmer;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 
 public class Alignment {
   
@@ -60,18 +61,37 @@ public class Alignment {
     species = hit.getString("species");
     description = hit.getString("desc");
     score = Double.parseDouble(hit.getString("score"));
-    eValue = Double.parseDouble(hit.getString("evalue"));
+
+    JsonValue eValueJSON = hit.get("evalue");
+
+    if (eValueJSON.getValueType() == JsonValue.ValueType.NUMBER) {
+      eValue = hit.getJsonNumber("evalue").doubleValue();
+    } else if (eValueJSON.getValueType() == JsonValue.ValueType.STRING) {
+      eValue = Double.parseDouble(hit.getString("evalue"));
+    }
 
     JsonArray domains = hit.getJsonArray("domains");
     for (int i = 0; i < domains.size(); ++i) {
       JsonObject domain = domains.getJsonObject(i);
       
       // skip insignificant matches (by ind. eValue)
-      eValueInd = Double.parseDouble(domain.getString("ievalue"));
+      JsonValue eValue = domain.get("ievalue");
+      if (eValue.getValueType() == JsonValue.ValueType.NUMBER) {
+        eValueInd = domain.getJsonNumber("ievalue").doubleValue();
+      } else if (eValue.getValueType() == JsonValue.ValueType.STRING) {
+        eValueInd = Double.parseDouble(domain.getString("ievalue"));
+      }
+
       if (eValueInd >= SIGNIFICANCE_THRESHOLD) continue;
-      
-      eValueCond = Double.parseDouble(domain.getString("cevalue"));
-      
+
+      JsonValue ceValue = domain.get("cevalue");
+
+      if (ceValue.getValueType() == JsonValue.ValueType.NUMBER) {
+        eValueCond = domain.getJsonNumber("cevalue").doubleValue();
+      } else if (ceValue.getValueType() == JsonValue.ValueType.STRING) {
+        eValueCond = Double.parseDouble(domain.getString("cevalue"));
+      }
+
       querySequence = domain.getString("alimodel");
       querySequenceStart = domain.getInt("alihmmfrom");
       querySequenceEnd = domain.getInt("alihmmto");
